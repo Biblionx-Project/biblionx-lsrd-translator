@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""
+Módulo NLP de Preprocesamiento y Lematización de Texto Español -> Gramática LSRD.
+"""
+
 import re
 import unicodedata
 
@@ -9,6 +14,19 @@ LSRD_STOP_WORDS = {
 }
 
 AUXILIARY_VERBS = {'es', 'son', 'ser', 'esta', 'estan', 'estar', 'fue', 'fueron', 'era', 'eran'}
+
+# Reglas básicas de lematización verbal del español al infinitivo
+VERB_SUFFIXES = [
+    ('ando', 'ar'), ('iendo', 'er'), ('yendo', 'ir'),
+    ('aba', 'ar'), ('abas', 'ar'), ('abamos', 'ar'), ('aban', 'ar'),
+    ('ia', 'er'), ('ias', 'er'), ('iamos', 'er'), ('ian', 'er'),
+    ('ara', 'ar'), ('aras', 'ar'), ('aremos', 'ar'), ('aran', 'ar'),
+    ('era', 'er'), ('eras', 'er'), ('eremos', 'er'), ('eran', 'er'),
+    ('a', 'ar'), ('as', 'ar'), ('amos', 'ar'), ('an', 'ar'),
+    ('e', 'er'), ('es', 'er'), ('emos', 'er'), ('en', 'er'),
+    ('io', 'er'), ('aste', 'ar'), ('iste', 'er'), ('aron', 'ar'), ('ieron', 'er'),
+    ('aja', 'ajar'), ('ajas', 'ajar'), ('ajamos', 'ajar'), ('ajan', 'ajar')
+]
 
 def normalize_word(word):
     word = word.lower().strip()
@@ -22,6 +40,7 @@ def lemmatize_word(word_norm):
         return word_norm
     if word_norm.endswith(('ar', 'er', 'ir')):
         return word_norm
+    # Common verb mappings
     if word_norm in ['trabaja', 'trabajas', 'trabajamos', 'trabajan', 'trabajando', 'trabajo']:
         return 'trabajar'
     if word_norm in ['estudia', 'estudias', 'estudiamos', 'estudian', 'estudiando']:
