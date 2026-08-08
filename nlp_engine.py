@@ -119,9 +119,15 @@ def _load_regular_conjugation_map():
             conn.close()
 
             endings = {
-                'ar': {'o': 'ar', 'as': 'ar', 'a': 'ar', 'amos': 'ar', 'an': 'ar'},
-                'er': {'o': 'er', 'es': 'er', 'e': 'er', 'emos': 'er', 'en': 'er'},
-                'ir': {'o': 'ir', 'es': 'ir', 'e': 'ir', 'imos': 'ir', 'en': 'ir'},
+                # presente
+                'ar': {'o': 'ar', 'as': 'ar', 'a': 'ar', 'amos': 'ar', 'an': 'ar',
+                       # imperfecto (-aba)
+                       'aba': 'ar', 'abas': 'ar', 'abamos': 'ar', 'aban': 'ar'},
+                'er': {'o': 'er', 'es': 'er', 'e': 'er', 'emos': 'er', 'en': 'er',
+                       # imperfecto (-ia)
+                       'ia': 'er', 'ias': 'er', 'iamos': 'er', 'ian': 'er'},
+                'ir': {'o': 'ir', 'es': 'ir', 'e': 'ir', 'imos': 'ir', 'en': 'ir',
+                       'ia': 'ir', 'ias': 'ir', 'iamos': 'ir', 'ian': 'ir'},
             }
             for inf in infinitives:
                 if len(inf) < 4:
