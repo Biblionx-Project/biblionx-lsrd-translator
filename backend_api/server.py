@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Servidor API REST HTTP de la Lengua de Señas Dominicana (LSRD).
-Construido con Python http.server (compatible sin dependencias externas).
+HTTP REST API server for the Dominican Sign Language (LSRD) translator.
+Built with Python's http.server (no external dependencies required).
 Endpoints:
   - POST /api/v1/translate -> {"texto": "..."}
   - GET  /api/v1/words/{lemma}
@@ -37,7 +37,7 @@ class LSRDApiHandler(BaseHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
         
-        # Endpoint: Servir imágenes estáticas de señas
+        # Endpoint: serve static sign images
         if path.startswith('/extracted_images/'):
             filename = os.path.basename(path)
             file_path = os.path.join('extracted_images', filename)
@@ -109,10 +109,10 @@ class LSRDApiHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self._set_cors_headers()
                 self.end_headers()
-                self.wfile.write(json.dumps({"error": "Campo 'texto' es requerido en el JSON payload"}, ensure_ascii=False).encode('utf-8'))
+                self.wfile.write(json.dumps({"error": "The 'texto' field is required in the JSON payload"}, ensure_ascii=False).encode('utf-8'))
                 return
 
-            # Pipeline NLP & Translation
+            # NLP & translation pipeline
             nlp_result = nlp_engine.process(texto)
             sequence_signs = translator.translate_sequence(nlp_result['secuencia_lsrd'])
 

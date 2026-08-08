@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Biblionx - Traductor a Lengua de Señas Dominicana (LSRD)",
+  "name": "Biblionx - Dominican Sign Language (LSRD) Translator",
   "version": "1.0.0",
-  "description": "Extensión para la traducción de texto seleccionado a Lengua de Señas Dominicana con widget reproductor visual interactivo.",
+  "description": "Extension that translates selected text into Dominican Sign Language with an interactive visual player widget.",
   "permissions": [
     "activeTab",
     "scripting",

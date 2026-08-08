@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Mapeador de Lemas hacia Secuencia de Señas LSRD con Fallback Dactilológico A-Z.
-Consulta la base de datos SQLite lsrd_dictionary.db.
+Maps lemmas to an LSRD sign sequence, with an A-Z fingerspelling fallback.
+Queries the lsrd_dictionary.db SQLite database.
 """
 
 import os
@@ -10,7 +10,7 @@ import unicodedata
 
 DB_PATH = "lsrd_dictionary.db"
 
-# Mapeo de letras del alfabeto dactilológico extraídas del Diccionario (páginas 21-28 / lemas)
+# Fingerspelling alphabet letter mapping, extracted from the Dictionary (pages 21-28 / entries)
 DACTYL_LETTER_MAP = {
     'a': 'lsrd_0001',
     'b': 'lsrd_0262',
@@ -51,11 +51,11 @@ class LSRDTranslator:
         return conn
 
     def find_sign_by_word(self, word_norm):
-        """Busca una seña en la base de datos por palabra exacta o sinónimo."""
+        """Looks up a sign in the database by exact word match or synonym."""
         conn = self.get_connection()
         cursor = conn.cursor()
-        
-        # 1. Búsqueda directa por palabra_norm
+
+        # 1. Direct lookup by palabra_norm
         cursor.execute("""
             SELECT p.id, p.palabra_es, p.definicion_es, p.pagina, c.nombre as categoria,
                    sd.descripcion_sena, ri.ruta_imagen
@@ -70,7 +70,7 @@ class LSRDTranslator:
         row = cursor.fetchone()
         
         if not row:
-            # 2. Búsqueda por tabla de sinónimos
+            # 2. Lookup via the synonyms table
             cursor.execute("""
                 SELECT p.id, p.palabra_es, p.definicion_es, p.pagina, c.nombre as categoria,
                        sd.descripcion_sena, ri.ruta_imagen
@@ -90,7 +90,7 @@ class LSRDTranslator:
         return None
 
     def get_fingerspelling_sequence(self, word):
-        """Genera secuencia de deletreo dactilológico para palabras no encontradas."""
+        """Generates a fingerspelling sequence for words not found in the dictionary."""
         sequence = []
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -118,7 +118,7 @@ class LSRDTranslator:
         return sequence
 
     def translate_sequence(self, tokens_lsrd):
-        """Traduce una lista de tokens a una secuencia ordenada de objetos de seña."""
+        """Translates a list of tokens into an ordered sequence of sign objects."""
         result_sequence = []
         
         for token in tokens_lsrd:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Módulo NLP de Preprocesamiento y Lematización de Texto Español -> Gramática LSRD.
+NLP module for preprocessing and lemmatizing Spanish text -> LSRD grammar.
 """
 
 import os
@@ -19,11 +19,10 @@ AUXILIARY_VERBS = {'es', 'son', 'ser', 'esta', 'estan', 'estar', 'fue', 'fueron'
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lsrd_dictionary.db")
 
-# Formas conjugadas de los ~35 verbos irregulares mas comunes del espanol,
-# mapeadas a su infinitivo. Es una lista explicita (whitelist) a proposito:
-# a diferencia de recortar sufijos a ciegas, esto no corre el riesgo de
-# convertir sustantivos comunes (que tambien terminan en -a/-e/-o) en verbos
-# inexistentes.
+# Conjugated forms of the ~35 most common irregular Spanish verbs, mapped to
+# their infinitive. This is an explicit whitelist on purpose: unlike blindly
+# stripping suffixes, it carries no risk of turning common nouns (which also
+# end in -a/-e/-o) into nonexistent verbs.
 IRREGULAR_VERB_MAP = {
     # tener
     'tengo': 'tener', 'tienes': 'tener', 'tiene': 'tener', 'tenemos': 'tener', 'tienen': 'tener',
@@ -48,7 +47,7 @@ IRREGULAR_VERB_MAP = {
     # saber
     'sabes': 'saber', 'sabe': 'saber', 'sabemos': 'saber', 'saben': 'saber',
     'supe': 'saber', 'supo': 'saber', 'supieron': 'saber',
-    # querer (irregular clave — antes fallaba "quiero")
+    # querer (key irregular verb — "quiero" used to fail before this fix)
     'quiero': 'querer', 'quieres': 'querer', 'quiere': 'querer', 'queremos': 'querer', 'quieren': 'querer',
     'quise': 'querer', 'quiso': 'querer', 'quisieron': 'querer',
     # poner
@@ -90,7 +89,7 @@ IRREGULAR_VERB_MAP = {
     # haber
     'he': 'haber', 'has': 'haber', 'ha': 'haber', 'hemos': 'haber', 'han': 'haber',
     'habia': 'haber', 'habian': 'haber',
-    # ademas de los 7 verbos regulares ya cubiertos por el diccionario dinamico (ver abajo)
+    # plus the 7 regular verbs already covered by the dynamic dictionary lookup below
 }
 
 _regular_conjugation_cache = None
@@ -98,12 +97,12 @@ _regular_conjugation_cache = None
 
 def _load_regular_conjugation_map():
     """
-    Genera automaticamente formas conjugadas regulares (presente, yo/tu/el/
-    nosotros/ellos) para cada infinitivo -ar/-er/-ir que YA existe en el
-    diccionario LSRD. A diferencia de recortar sufijos a ciegas sobre
-    cualquier palabra, esto solo genera formas para verbos que sabemos que
-    son traducibles, así que no hay riesgo de "inventar" un verbo a partir
-    de un sustantivo que casualmente termina en -ar/-er/-ir (ej. "lugar").
+    Automatically generates regular conjugated forms (present tense,
+    I/you/he-she/we/they) for every -ar/-er/-ir infinitive that ALREADY
+    exists in the LSRD dictionary. Unlike blindly stripping suffixes from
+    any word, this only generates forms for verbs we already know are
+    translatable, so there's no risk of "inventing" a verb from a noun that
+    happens to end in -ar/-er/-ir (e.g. "lugar" / "place").
     """
     global _regular_conjugation_cache
     if _regular_conjugation_cache is not None:
@@ -119,12 +118,12 @@ def _load_regular_conjugation_map():
             conn.close()
 
             endings = {
-                # presente
+                # present tense
                 'ar': {'o': 'ar', 'as': 'ar', 'a': 'ar', 'amos': 'ar', 'an': 'ar',
-                       # imperfecto (-aba)
+                       # imperfect (-aba)
                        'aba': 'ar', 'abas': 'ar', 'abamos': 'ar', 'aban': 'ar'},
                 'er': {'o': 'er', 'es': 'er', 'e': 'er', 'emos': 'er', 'en': 'er',
-                       # imperfecto (-ia)
+                       # imperfect (-ia)
                        'ia': 'er', 'ias': 'er', 'iamos': 'er', 'ian': 'er'},
                 'ir': {'o': 'ir', 'es': 'ir', 'e': 'ir', 'imos': 'ir', 'en': 'ir',
                        'ia': 'ir', 'ias': 'ir', 'iamos': 'ir', 'ian': 'ir'},
@@ -136,8 +135,8 @@ def _load_regular_conjugation_map():
                 stem = inf[:-2]
                 for person_ending in endings.get(group, {}):
                     form = stem + person_ending
-                    # No sobreescribir si ya existe la propia palabra en el diccionario
-                    # (evita, por ejemplo, que "casa" quede mapeada a un verbo "casar").
+                    # Don't overwrite if the word itself already exists in the dictionary
+                    # (avoids, for example, mapping "casa"/"house" to a verb "casar"/"to marry").
                     if form != inf:
                         mapping.setdefault(form, inf)
     except Exception:
@@ -156,12 +155,12 @@ def normalize_word(word):
 
 
 def lemmatize_word(word_norm):
-    # 1. Verbos irregulares comunes (lista explicita, segura).
+    # 1. Common irregular verbs (explicit, safe whitelist).
     if word_norm in IRREGULAR_VERB_MAP:
         return IRREGULAR_VERB_MAP[word_norm]
 
-    # 2. Formas conjugadas regulares derivadas de los infinitivos que
-    #    realmente existen en el diccionario LSRD.
+    # 2. Regular conjugated forms derived from infinitives that actually
+    #    exist in the LSRD dictionary.
     regular_map = _load_regular_conjugation_map()
     if word_norm in regular_map:
         return regular_map[word_norm]
@@ -172,8 +171,8 @@ def lemmatize_word(word_norm):
     if word_norm.endswith(('ar', 'er', 'ir')):
         return word_norm
 
-    # 3. Compatibilidad con los mapeos manuales previos (por si el diccionario
-    #    no contiene aun alguno de estos infinitivos).
+    # 3. Backward compatibility with the previous manual mappings (in case
+    #    the dictionary doesn't yet contain one of these infinitives).
     if word_norm in ['trabaja', 'trabajas', 'trabajamos', 'trabajan', 'trabajando', 'trabajo']:
         return 'trabajar'
     if word_norm in ['estudia', 'estudias', 'estudiamos', 'estudian', 'estudiando']:

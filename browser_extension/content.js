@@ -1,6 +1,6 @@
 /**
  * Extension Content Script - Biblionx LSRD Translator
- * Maneja la selección de texto en la web, botón flotante y el Widget Overlay Player.
+ * Handles on-page text selection, the floating button, and the Overlay Player widget.
  */
 
 const API_TRANSLATE_URL = "http://127.0.0.1:8000/api/v1/translate";
@@ -14,7 +14,7 @@ let playInterval = null;
 let playSpeedMs = 1500;
 
 document.addEventListener("mouseup", (event) => {
-  // Evitar ejecutar si el clic ocurrió dentro del botón flotante o modal
+  // Skip if the click happened inside the floating button or modal
   if (event.target.closest('#biblionx-floating-btn') || event.target.closest('#biblionx-overlay-modal')) {
     return;
   }
@@ -34,7 +34,7 @@ function showFloatingButton(x, y, text) {
 
   floatingBtn = document.createElement("button");
   floatingBtn.id = "biblionx-floating-btn";
-  floatingBtn.innerHTML = `🖐️ Traducir a LSRD`;
+  floatingBtn.innerHTML = `🖐️ Translate to LSRD`;
   floatingBtn.style.left = `${x + 10}px`;
   floatingBtn.style.top = `${y + 10}px`;
 
@@ -79,11 +79,11 @@ async function translateAndPlay(text) {
       renderPlayerState();
       startAutoPlay();
     } else {
-      renderErrorState("No se encontraron señas disponibles para el texto seleccionado.");
+      renderErrorState("No signs available for the selected text.");
     }
   } catch (err) {
     console.error("Biblionx API error:", err);
-    renderErrorState("Error de conexión con la API REST de traducción LSRD (http://127.0.0.1:8000).");
+    renderErrorState("Connection error with the LSRD translation REST API (http://127.0.0.1:8000).");
   }
 }
 
@@ -94,9 +94,9 @@ function createModal() {
   overlayModal.id = "biblionx-overlay-modal";
 
   overlayModal.innerHTML = `
-    <div class="biblionx-modal-content" role="dialog" aria-label="Reproductor LSRD">
+    <div class="biblionx-modal-content" role="dialog" aria-label="LSRD Player">
       <div class="biblionx-header">
-        <h3>🤟 Biblionx - Traductor a LSRD</h3>
+        <h3>🤟 Biblionx - LSRD Translator</h3>
         <button class="biblionx-close-btn" id="biblionx-close">&times;</button>
       </div>
       <div class="biblionx-body" id="biblionx-body">
@@ -121,7 +121,7 @@ function renderLoadingState() {
   body.innerHTML = `
     <div style="padding: 40px; text-align: center;">
       <div style="font-size: 32px; margin-bottom: 12px;">⏳</div>
-      <p style="color: #003366; font-weight: 600;">Procesando gramática e imágenes de señas LSRD...</p>
+      <p style="color: #003366; font-weight: 600;">Processing LSRD grammar and sign images...</p>
     </div>
   `;
 }
@@ -132,7 +132,7 @@ function renderErrorState(msg) {
     <div style="padding: 30px; text-align: center;">
       <div style="font-size: 32px; margin-bottom: 12px;">⚠️</div>
       <p style="color: #cc0000; font-weight: 600;">${msg}</p>
-      <button class="biblionx-btn" id="biblionx-error-close">Cerrar</button>
+      <button class="biblionx-btn" id="biblionx-error-close">Close</button>
     </div>
   `;
   document.getElementById("biblionx-error-close").addEventListener("click", closeModal);
@@ -142,25 +142,25 @@ function renderPlayerState() {
   const item = currentSequence[currentIndex];
   const body = document.getElementById("biblionx-body");
 
-  const titleLemma = item.es_deletreo ? `Deletreo: ${item.letra}` : item.palabra_es;
-  const descText = item.descripcion_sena || (item.definicion_es ? `Definición: ${item.definicion_es}` : "Sin descripción disponible.");
+  const titleLemma = item.es_deletreo ? `Fingerspelled: ${item.letra}` : item.palabra_es;
+  const descText = item.descripcion_sena || (item.definicion_es ? `Definition: ${item.definicion_es}` : "No description available.");
 
   body.innerHTML = `
     <div class="biblionx-image-container">
-      <img src="${item.url_imagen}" alt="Seña ${titleLemma}" class="biblionx-sign-img" />
+      <img src="${item.url_imagen}" alt="Sign ${titleLemma}" class="biblionx-sign-img" />
     </div>
 
     <div class="biblionx-sign-info">
       <h2 class="biblionx-lemma">${titleLemma}</h2>
-      <div class="biblionx-category">${item.categoria || 'Seña General'}</div>
+      <div class="biblionx-category">${item.categoria || 'General sign'}</div>
       <div class="biblionx-description">${descText}</div>
     </div>
 
     <div class="biblionx-controls">
-      <button class="biblionx-btn" id="biblionx-prev" ${currentIndex === 0 ? 'disabled' : ''}>⏮️ Anterior</button>
-      <button class="biblionx-btn" id="biblionx-play">${isPlaying ? '⏸️ Pausa' : '▶️ Reproducir'}</button>
-      <button class="biblionx-btn" id="biblionx-next" ${currentIndex === currentSequence.length - 1 ? 'disabled' : ''}>Siguiente ⏭️</button>
-      
+      <button class="biblionx-btn" id="biblionx-prev" ${currentIndex === 0 ? 'disabled' : ''}>⏮️ Previous</button>
+      <button class="biblionx-btn" id="biblionx-play">${isPlaying ? '⏸️ Pause' : '▶️ Play'}</button>
+      <button class="biblionx-btn" id="biblionx-next" ${currentIndex === currentSequence.length - 1 ? 'disabled' : ''}>Next ⏭️</button>
+
       <select class="biblionx-speed-select" id="biblionx-speed">
         <option value="2000">0.75x</option>
         <option value="1500" selected>1.0x</option>
@@ -170,7 +170,7 @@ function renderPlayerState() {
     </div>
 
     <div class="biblionx-progress">
-      Seña ${currentIndex + 1} de ${currentSequence.length}
+      Sign ${currentIndex + 1} of ${currentSequence.length}
     </div>
   `;
 

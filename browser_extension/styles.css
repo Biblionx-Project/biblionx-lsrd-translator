@@ -1,4 +1,4 @@
-/* Estilos para el Widget Overlay Player Accessible de Biblionx LSRD */
+/* Styles for the accessible Biblionx LSRD Overlay Player widget */
 #biblionx-floating-btn {
   position: absolute;
   z-index: 999999;
@@ -133,7 +133,7 @@
   overflow-y: auto;
 }
 
-/* Controles del Player */
+/* Player controls */
 .biblionx-controls {
   display: flex;
   justify-content: center;
