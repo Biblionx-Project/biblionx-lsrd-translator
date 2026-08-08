@@ -72,7 +72,7 @@ Requires **Python 3.6+** only (standard library, **no `pip install` needed**):
 
 1. Open a terminal in this directory:
    ```bash
-   cd modelo-traductor-lsrd
+   cd biblionx-lsrd-translator
    ```
 
 2. Run the interactive console:
