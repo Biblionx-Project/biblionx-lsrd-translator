@@ -1,0 +1,283 @@
+openapi: 3.1.0
+info:
+  title: Biblionx LSRD Translation API
+  version: 2.1.0
+  summary: Spanish (Dominican Republic) text to Dominican Sign Language (LSRD) translation.
+  description: |
+    Translates Spanish text into an ordered sequence of LSRD signs. Each sign
+    reports how it was matched (`match_method`) and a `confidence` score.
+
+    Sign images are not shipped with the repository. When an image file is not
+    available on the server, a sign has `image_available: false` and no
+    `url_imagen`; clients should render a text card (word and movement
+    description) instead.
+
+    Per-client rate limiting (`BIBLIONX_RATE_PER_MIN`) returns HTTP 429 with a
+    `Retry-After` header. CORS is same-origin unless `BIBLIONX_CORS_ORIGIN`
+    is set.
+  license:
+    name: LGPL-3.0
+    identifier: LGPL-3.0-only
+servers:
+  - url: http://127.0.0.1:8000
+    description: Local default (BIBLIONX_HOST / BIBLIONX_PORT)
+tags:
+  - name: translation
+  - name: dictionary
+  - name: operations
+  - name: static
+paths:
+  /api/v1/translate:
+    post:
+      tags: [translation]
+      operationId: translate
+      summary: Translate Spanish text into LSRD signs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslateRequest"
+            example:
+              texto: "Buenos días, ¿cómo estás?"
+      responses:
+        "200":
+          description: Translation result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslateResponse"
+        "400":
+          description: Invalid JSON, invalid Content-Length, or missing/empty `texto`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "413":
+          description: Body larger than 64 KiB or `texto` longer than 2000 characters.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500":
+          description: Internal translation error.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/v1/words/{lemma}:
+    get:
+      tags: [dictionary]
+      operationId: getWord
+      summary: Look up a single dictionary sign
+      parameters:
+        - name: lemma
+          in: path
+          required: true
+          description: Spanish word (URL-encoded, up to 100 characters).
+          schema: { type: string, maxLength: 100 }
+      responses:
+        "200":
+          description: Sign found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, word]
+                properties:
+                  status: { type: string, const: success }
+                  word: { $ref: "#/components/schemas/Sign" }
+        "400":
+          description: Invalid word.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Word not in the LSRD dictionary.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/v1/health:
+    get:
+      tags: [operations]
+      operationId: health
+      summary: Liveness probe
+      responses:
+        "200":
+          description: Service is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, version]
+                properties:
+                  status: { type: string, const: ok }
+                  version: { type: string }
+  /api/v1/metrics:
+    get:
+      tags: [operations]
+      operationId: metrics
+      summary: In-process counters (only when metrics are enabled)
+      responses:
+        "200":
+          description: Metrics snapshot.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Metrics" }
+        "404":
+          description: Metrics are disabled.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /extracted_images/{filename}:
+    get:
+      tags: [static]
+      operationId: getSignImage
+      summary: Sign image (only if the file exists on the server)
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: PNG image.
+          content:
+            image/png:
+              schema: { type: string, format: binary }
+        "404":
+          description: Image not found (images are not part of the repository).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /app/:
+    get:
+      tags: [static]
+      operationId: webApp
+      summary: Web playground (static files from backend_api/web/)
+      responses:
+        "200":
+          description: HTML page.
+          content:
+            text/html:
+              schema: { type: string }
+  /app/{file}:
+    get:
+      tags: [static]
+      operationId: webAppFile
+      summary: Static asset of the web playground
+      parameters:
+        - name: file
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Static file.
+          content:
+            "*/*":
+              schema: { type: string, format: binary }
+        "403":
+          description: Path traversal rejected.
+        "404":
+          description: File not found.
+components:
+  responses:
+    RateLimited:
+      description: Per-client rate limit exceeded. Retry after the number of seconds in `Retry-After`.
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema: { type: integer, minimum: 1 }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/RateLimitError" }
+  schemas:
+    TranslateRequest:
+      type: object
+      required: [texto]
+      properties:
+        texto:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Spanish text to translate (must contain non-whitespace).
+    MatchMethod:
+      type: string
+      enum: [exact, phrase, morphology, synonym, curated_synonym, fuzzy, ai, fingerspelling]
+      description: How the sign was found. `fingerspelling` means letter-by-letter dactylology.
+    Sign:
+      type: object
+      required: [match_method, confidence]
+      properties:
+        id: { type: integer, description: Dictionary entry id. }
+        palabra_es: { type: string, description: Spanish headword. }
+        definicion_es: { type: [string, "null"] }
+        pagina: { type: [integer, "null"], description: Page in the source dictionary. }
+        categoria: { type: [string, "null"] }
+        descripcion_sena:
+          type: [string, "null"]
+          description: Movement description in Spanish.
+        ruta_imagen: { type: [string, "null"], description: Server-side image path. }
+        match_method: { $ref: "#/components/schemas/MatchMethod" }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        matched_norm:
+          type: string
+          description: Dictionary form matched (fuzzy and AI matches).
+        es_deletreo: { type: boolean, description: True for a fingerspelled letter. }
+        letra: { type: string, description: Letter, for fingerspelled items. }
+        image_available:
+          type: boolean
+          description: Whether the image file exists on the server.
+        url_imagen:
+          type: string
+          format: uri
+          description: Present only when `image_available` is true.
+      additionalProperties: true
+    NlpAnalysis:
+      type: object
+      properties:
+        original_text: { type: string }
+        tokens_normalizados: { type: array, items: { type: string } }
+        tokens_filtrados: { type: array, items: { type: string } }
+        tokens_lematizados: { type: array, items: { type: string } }
+        secuencia_lsrd: { type: array, items: { type: string } }
+        normalized_text: { type: string }
+      additionalProperties: true
+    TranslateResponse:
+      type: object
+      required: [status, original_text, nlp_analysis, total_senas, secuencia_senas]
+      properties:
+        status: { type: string, const: success }
+        original_text: { type: string }
+        nlp_analysis: { $ref: "#/components/schemas/NlpAnalysis" }
+        total_senas: { type: integer, minimum: 0 }
+        secuencia_senas:
+          type: array
+          items: { $ref: "#/components/schemas/Sign" }
+    Error:
+      type: object
+      description: Error body. Translate errors use `error`; lookup and static errors use `status` and `message`.
+      properties:
+        status: { type: string, const: error }
+        error: { type: string }
+        message: { type: string }
+    RateLimitError:
+      type: object
+      required: [status, error, retry_after_seconds]
+      properties:
+        status: { type: string, const: error }
+        error: { type: string }
+        retry_after_seconds: { type: integer, minimum: 1 }
+    Metrics:
+      type: object
+      properties:
+        uptime_seconds: { type: number }
+        requests_total: { type: integer }
+        requests_by_status:
+          type: object
+          additionalProperties: { type: integer }
+        translate_count: { type: integer }
+        translate_avg_ms: { type: number }
+        match_method_counts:
+          type: object
+          additionalProperties: { type: integer }

@@ -163,6 +163,11 @@
     try { res = await chrome.runtime.sendMessage({ type: "biblionx:api", text }); }
     catch (e) { res = { ok: false }; }
     if (!scrim) return;
+    if (res && res.status === 429) {
+      const w = res.retryAfter ? ` Please wait about ${res.retryAfter} seconds.` : "";
+      renderError("Too many requests", `The translation service is busy.${w} Try again shortly.`, true);
+      return;
+    }
     if (!res || !res.ok) {
       renderError("Can't reach the translator", `Make sure the LSRD API is running at ${apiBase} and try again.`, true);
       return;
@@ -225,6 +230,13 @@
     q("#bx-play").focus();
   }
 
+  // Text card shown when the sign image is unavailable: word + Spanish movement description.
+  function textCard(s, letter) {
+    const desc = s.descripcion_sena ? `<p class="tc-desc">${esc(s.descripcion_sena)}</p>` : "";
+    return `<div class="textcard"><div class="letter" aria-hidden="true">${esc(letter)}</div>`
+      + `<strong class="tc-word">${esc(chipLabel(s))}</strong>${desc}</div>`;
+  }
+
   function showSign() {
     if (!scrim || !seq[idx] || !body().querySelector("#bx-stage")) return;
     const s = seq[idx], q = (id) => body().querySelector(id);
@@ -235,17 +247,18 @@
       const c = typeof s.confidence === "number" ? ` ${Math.round(s.confidence * 100)}%` : "";
       badges.push(`<span class="badge ai">AI match${c}</span>`);
     }
-    const url = imgUrl(s.url_imagen);
+    const missing = s.image_available === false || !s.url_imagen;
+    const url = missing ? "" : imgUrl(s.url_imagen);
     const letter = (chipLabel(s) || "?").charAt(0).toUpperCase();
-    stage.innerHTML = (url ? `<img src="${esc(url)}" alt="">` : `<div class="letter" aria-hidden="true">${esc(letter)}</div>`)
+    stage.innerHTML = (url ? `<img src="${esc(url)}" alt="">` : textCard(s, letter))
       + `<div class="badges">${badges.join("")}</div><div class="counter">${idx + 1} / ${seq.length}</div>`;
     const img = stage.querySelector("img");
     if (img) {
       img.alt = `LSRD sign for ${chipLabel(s)}`;
       img.addEventListener("error", () => {
-        const d = document.createElement("div");
-        d.className = "letter"; d.textContent = letter;
-        img.replaceWith(d);
+        const t = document.createElement("div");
+        t.innerHTML = textCard(s, letter);
+        img.replaceWith(t.firstChild);
       });
     }
     q("#bx-word").textContent = s.es_deletreo ? `${s.letra || ""} (letter)` : (s.palabra_es || "");

@@ -1,0 +1,48 @@
+# Usage (from the repo root):
+#   export BIBLIONX_DOMAIN=biblionx.example.org
+#   docker compose -f deploy/docker-compose.yml up -d --build
+services:
+  app:
+    build:
+      context: ..
+    image: biblionx-lsrd:latest
+    restart: unless-stopped
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      BIBLIONX_HOST: 0.0.0.0
+      BIBLIONX_PORT: "8000"
+      BIBLIONX_IMAGES_DIR: /data/images
+      BIBLIONX_TRUST_PROXY: "1"
+    volumes:
+      # Sign images are NOT in git; mount them read-only from the host.
+      - ${BIBLIONX_IMAGES_HOST_DIR:-../extracted_images}:/data/images:ro
+    expose:
+      - "8000"            # internal only, never published on the host
+    networks: [internal]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      BIBLIONX_DOMAIN: ${BIBLIONX_DOMAIN:?set BIBLIONX_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  caddy_data:
+  caddy_config:

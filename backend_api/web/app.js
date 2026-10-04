@@ -62,7 +62,13 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ texto: texto })
     }).then(function (r) {
-      return r.json().then(function (d) {
+      if (r.status === 429) {
+        var ra = parseInt(r.headers.get('Retry-After'), 10);
+        throw new Error(ra > 0 ? 'Too many requests. Please retry in ' + ra + ' second' + (ra === 1 ? '' : 's') + '.'
+                               : 'Too many requests. Please wait a moment and try again.');
+      }
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (r.status >= 500) throw new Error('The server had a problem (HTTP ' + r.status + '). Please try again shortly.');
         if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
         return d;
       });
@@ -72,7 +78,7 @@
     }).catch(function (err) {
       if (my !== reqId) return;
       result.hidden = true;
-      setStatus('Could not translate: ' + err.message, true);
+      setStatus(err instanceof TypeError ? 'Could not reach the server. Check your connection.' : 'Could not translate: ' + err.message, true);
     }).then(function () { if (my === reqId) $('submit').disabled = false; });
   }
 
@@ -119,18 +125,26 @@
     var it = state.items[i]; if (!it) return;
     state.idx = i;
     var img = $('stageImg'), fb = $('stageFallback');
-    var src = it.url_imagen || (it.ruta_imagen ? '/' + it.ruta_imagen : '');
-    img.alt = 'Sign for ' + label(it);
-    fb.hidden = true; img.hidden = !src;
+    var src = it.image_available === false ? '' : (it.url_imagen || '');
+    var desc = it.descripcion_sena || '';
+    img.onerror = null;
+    function showCard() {
+      img.hidden = true; img.removeAttribute('src');
+      $('fbWord').textContent = label(it);
+      $('fbDesc').textContent = desc || 'No movement description available.';
+      fb.hidden = false;
+    }
     if (src) {
-      img.onerror = function () { img.hidden = true; fb.hidden = false; };
+      img.alt = 'Sign for ' + label(it);
+      fb.hidden = true; img.hidden = false;
+      img.onerror = showCard;
       img.src = src;
-    } else { fb.hidden = false; }
+    } else { showCard(); }
     $('stageWord').textContent = label(it);
     $('stagePos').textContent = (i + 1) + ' / ' + state.items.length;
     var k = kind(it), bd = $('stageBadge');
     bd.hidden = !BADGE[k]; bd.className = 'badge ' + k; bd.textContent = BADGE[k] || '';
-    $('dDesc').textContent = it.descripcion_sena || 'No description available.';
+    $('dDesc').textContent = desc || 'No description available.';
     $('dPage').textContent = it.pagina != null && it.pagina !== '' ? 'Page ' + it.pagina : '-';
     $('dCat').textContent = it.categoria || '-';
     $('dMatch').textContent = it.es_deletreo ? 'Fingerspelling' :
@@ -148,7 +162,7 @@
   function setPlaying(p) {
     state.playing = p;
     var b = $('play');
-    b.innerHTML = p ? '&#9208;' : '&#9654;';
+    b.textContent = p ? '⏸' : '▶';
     b.setAttribute('aria-label', p ? 'Pause' : 'Play');
     b.setAttribute('aria-pressed', String(p));
   }

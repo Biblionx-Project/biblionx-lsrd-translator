@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Unit tests (no images required)
+        run: python -m unittest discover -s tests -v
+
+      - name: Evaluate translator
+        run: python scripts/evaluate.py --out /tmp/m.json
+
+      - name: Quality gate
+        run: python scripts/check_metrics.py /tmp/m.json --min-coverage 0.85 --min-recall 0.95
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Syntax-check JavaScript
+        run: |
+          set -e
+          for f in browser_extension/*.js backend_api/web/*.js; do
+            echo "node --check $f"
+            node --check "$f"
+          done
+
+      - name: Secret pattern scan
+        run: |
+          if grep -rIE --exclude-dir=.git --exclude-dir=node_modules --exclude=ci.yml \
+               -e 'sk-ant-[A-Za-z0-9_-]{8,}' -e 'ghp_[A-Za-z0-9]{20,}' -e 'AKIA[0-9A-Z]{16}' . ; then
+            echo "Possible secret found" >&2
+            exit 1
+          fi
+          echo "No secret patterns found"

@@ -10,10 +10,11 @@ Biblionx was initially bootstrapped from the open-source VLibras project; it has
 
 ## What is in this repository
 
+The repository root is the single source of truth for the engine; `backend_api/` imports it instead of keeping copies.
+
 | Path | Description |
 | :--- | :--- |
 | `lsrd_dictionary.db` | SQLite database: 2,458 lemmas, categories, movement descriptions, image paths. Read-only data. |
-| `extracted_images/` | One PNG per sign (`lsrd_0001.png` ...). |
 | `main.py` | Interactive console translator. |
 | `nlp_engine.py` | Text pipeline: normalization, phrases, morphology, grammar. |
 | `translator.py` | Lookup chain from tokens to signs, with provenance and confidence. |
@@ -21,12 +22,19 @@ Biblionx was initially bootstrapped from the open-source VLibras project; it has
 | `ml_matcher.py` | Pure Python fuzzy matcher (character n-gram TF-IDF). |
 | `llm_fallback.py` | Optional, off-by-default AI fallback. |
 | `data/` | `dominican_lexicon.json` and curated `synonyms_extra.json`. |
-| `backend_api/` | Standalone HTTP server, web playground, and synced copies of the engine. |
-| `browser_extension/` | Manifest V3 extension (v2). |
-| `scripts/` | `evaluate.py` (metrics) and `sync_backend.py` (copy engine into `backend_api/`). |
-| `tools/suggest_synonyms.py` | Reviewer helper that proposes synonyms for unknown words. |
+| `backend_api/` | `server.py` (HTTP API) and `web/` (playground). Imports the engine and database from the repository root. |
+| `browser_extension/` | Manifest V3 extension (v2.1). |
+| `scripts/` | `evaluate.py` (metrics), `check_metrics.py` (quality gate), `load_test.py` (load tester). |
+| `tools/` | `suggest_synonyms.py`, `export_review_sheets.py`, `find_dictionary_gaps.py`, `make_icons.py`. |
 | `tests/` | Unit tests and the evaluation corpus. |
-| `docs/ARCHITECTURE.md` | Modules, lookup chain, confidence semantics, synonym curation. |
+| `Dockerfile`, `deploy/` | Container image, Docker Compose and Caddy (HTTPS) configuration. |
+| `.github/workflows/ci.yml` | Continuous integration. |
+| `docs/` | `ARCHITECTURE.md`, `DEPLOYMENT.md`, `PRIVACY.md`, `STORE_LISTING.md`, `DICTIONARY_GAPS.md`, `openapi.yaml`, `validation/`. |
+| `CHANGELOG.md` | Release notes. |
+
+### Sign images are not distributed
+
+The 2,458 sign PNGs (`extracted_images/`) were extraction artifacts used to build `lsrd_dictionary.db`. They are **not stored in the git repository** and the folder is gitignored. To show images, keep them on local disk (default `<repo root>/extracted_images`) or point the server at another folder with `BIBLIONX_IMAGES_DIR`. When an image file is missing, translation still works: each sign gets `"image_available": false` and no `url_imagen`, and the web playground and browser extension show a text card with the word and its Spanish movement description instead of a broken image.
 
 ## Translation pipeline
 
@@ -48,8 +56,11 @@ When fuzzy matching is not confident, an LLM can pick among a short list of dict
 
 - It only chooses an index among candidates (tiny output), never generates text.
 - Results, including negative ones, are cached on disk (`data/.llm_cache.json`, never committed).
-- A hard cap on calls per process (`BIBLIONX_LLM_MAX_CALLS`, default 50).
+- No call cap by default (`BIBLIONX_LLM_MAX_CALLS=0` means unlimited) so a demo can translate broadly. A positive value still caps calls per process.
+- Optional process-wide rate limit `BIBLIONX_LLM_RATE_PER_MIN` (off by default). Cached answers never count against either limit.
 - Any error falls back to fingerspelling.
+
+**Cost recommendation.** For a public demo, set `BIBLIONX_LLM_RATE_PER_MIN=30` and a monthly spend limit in the provider console. On Claude Haiku 4.5 an uncached lookup costs about $0.0003 (roughly 250 input and 8 output tokens at $1/$5 per million tokens), so the cache keeps real spend very low.
 
 Configure it only through environment variables; see `.env.example`. **Never commit API keys or a real `.env` file.** Keys are read from the environment and are never logged or written to disk.
 
@@ -59,7 +70,7 @@ Python 3 and the standard library are enough; no `pip install`.
 
 ```bash
 python main.py                          # interactive console
-cd backend_api && python server.py      # API + web playground
+python backend_api/server.py             # API + web playground
 ```
 
 Then open `http://127.0.0.1:8000/app/`.
@@ -73,25 +84,50 @@ A responsive, accessible UI with light and dark themes: type or pick an example 
 - `POST /api/v1/translate` with `{"texto": "..."}` returns the analysis and `secuencia_senas`.
 - `GET /api/v1/words/{lemma}` direct dictionary lookup.
 - `GET /api/v1/health` health check.
-- `GET /app/` web playground; `GET /extracted_images/{id}.png` sign images.
+- `GET /api/v1/metrics` request counters (enabled by default only on localhost; see `BIBLIONX_METRICS`).
+- `GET /app/` web playground; `GET /extracted_images/{id}.png` sign images, served from `BIBLIONX_IMAGES_DIR` when present.
 
-### Browser extension (v2)
+The full contract is in `docs/openapi.yaml`. Each sign includes `image_available`; `url_imagen` is omitted when the file is missing.
 
-Load `browser_extension/` as an unpacked extension (`chrome://extensions`, Developer Mode). Select text on any page and use the floating button or the "Translate to LSRD" context menu to open the sign player overlay. v2 adds adjustable playback speed, a settings popup (API base URL and default speed, kept in synced browser storage), a refreshed design and accessible player controls. The API server must be running.
+### Security features
+
+- Per-client rate limiting on translate and word lookups (`BIBLIONX_RATE_PER_MIN`, default 120 per minute), answering HTTP 429 with `Retry-After`.
+- CORS is same-origin only by default; `BIBLIONX_CORS_ORIGIN` opts in to a comma-separated list of origins or `*`.
+- Security headers on every response and a strict Content-Security-Policy on `/app/` (no inline code, no third-party fonts).
+- Structured JSON request logs with a hashed client identifier and request id; the submitted text is never logged.
+- `BIBLIONX_TRUST_PROXY=1` takes the client IP from `X-Forwarded-For` (use only behind a trusted reverse proxy).
+- Secrets are read from the environment only; CI scans for key patterns.
+
+### Deployment
+
+See `docs/DEPLOYMENT.md` for local run, Docker, and Docker Compose with automatic HTTPS (Caddy). In containers, mount the images folder read-only at `/data/images`.
+
+### Browser extension (v2.1)
+
+Load `browser_extension/` as an unpacked extension (`chrome://extensions`, Developer Mode). Select text on any page and use the floating button or the "Translate to LSRD" context menu to open the sign player overlay. v2 adds adjustable playback speed, a settings popup (API base URL and default speed, kept in synced browser storage), a refreshed design and accessible player controls. The API server must be running. When the API is remote, the popup asks for permission for that HTTPS origin; plain `http://` is accepted only for local addresses. Missing images fall back to a text card, and HTTP 429 shows a "Too many requests" message. See `docs/PRIVACY.md` and `docs/STORE_LISTING.md`.
 
 ## Environment variables
 
 | Variable | Purpose | Default |
 | :--- | :--- | :--- |
-| `BIBLIONX_HOST` | Server bind address | `127.0.0.1` |
+| `BIBLIONX_HOST` | Server bind address | `127.0.0.1` (`0.0.0.0` in Docker) |
 | `BIBLIONX_PORT` | Server port | `8000` |
-| `BIBLIONX_CORS_ORIGIN` | `Access-Control-Allow-Origin` value | `*` |
+| `BIBLIONX_IMAGES_DIR` | Folder with sign PNGs | `<repo root>/extracted_images` (`/data/images` in Docker) |
+| `BIBLIONX_RATE_PER_MIN` | Per-client requests per minute for translate and words; `0` disables | `120` |
+| `BIBLIONX_TRUST_PROXY` | `1` reads client IP from `X-Forwarded-For` | off |
+| `BIBLIONX_CORS_ORIGIN` | Allowed origins, comma-separated, or `*` | unset (same-origin only) |
+| `BIBLIONX_METRICS` | `1`/`0` enables or disables `/api/v1/metrics` | on for localhost only |
+| `BIBLIONX_DOMAIN` | Public domain for Caddy HTTPS (Compose only) | required in Compose |
+| `BIBLIONX_IMAGES_HOST_DIR` | Host folder mounted as the images volume (Compose only) | `../extracted_images` |
 | `BIBLIONX_LLM_PROVIDER` | `anthropic`, `openai` or `ollama`; empty disables AI | empty (off) |
 | `BIBLIONX_LLM_MODEL` | Model override | provider default |
-| `BIBLIONX_LLM_MAX_CALLS` | Max model calls per process | `50` |
+| `BIBLIONX_LLM_MAX_CALLS` | Max model calls per process; `0` is unlimited | `0` |
+| `BIBLIONX_LLM_RATE_PER_MIN` | Max uncached model calls per minute; `0` is off (recommended `30`) | `0` |
 | `ANTHROPIC_API_KEY` | Key for the `anthropic` provider | none |
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL` | Key and optional base URL for `openai` or compatible servers | none |
 | `OLLAMA_URL` | Local Ollama endpoint | `http://127.0.0.1:11434` |
+
+See `.env.example`.
 
 ## Tests and evaluation
 
@@ -99,10 +135,24 @@ Load `browser_extension/` as an unpacked extension (`chrome://extensions`, Devel
 python -m unittest discover -s tests -v
 python scripts/evaluate.py                       # metrics on tests/data/eval_corpus.json
 python scripts/evaluate.py --out metrics.json    # also writes JSON
-python scripts/sync_backend.py                   # refresh backend_api/ copies (--check to diff only)
+python scripts/check_metrics.py                  # quality gate (coverage >= 0.85, recall >= 0.95)
+python scripts/load_test.py                      # load test against a running server
 ```
 
-Run `sync_backend.py` after changing engine modules or data so `backend_api/` stays identical.
+### Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and pull request (Python 3.12 and 3.13): unit tests, the evaluation quality gate, `node --check` on the extension and web JavaScript, and a scan for secret patterns.
+
+### Validation with reviewers
+
+`tools/export_review_sheets.py` exports curated synonyms, the Dominican lexicon, grammar rules and fuzzy matches to Spanish CSV sheets in `docs/validation/` so LSRD experts can review them. See `docs/validation/README.md` for the process. `docs/DICTIONARY_GAPS.md` lists frequent words with no sign and the pages to re-extract (`tools/find_dictionary_gaps.py`).
+
+### Other documents
+
+- `docs/DEPLOYMENT.md`: Docker, Compose, HTTPS.
+- `docs/PRIVACY.md`: privacy policy for the API and the extension.
+- `docs/STORE_LISTING.md`: browser store listing text.
+- `CHANGELOG.md`: release notes.
 
 ### Metrics (134 evaluation sentences)
 
@@ -124,7 +174,7 @@ The relational database has 5 main tables (column/table names are kept in Spanis
 - `palabras` (id, lemma, normalized lemma, category, page).
 - `categorias` (grammatical category names).
 - `senas_descripciones` (movement / morphological description).
-- `rutas_imagenes` (path to the PNG files in `extracted_images/`).
+- `rutas_imagenes` (path of each sign PNG; the files themselves are not in the repo, see "Sign images are not distributed").
 - `sinonimos_mapeo` (inflection variants and synonyms).
 
 ### Example 1: Query with the SQLite CLI
@@ -153,11 +203,8 @@ cursor.execute("""
 row = cursor.fetchone()
 print(f"ID: {row[0]} | Sign: {row[1]} ({row[2]})")
 print(f"Movement description: {row[3]}")
-print(f"PNG image: {row[4]}")
+print(f"PNG image path: {row[4]}")
 ```
-
----
-
 
 ---
 

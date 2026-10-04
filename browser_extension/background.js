@@ -38,7 +38,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         signal: ctrl.signal,
       });
       clearTimeout(timer);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const retry = Number(res.headers.get("Retry-After")) || 0;
+        sendResponse({ ok: false, status: res.status, retryAfter: retry, error: `HTTP ${res.status}`, apiBase });
+        return;
+      }
       sendResponse({ ok: true, data: await res.json(), apiBase });
     } catch (err) {
       sendResponse({ ok: false, error: String((err && err.message) || err), apiBase });

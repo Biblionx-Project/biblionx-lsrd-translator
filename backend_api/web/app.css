@@ -23,7 +23,7 @@
 :root{color-scheme:light dark}
 :root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{color-scheme:dark}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column}
 .skip{position:absolute;left:-999px;top:8px;background:var(--accent);color:var(--accent-text);padding:8px 14px;border-radius:8px;z-index:10}
 .skip:focus{left:8px}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
@@ -71,7 +71,11 @@ kbd{font:inherit;font-size:.78rem;padding:1px 6px;border:1px solid var(--border)
 .stage{position:relative;aspect-ratio:4/3;border-radius:14px;background:var(--surface-2);overflow:hidden;display:grid;place-items:center;border:1px solid var(--border)}
 .stage img{max-width:100%;max-height:100%;object-fit:contain;animation:pop .35s ease}
 .stage img[hidden]{display:none}
-.stage-fallback{color:var(--muted)}
+.stage-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:20px;width:100%;height:100%;overflow:auto;color:var(--text)}
+.stage-fallback[hidden]{display:none}
+.fb-word{margin:0;font-size:clamp(1.8rem,7vw,3rem);font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere;line-height:1.1}
+.fb-note{margin:0;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.fb-desc{margin:6px 0 0;max-width:48ch;color:var(--text);font-size:.98rem}
 .stage .badge{position:absolute;top:10px;left:10px}
 @keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 .stage-meta{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:14px 2px 4px}

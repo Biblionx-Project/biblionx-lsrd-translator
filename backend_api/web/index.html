@@ -6,9 +6,6 @@
 <title>Biblionx LSRD Translator</title>
 <meta name="description" content="Translate Dominican Spanish text into Dominican Sign Language (LSRD).">
 <meta name="color-scheme" content="light dark">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
@@ -53,7 +50,11 @@
     <div class="card stage-card">
       <div class="stage" id="stage">
         <img id="stageImg" alt="" decoding="async">
-        <div id="stageFallback" class="stage-fallback" hidden>No image available</div>
+        <div id="stageFallback" class="stage-fallback" role="group" aria-label="Text card for this sign" hidden>
+          <p id="fbWord" class="fb-word"></p>
+          <p class="fb-note">Image not available</p>
+          <p id="fbDesc" class="fb-desc" lang="es"></p>
+        </div>
         <span id="stageBadge" class="badge" hidden></span>
       </div>
       <div class="stage-meta">

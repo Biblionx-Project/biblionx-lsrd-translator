@@ -31,15 +31,41 @@ Origins: Biblionx was initially bootstrapped from the open-source VLibras projec
  +-------------------------+-----------------------+
                            v
         main.py (CLI)   backend_api/server.py (REST + /app/)
-                                   ^
-                      browser_extension/ (calls the API)
+                          |  imports the repo root (no copies)
+                          |  rate limit, CORS, security headers, logs
+                          |  GET /extracted_images/* <-- BIBLIONX_IMAGES_DIR
+                          ^
+        browser_extension/ (service worker calls the API)
 ```
+
+## Runtime
+
+```
+ Browser (web playground /app/)      Extension service worker
+              \                          /
+               +----- HTTPS (Caddy) ----+      <- deploy/Caddyfile
+                           |
+                  backend_api/server.py  (ThreadingHTTPServer, non-root in Docker)
+                    |            |                |
+        root engine modules   lsrd_dictionary.db   BIBLIONX_IMAGES_DIR (read-only volume,
+        (nlp_engine, ...)     (read-only)          not in git; optional)
+```
+
+`backend_api/` contains only `server.py` and `web/`. It adds the repository root to `sys.path` and imports the engine, `data/` and the database from there, so there is nothing to synchronize (`scripts/sync_backend.py` was removed).
+
+### Sign images
+
+Images were extraction artifacts used to build the database and are not distributed in git. The server serves them from `BIBLIONX_IMAGES_DIR` (default `<repo root>/extracted_images`). If a file is missing, each sign in a translate response carries `image_available: false` and no `url_imagen`; clients render a text card (word plus Spanish movement description).
+
+### Server hardening
+
+Per-client rate limiting (`BIBLIONX_RATE_PER_MIN`, 429 with `Retry-After`), same-origin CORS unless `BIBLIONX_CORS_ORIGIN` is set, security headers plus a strict CSP on `/app/`, JSON request logs with hashed client and request id (never the submitted text), and `/api/v1/metrics` (`BIBLIONX_METRICS`). `BIBLIONX_TRUST_PROXY=1` is for deployments behind a reverse proxy. See `docs/openapi.yaml` and `docs/DEPLOYMENT.md`.
 
 `process()` returns the same keys as the original engine, plus `normalized_text`, `is_question` and `lemmatization_methods`. `secuencia_lsrd` is a list subclass that also carries per-token method and sentence context.
 
 Dictionary-derived indexes are built once per database path and shared read-only; each translator owns one SQLite connection guarded by a lock, so an instance can be shared across server threads.
 
-`backend_api/` holds standalone copies of the engine, `data/` and the database so the server runs on its own. Keep them in sync with `python scripts/sync_backend.py` (`--check` reports differences). The LLM cache is never copied.
+The LLM cache (`data/.llm_cache.json`) is never committed.
 
 ## Lookup chain
 
@@ -73,7 +99,7 @@ Clients can use `confidence` to highlight uncertain signs (for example in the we
 
 ## AI fallback and cost
 
-Disabled unless `BIBLIONX_LLM_PROVIDER` is `anthropic`, `openai` or `ollama`. Keys come only from environment variables (see `.env.example`); never commit them. Costs are bounded by: tiny prompts and output (an index among at most 12 candidates), an on-disk cache that also stores negative answers, a per-process call cap (`BIBLIONX_LLM_MAX_CALLS`), a short timeout, and silent fallback to fingerspelling on any error.
+Disabled unless `BIBLIONX_LLM_PROVIDER` is `anthropic`, `openai` or `ollama`. Keys come only from environment variables (see `.env.example`); never commit them. Costs are bounded by: tiny prompts and output (an index among at most 12 candidates), an on-disk cache that also stores negative answers, an optional per-process call cap (`BIBLIONX_LLM_MAX_CALLS`, default 0 = unlimited so demos translate broadly), an optional rate limit (`BIBLIONX_LLM_RATE_PER_MIN`, default off; 30 recommended for public deployments together with a monthly spend limit in the provider console), a short timeout, and silent fallback to fingerspelling on any error.
 
 ## How to curate synonyms
 
@@ -98,6 +124,10 @@ Workflow:
 1. Run `python scripts/evaluate.py --out metrics.json` to list the most frequent fingerspelled words.
 2. Run `python tools/suggest_synonyms.py --input metrics.json` (optionally `--use-llm`). It writes `data/synonyms_suggested.json` for review and never changes anything automatically.
 3. A reviewer who knows LSRD checks each suggestion for true semantic equivalence, then copies approved entries into `synonyms_extra.json`.
-4. Add a test case, run `python -m unittest discover -s tests`, re-run `evaluate.py`, then `python scripts/sync_backend.py`.
+4. Add a test case, run `python -m unittest discover -s tests`, re-run `evaluate.py`, then run `python scripts/check_metrics.py`.
 
 Prefer no synonym over a doubtful one: a wrong sign is worse than fingerspelling. Do not edit `lsrd_dictionary.db` to add synonyms.
+
+## Quality and validation
+
+CI (`.github/workflows/ci.yml`) runs the tests and the metrics gate (`scripts/check_metrics.py`). Expert review sheets live in `docs/validation/` (generated by `tools/export_review_sheets.py`), and dictionary gaps are tracked in `docs/DICTIONARY_GAPS.md`.

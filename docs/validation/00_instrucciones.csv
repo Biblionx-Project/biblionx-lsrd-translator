@@ -1,0 +1,18 @@
+﻿Instrucciones
+INSTRUCCIONES PARA REVISORES (intérpretes de LSRD y personas sordas)
+""
+Gracias por ayudar a validar el traductor Biblionx. Su revisión decide qué datos se corrigen.
+""
+"1. Abra cada hoja CSV con Excel o LibreOffice (codificación UTF-8). Si las columnas aparecen pegadas en una sola, use Datos > Texto en columnas con separador coma."
+2. No cambie las columnas que ya vienen llenas. Solo escriba en las columnas de revisión del final de cada hoja.
+"3. Escriba si o no en la columna 'correcto (si/no)'. Si responde no, escriba la seña o el orden correcto en 'seña sugerida' (o 'orden sugerido' en la hoja de gramática)."
+"4. Use 'comentarios' para variantes regionales, diferencias entre generaciones o dudas. Deje en blanco lo que no pueda juzgar; no adivine."
+5. Guarde el archivo como CSV UTF-8 (delimitado por comas) y devuélvalo con su nombre o iniciales en el nombre del archivo.
+""
+HOJAS
+01_sinonimos_curados: una palabra del español que el sistema trata como equivalente de otra seña. Pregunta: ¿esa palabra se puede representar con la seña destino?
+"02_lexico_dominicano: formas dominicanas (pa', toy, guagua...) y el equivalente estándar al que se convierten antes de buscar la seña. Pregunta: ¿el equivalente es correcto y la seña resultante es la que usted usaría?"
+"03_reglas_gramatica: oraciones en español con el orden de señas que produce el sistema. Pregunta: ¿ese orden es natural en LSRD? Si no, escriba el orden correcto."
+04_coincidencias_difusas: palabras que no están en el diccionario y que el sistema relaciona con la palabra más parecida. Pregunta: ¿la palabra elegida tiene el mismo significado? Es la hoja más importante: una coincidencia incorrecta muestra una seña equivocada sin aviso.
+""
+Estas hojas no contienen información personal; no escriba datos personales en los comentarios.

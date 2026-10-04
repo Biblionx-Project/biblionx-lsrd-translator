@@ -4,12 +4,19 @@ Disabled unless BIBLIONX_LLM_PROVIDER is one of: anthropic, openai, ollama.
 Keys come only from environment variables and are never logged.
 The model only picks an index among dictionary candidates (max_tokens 8),
 results (including negatives) are cached on disk, and any error -> None.
+
+Cost guards (all optional, configured through environment variables):
+  BIBLIONX_LLM_MAX_CALLS     total model calls per process; 0 = unlimited (default)
+  BIBLIONX_LLM_RATE_PER_MIN  process-wide sliding-window cap; 0 = off (default)
+Cached answers never count against either limit.
 """
 import hashlib
 import json
 import os
 import threading
+import time
 import urllib.request
+from collections import deque
 
 PROVIDERS = ("anthropic", "openai", "ollama")
 DEFAULT_MODELS = {
@@ -20,14 +27,27 @@ DEFAULT_MODELS = {
 CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", ".llm_cache.json")
 TIMEOUT = 8
 MAX_CANDIDATES = 12
+RATE_WINDOW = 60.0  # seconds
+LOCK_STALE = 10.0   # seconds before a leftover cache lock file is ignored
+
+
+def _env_int(name, default=0):
+    try:
+        return max(0, int(os.environ.get(name, "").strip() or default))
+    except ValueError:
+        return default
 
 
 class LLMFallback:
-    def __init__(self, provider=None, model=None, max_calls=50, cache_path=CACHE_PATH):
+    def __init__(self, provider=None, model=None, max_calls=0, cache_path=CACHE_PATH,
+                 rate_per_min=0):
         self.provider = provider if provider in PROVIDERS else None
         self.model = model or (DEFAULT_MODELS[self.provider] if self.provider else None)
-        self.max_calls = max_calls
+        self.max_calls = max(0, int(max_calls or 0))        # 0 = unlimited
+        self.rate_per_min = max(0, int(rate_per_min or 0))  # 0 = off
         self.calls = 0
+        self.rate_blocked = 0
+        self._stamps = deque()
         self.cache_path = cache_path
         self._lock = threading.Lock()
         self._cache = self._load_cache() if self.provider else {}
@@ -35,12 +55,10 @@ class LLMFallback:
     @classmethod
     def from_env(cls):
         provider = os.environ.get("BIBLIONX_LLM_PROVIDER", "").strip().lower()
-        try:
-            max_calls = int(os.environ.get("BIBLIONX_LLM_MAX_CALLS", "50"))
-        except ValueError:
-            max_calls = 50
+        max_calls = _env_int("BIBLIONX_LLM_MAX_CALLS", 0)
+        rate = _env_int("BIBLIONX_LLM_RATE_PER_MIN", 0)
         model = os.environ.get("BIBLIONX_LLM_MODEL", "").strip() or None
-        return cls(provider or None, model, max_calls)
+        return cls(provider or None, model, max_calls, rate_per_min=rate)
 
     @property
     def enabled(self):
@@ -55,20 +73,71 @@ class LLMFallback:
         except Exception:
             return {}
 
+    def _acquire_file_lock(self, timeout=2.0):
+        """Tiny cross-process lock (O_EXCL lock file). Returns its path or None."""
+        lock = self.cache_path + ".lock"
+        deadline = time.monotonic() + timeout
+        while True:
+            try:
+                os.close(os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+                return lock
+            except FileExistsError:
+                try:
+                    if time.time() - os.path.getmtime(lock) > LOCK_STALE:
+                        os.remove(lock)
+                        continue
+                except OSError:
+                    pass
+                if time.monotonic() >= deadline:
+                    return None
+                time.sleep(0.01)
+            except OSError:
+                return None
+
     def _save_cache(self):
+        """Merge with the on-disk cache, write a temp file, atomically replace."""
+        lock = None
+        tmp = "%s.%d.%d.tmp" % (self.cache_path, os.getpid(), threading.get_ident())
         try:
             os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
-            tmp = self.cache_path + ".tmp"
+            lock = self._acquire_file_lock()
+            merged = self._load_cache()
+            merged.update(self._cache)
+            self._cache = merged
             with open(tmp, "w", encoding="utf-8") as f:
-                json.dump(self._cache, f, ensure_ascii=False)
+                json.dump(merged, f, ensure_ascii=False)
             os.replace(tmp, self.cache_path)
         except Exception:
-            pass
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+        finally:
+            if lock:
+                try:
+                    os.remove(lock)
+                except OSError:
+                    pass
 
     @staticmethod
     def _key(word, candidates):
         h = hashlib.sha1("|".join(candidates).encode("utf-8")).hexdigest()[:12]
         return f"{word}::{h}"
+
+    def _allow_call(self):
+        """Reserve a model call if limits permit. Caller must hold self._lock."""
+        if self.max_calls and self.calls >= self.max_calls:
+            return False
+        if self.rate_per_min:
+            now = time.monotonic()
+            while self._stamps and now - self._stamps[0] >= RATE_WINDOW:
+                self._stamps.popleft()
+            if len(self._stamps) >= self.rate_per_min:
+                self.rate_blocked += 1
+                return False
+            self._stamps.append(now)
+        self.calls += 1
+        return True
 
     # ---- public API ----
     def choose(self, word, context, candidates):
@@ -81,9 +150,8 @@ class LLMFallback:
             if key in self._cache:
                 cached = self._cache[key]
                 return cached if cached in cands else None
-            if self.calls >= self.max_calls:
+            if not self._allow_call():
                 return None
-            self.calls += 1
         try:
             answer = self._ask(word, context, cands)
         except Exception:
@@ -161,5 +229,6 @@ if __name__ == "__main__":
     if not fb.enabled:
         print("LLM fallback disabled (set BIBLIONX_LLM_PROVIDER to anthropic, openai or ollama).")
     else:
-        print(f"LLM fallback enabled: provider={fb.provider} model={fb.model} max_calls={fb.max_calls}")
+        print(f"LLM fallback enabled: provider={fb.provider} model={fb.model} "
+              f"max_calls={fb.max_calls or 'unlimited'} rate_per_min={fb.rate_per_min or 'off'}")
         print(fb.choose("galleta", "quiero una galleta", ["pan", "dulce", "casa"]))

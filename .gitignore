@@ -16,3 +16,12 @@ __pycache__/
 
 # Optional LLM fallback cache (local, per-machine)
 data/.llm_cache.json
+
+# Extraction artifacts (sign images used only to build the DB; kept on local disk)
+extracted_images/
+backend_api/extracted_images/
+
+# Extension icons (a global "Icon?" pattern on some machines would otherwise hide them)
+!browser_extension/icons/
+!browser_extension/icons/*.png
+!browser_extension/icons/icon.svg
