@@ -1,0 +1,190 @@
+{
+  "sentences": 134,
+  "output_tokens": 486,
+  "lexical_tokens": 335,
+  "lexical_coverage": 0.6893,
+  "fingerspelled_tokens": 151,
+  "unique_fingerspelled_words": 117,
+  "top_fingerspelled": [
+    {
+      "word": "me",
+      "count": 6
+    },
+    {
+      "word": "dias",
+      "count": 4
+    },
+    {
+      "word": "pa",
+      "count": 4
+    },
+    {
+      "word": "todos",
+      "count": 3
+    },
+    {
+      "word": "nos",
+      "count": 3
+    },
+    {
+      "word": "mucha",
+      "count": 3
+    },
+    {
+      "word": "mis",
+      "count": 3
+    },
+    {
+      "word": "muy",
+      "count": 3
+    },
+    {
+      "word": "poder",
+      "count": 3
+    },
+    {
+      "word": "toy",
+      "count": 3
+    },
+    {
+      "word": "senas",
+      "count": 3
+    },
+    {
+      "word": "eso",
+      "count": 2
+    },
+    {
+      "word": "respuesta",
+      "count": 2
+    },
+    {
+      "word": "dominicana",
+      "count": 2
+    },
+    {
+      "word": "favor",
+      "count": 2
+    },
+    {
+      "word": "libros",
+      "count": 2
+    },
+    {
+      "word": "ahorita",
+      "count": 2
+    },
+    {
+      "word": "tamo",
+      "count": 2
+    },
+    {
+      "word": "buenos",
+      "count": 1
+    },
+    {
+      "word": "ana",
+      "count": 1
+    },
+    {
+      "word": "entendi",
+      "count": 1
+    },
+    {
+      "word": "maestra",
+      "count": 1
+    },
+    {
+      "word": "ninos",
+      "count": 1
+    },
+    {
+      "word": "prestar",
+      "count": 1
+    },
+    {
+      "word": "hermanos",
+      "count": 1
+    },
+    {
+      "word": "santo",
+      "count": 1
+    },
+    {
+      "word": "doctora",
+      "count": 1
+    },
+    {
+      "word": "estoy",
+      "count": 1
+    },
+    {
+      "word": "porque",
+      "count": 1
+    },
+    {
+      "word": "haber",
+      "count": 1
+    },
+    {
+      "word": "visto",
+      "count": 1
+    },
+    {
+      "word": "comer",
+      "count": 1
+    },
+    {
+      "word": "cuanto",
+      "count": 1
+    },
+    {
+      "word": "cuesta",
+      "count": 1
+    },
+    {
+      "word": "viniste",
+      "count": 1
+    },
+    {
+      "word": "fui",
+      "count": 1
+    },
+    {
+      "word": "comimos",
+      "count": 1
+    },
+    {
+      "word": "buen",
+      "count": 1
+    },
+    {
+      "word": "trabaje",
+      "count": 1
+    },
+    {
+      "word": "proximo",
+      "count": 1
+    }
+  ],
+  "gold_entries": 42,
+  "gold_lemmas_expected": 79,
+  "gold_lemma_recall": 0.7975,
+  "gold_missed_lemmas": {
+    "dia": 3,
+    "entender": 1,
+    "pregunta": 1,
+    "mucho": 1,
+    "doctor": 1,
+    "nada": 1,
+    "saber": 1,
+    "venir": 1,
+    "ir": 1,
+    "trabajo": 1,
+    "trabajar": 1,
+    "bueno": 1,
+    "dar": 1,
+    "esperar": 1
+  },
+  "avg_ms_per_sentence": 19.631
+}

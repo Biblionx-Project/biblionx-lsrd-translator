@@ -1,9 +1,12 @@
-import sqlite3
-import json
+import sys
+
 from nlp_engine import LSRDNlpEngine
 from translator import LSRDTranslator
 
 def run_cli_translator():
+    if not sys.stdin.isatty():  # piped input/output: force UTF-8 on Windows
+        sys.stdin.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding='utf-8')
     print("=" * 70)
     print("      BIBLIONX - DOMINICAN SIGN LANGUAGE (LSRD) TRANSLATION ENGINE")
     print("=" * 70)
@@ -14,7 +17,10 @@ def run_cli_translator():
 
     while True:
         try:
-            texto = input("Spanish > ").strip()
+            try:
+                texto = input("Spanish > ").strip()
+            except EOFError:
+                break
             if not texto:
                 continue
             if texto.lower() in ['salir', 'exit', 'quit']:
@@ -22,7 +28,7 @@ def run_cli_translator():
                 break
 
             nlp_res = nlp.process(texto)
-            sequence = translator.translate_sequence(nlp_res['secuencia_lsrd'])
+            sequence = translator.translate_sequence(nlp_res['secuencia_lsrd'])  # carries phrase/morphology hints
 
             print("\n--- LSRD TRANSLATION RESULT ---")
             print(f"Original sentence:     \"{texto}\"")
@@ -31,9 +37,9 @@ def run_cli_translator():
 
             print("ORDERED SIGN SEQUENCE:")
             for idx, item in enumerate(sequence, 1):
-                tipo = f"(Fingerspelled '{item['letra']}')" if item.get('es_deletreo') else "(Lexical sign)"
+                tipo = f"(Fingerspelled '{item['letra']}')" if item.get('es_deletreo') else f"(Sign: {item.get('match_method', 'exact')})"
                 desc = item.get('descripcion_sena') or item.get('definicion_es', '')[:60]
-                print(f"  {idx:02d}. {item['palabra_es']:<20} {tipo:<20} | Page {item.get('pagina', 'N/A')}")
+                print(f"  {idx:02d}. {item['palabra_es']:<20} {tipo:<24} | conf {item.get('confidence', 0):.2f} | Page {item.get('pagina', 'N/A')}")
                 print(f"      - Movement: {desc}")
                 print(f"      - Image:    {item.get('ruta_imagen')}\n")
 

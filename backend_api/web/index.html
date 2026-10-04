@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biblionx LSRD Translator</title>
+<meta name="description" content="Translate Dominican Spanish text into Dominican Sign Language (LSRD).">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#input">Skip to translator</a>
+
+<header class="hero">
+  <nav class="topbar" aria-label="Main">
+    <span class="brand"><span class="brand-mark" aria-hidden="true">B</span>Biblionx</span>
+    <button id="themeToggle" class="btn ghost icon" type="button" aria-label="Toggle color theme" aria-pressed="false">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9c0-.5 0-1-.1-1.4A5.5 5.5 0 0 1 12.4 3.1C12.3 3 12.1 3 12 3z"/></svg>
+    </button>
+  </nav>
+  <div class="hero-body">
+    <p class="eyebrow">Dominican Sign Language</p>
+    <h1>Biblionx <span class="grad">LSRD Translator</span></h1>
+    <p class="lede">Type a sentence in Dominican Spanish and see it as a sequence of LSRD signs, with movement descriptions and dictionary references.</p>
+  </div>
+</header>
+
+<main>
+  <section class="card composer" aria-labelledby="inputLabel">
+    <form id="form" novalidate>
+      <label id="inputLabel" for="input" class="label">Spanish text</label>
+      <textarea id="input" rows="3" maxlength="500" placeholder="Escribe una frase en español…" lang="es" spellcheck="true"></textarea>
+      <div class="row">
+        <span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to translate <span id="count" aria-hidden="true">0/500</span></span>
+        <span class="actions">
+          <button type="button" id="clear" class="btn ghost">Clear</button>
+          <button type="submit" id="submit" class="btn primary">Translate</button>
+        </span>
+      </div>
+    </form>
+    <div class="examples" role="group" aria-label="Example sentences">
+      <span class="label small">Try an example</span>
+      <div id="chips" class="chips"></div>
+    </div>
+  </section>
+
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+
+  <section id="result" class="result" hidden aria-label="Translation result">
+    <div class="card stage-card">
+      <div class="stage" id="stage">
+        <img id="stageImg" alt="" decoding="async">
+        <div id="stageFallback" class="stage-fallback" hidden>No image available</div>
+        <span id="stageBadge" class="badge" hidden></span>
+      </div>
+      <div class="stage-meta">
+        <div id="stageWord" class="stage-word">-</div>
+        <div id="stagePos" class="muted">0 / 0</div>
+      </div>
+      <div class="controls" role="group" aria-label="Player controls">
+        <button id="prev" class="btn icon" type="button" aria-label="Previous sign">&#9198;</button>
+        <button id="play" class="btn primary icon big" type="button" aria-label="Play" aria-pressed="false">&#9654;</button>
+        <button id="next" class="btn icon" type="button" aria-label="Next sign">&#9197;</button>
+        <label class="speed">Speed
+          <select id="speed">
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h2>Gloss timeline</h2>
+        <ol id="timeline" class="timeline" aria-label="LSRD sign sequence"></ol>
+        <p class="legend muted">
+          <span class="badge spell">Fingerspelling</span>
+          <span class="badge fuzzy">Fuzzy</span>
+          <span class="badge ai">AI</span>
+        </p>
+        <details id="nlpBox" class="nlp">
+          <summary>NLP analysis</summary>
+          <p class="label small">LSRD sequence</p>
+          <p id="nlpSeq" class="mono"></p>
+        </details>
+      </div>
+      <div class="card">
+        <h2>Sign details</h2>
+        <dl class="details">
+          <dt>Movement description</dt><dd id="dDesc" lang="es">-</dd>
+          <dt>Dictionary page</dt><dd id="dPage">-</dd>
+          <dt>Category</dt><dd id="dCat" lang="es">-</dd>
+          <dt>Match</dt><dd id="dMatch">-</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>Biblionx Project</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

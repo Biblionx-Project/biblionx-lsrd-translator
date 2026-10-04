@@ -1,5 +1,18 @@
-# Archivos ignorados por Git
+# Python
 __pycache__/
 *.pyc
-.DS_Store
 .venv/
+
+# OS
+.DS_Store
+
+# Secrets and local config
+.env
+
+# IDE settings and cache
+.vscode/
+.vs/
+.idea/
+
+# Optional LLM fallback cache (local, per-machine)
+data/.llm_cache.json

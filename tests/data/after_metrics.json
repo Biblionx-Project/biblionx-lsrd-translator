@@ -1,0 +1,183 @@
+{
+  "sentences": 134,
+  "output_tokens": 473,
+  "lexical_tokens": 416,
+  "lexical_coverage": 0.8795,
+  "fingerspelled_tokens": 57,
+  "unique_fingerspelled_words": 52,
+  "top_fingerspelled": [
+    {
+      "word": "poder",
+      "count": 3
+    },
+    {
+      "word": "donde",
+      "count": 2
+    },
+    {
+      "word": "haber",
+      "count": 2
+    },
+    {
+      "word": "respuesta",
+      "count": 2
+    },
+    {
+      "word": "ana",
+      "count": 1
+    },
+    {
+      "word": "ninos",
+      "count": 1
+    },
+    {
+      "word": "prestar",
+      "count": 1
+    },
+    {
+      "word": "porque",
+      "count": 1
+    },
+    {
+      "word": "cuesta",
+      "count": 1
+    },
+    {
+      "word": "cuanto",
+      "count": 1
+    },
+    {
+      "word": "que",
+      "count": 1
+    },
+    {
+      "word": "como",
+      "count": 1
+    },
+    {
+      "word": "quien",
+      "count": 1
+    },
+    {
+      "word": "cuando",
+      "count": 1
+    },
+    {
+      "word": "proximo",
+      "count": 1
+    },
+    {
+      "word": "ninas",
+      "count": 1
+    },
+    {
+      "word": "jugar",
+      "count": 1
+    },
+    {
+      "word": "sed",
+      "count": 1
+    },
+    {
+      "word": "cocinamos",
+      "count": 1
+    },
+    {
+      "word": "grande",
+      "count": 1
+    },
+    {
+      "word": "bonito",
+      "count": 1
+    },
+    {
+      "word": "momento",
+      "count": 1
+    },
+    {
+      "word": "receta",
+      "count": 1
+    },
+    {
+      "word": "funciona",
+      "count": 1
+    },
+    {
+      "word": "carlos",
+      "count": 1
+    },
+    {
+      "word": "hasta",
+      "count": 1
+    },
+    {
+      "word": "nadie",
+      "count": 1
+    },
+    {
+      "word": "ninguno",
+      "count": 1
+    },
+    {
+      "word": "tampoco",
+      "count": 1
+    },
+    {
+      "word": "pendiente",
+      "count": 1
+    },
+    {
+      "word": "mai",
+      "count": 1
+    },
+    {
+      "word": "lo",
+      "count": 1
+    },
+    {
+      "word": "chele",
+      "count": 1
+    },
+    {
+      "word": "jevi",
+      "count": 1
+    },
+    {
+      "word": "orgulloso",
+      "count": 1
+    },
+    {
+      "word": "aser",
+      "count": 1
+    },
+    {
+      "word": "boy",
+      "count": 1
+    },
+    {
+      "word": "able",
+      "count": 1
+    },
+    {
+      "word": "estudar",
+      "count": 1
+    },
+    {
+      "word": "probrema",
+      "count": 1
+    }
+  ],
+  "gold_entries": 42,
+  "gold_lemmas_expected": 79,
+  "gold_lemma_recall": 0.9747,
+  "gold_missed_lemmas": {
+    "dia": 1,
+    "saber": 1
+  },
+  "avg_ms_per_sentence": 2.246,
+  "match_method_counts": {
+    "exact": 397,
+    "curated_synonym": 19
+  },
+  "avg_confidence": 0.7787
+}

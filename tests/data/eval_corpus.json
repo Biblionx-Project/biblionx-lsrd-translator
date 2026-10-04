@@ -1,0 +1,1288 @@
+{
+ "version": 1,
+ "language": "es-DO",
+ "description": "Evaluation corpus of Dominican Spanish sentences; entries tagged gold carry expected_lemmas verified against the dictionary.",
+ "items": [
+  {
+   "id": "s001",
+   "text": "Buenos días, ¿cómo estás?",
+   "tags": [
+    "greeting",
+    "question",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "dia"
+   ]
+  },
+  {
+   "id": "s002",
+   "text": "Hola, me llamo Ana y vivo en Santiago.",
+   "tags": [
+    "greeting",
+    "introduction",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "hola",
+    "llamar"
+   ]
+  },
+  {
+   "id": "s003",
+   "text": "Gracias por tu ayuda.",
+   "tags": [
+    "courtesy"
+   ]
+  },
+  {
+   "id": "s004",
+   "text": "Perdón, no entendí la pregunta.",
+   "tags": [
+    "courtesy",
+    "negation",
+    "preterite",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "perdon",
+    "entender",
+    "pregunta"
+   ]
+  },
+  {
+   "id": "s005",
+   "text": "Voy para la escuela todos los días.",
+   "tags": [
+    "school",
+    "time",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "escuela",
+    "dia"
+   ]
+  },
+  {
+   "id": "s006",
+   "text": "Mañana tengo examen de matemáticas.",
+   "tags": [
+    "school",
+    "time",
+    "future"
+   ]
+  },
+  {
+   "id": "s007",
+   "text": "La maestra nos puso mucha tarea.",
+   "tags": [
+    "school",
+    "preterite",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "tarea",
+    "mucho"
+   ]
+  },
+  {
+   "id": "s008",
+   "text": "Los niños estudian en la biblioteca.",
+   "tags": [
+    "school",
+    "library",
+    "plural",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "estudiar",
+    "biblioteca"
+   ]
+  },
+  {
+   "id": "s009",
+   "text": "Necesito un libro para leer.",
+   "tags": [
+    "library"
+   ]
+  },
+  {
+   "id": "s010",
+   "text": "¿Dónde está la biblioteca?",
+   "tags": [
+    "library",
+    "question",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "biblioteca"
+   ]
+  },
+  {
+   "id": "s011",
+   "text": "Quiero prestar este libro por una semana.",
+   "tags": [
+    "library",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "querer",
+    "libro",
+    "semana"
+   ]
+  },
+  {
+   "id": "s012",
+   "text": "La biblioteca abre a las ocho de la mañana.",
+   "tags": [
+    "library",
+    "time"
+   ]
+  },
+  {
+   "id": "s013",
+   "text": "Mi mamá trabaja en el hospital.",
+   "tags": [
+    "family",
+    "work",
+    "health",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "trabajar",
+    "hospital"
+   ]
+  },
+  {
+   "id": "s014",
+   "text": "Mi papá compró un carro nuevo.",
+   "tags": [
+    "family",
+    "preterite",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "comprar",
+    "carro"
+   ]
+  },
+  {
+   "id": "s015",
+   "text": "Mis hermanos viven en Santo Domingo.",
+   "tags": [
+    "family",
+    "plural"
+   ]
+  },
+  {
+   "id": "s016",
+   "text": "Mi abuelo está enfermo.",
+   "tags": [
+    "family",
+    "health",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "abuelo",
+    "enfermo"
+   ]
+  },
+  {
+   "id": "s017",
+   "text": "Mi hermana es doctora.",
+   "tags": [
+    "family",
+    "feminine",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "hermana",
+    "doctor"
+   ]
+  },
+  {
+   "id": "s018",
+   "text": "Tengo un dolor de cabeza muy fuerte.",
+   "tags": [
+    "health"
+   ]
+  },
+  {
+   "id": "s019",
+   "text": "Necesito ir al médico mañana.",
+   "tags": [
+    "health",
+    "future",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "necesitar",
+    "ir",
+    "medico",
+    "manana"
+   ]
+  },
+  {
+   "id": "s020",
+   "text": "El hospital está cerca de mi casa.",
+   "tags": [
+    "health",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "hospital",
+    "casa"
+   ]
+  },
+  {
+   "id": "s021",
+   "text": "Estoy muy feliz hoy.",
+   "tags": [
+    "emotion",
+    "time"
+   ]
+  },
+  {
+   "id": "s022",
+   "text": "Ella está triste porque no tiene dinero.",
+   "tags": [
+    "emotion",
+    "negation",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "triste",
+    "tener",
+    "dinero"
+   ]
+  },
+  {
+   "id": "s023",
+   "text": "No tengo tiempo ahora.",
+   "tags": [
+    "negation",
+    "time",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "tener",
+    "tiempo",
+    "ahora"
+   ]
+  },
+  {
+   "id": "s024",
+   "text": "Nunca he visto eso.",
+   "tags": [
+    "negation"
+   ]
+  },
+  {
+   "id": "s025",
+   "text": "No quiero comer nada.",
+   "tags": [
+    "negation",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "querer",
+    "nada"
+   ]
+  },
+  {
+   "id": "s026",
+   "text": "Yo no sé la respuesta.",
+   "tags": [
+    "negation",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "saber"
+   ]
+  },
+  {
+   "id": "s027",
+   "text": "¿Cuánto cuesta este libro?",
+   "tags": [
+    "question",
+    "shopping"
+   ]
+  },
+  {
+   "id": "s028",
+   "text": "¿Qué hora es?",
+   "tags": [
+    "question",
+    "time",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "hora"
+   ]
+  },
+  {
+   "id": "s029",
+   "text": "¿Cómo te llamas?",
+   "tags": [
+    "question",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "llamar"
+   ]
+  },
+  {
+   "id": "s030",
+   "text": "¿Dónde trabajas?",
+   "tags": [
+    "question",
+    "work"
+   ]
+  },
+  {
+   "id": "s031",
+   "text": "¿Quién me puede ayudar?",
+   "tags": [
+    "question",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "ayudar"
+   ]
+  },
+  {
+   "id": "s032",
+   "text": "¿Por qué no viniste ayer?",
+   "tags": [
+    "question",
+    "negation",
+    "preterite",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "venir",
+    "ayer"
+   ]
+  },
+  {
+   "id": "s033",
+   "text": "¿Cuándo es el examen?",
+   "tags": [
+    "question",
+    "school"
+   ]
+  },
+  {
+   "id": "s034",
+   "text": "Ayer fui al trabajo temprano.",
+   "tags": [
+    "preterite",
+    "work",
+    "time",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "ayer",
+    "ir",
+    "trabajo"
+   ]
+  },
+  {
+   "id": "s035",
+   "text": "Ayer comimos arroz con habichuelas.",
+   "tags": [
+    "preterite",
+    "food",
+    "time",
+    "dominicanism",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "ayer"
+   ]
+  },
+  {
+   "id": "s036",
+   "text": "Mañana voy a estudiar en la biblioteca.",
+   "tags": [
+    "future",
+    "school",
+    "library"
+   ]
+  },
+  {
+   "id": "s037",
+   "text": "El lunes vamos a la escuela.",
+   "tags": [
+    "time",
+    "future",
+    "school",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "lunes",
+    "escuela"
+   ]
+  },
+  {
+   "id": "s038",
+   "text": "El domingo vamos a la iglesia.",
+   "tags": [
+    "time",
+    "future",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "domingo"
+   ]
+  },
+  {
+   "id": "s039",
+   "text": "Hoy es un buen día.",
+   "tags": [
+    "time"
+   ]
+  },
+  {
+   "id": "s040",
+   "text": "Esta semana trabajé mucho.",
+   "tags": [
+    "time",
+    "preterite",
+    "work",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "semana",
+    "trabajar",
+    "mucho"
+   ]
+  },
+  {
+   "id": "s041",
+   "text": "El próximo mes viajo a Puerto Plata.",
+   "tags": [
+    "time",
+    "future",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "mes"
+   ]
+  },
+  {
+   "id": "s042",
+   "text": "El año pasado estudié inglés.",
+   "tags": [
+    "time",
+    "preterite",
+    "school"
+   ]
+  },
+  {
+   "id": "s043",
+   "text": "Siempre llego a tiempo.",
+   "tags": [
+    "time",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "siempre",
+    "tiempo"
+   ]
+  },
+  {
+   "id": "s044",
+   "text": "Los estudiantes aprenden rápido.",
+   "tags": [
+    "school",
+    "plural",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "aprender"
+   ]
+  },
+  {
+   "id": "s045",
+   "text": "La profesora enseña a los alumnos.",
+   "tags": [
+    "school",
+    "feminine",
+    "plural"
+   ]
+  },
+  {
+   "id": "s046",
+   "text": "Las niñas juegan en el parque.",
+   "tags": [
+    "family",
+    "plural",
+    "feminine"
+   ]
+  },
+  {
+   "id": "s047",
+   "text": "Mis amigas son muy buenas.",
+   "tags": [
+    "family",
+    "plural",
+    "feminine",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "bueno"
+   ]
+  },
+  {
+   "id": "s048",
+   "text": "Mi amigo y yo hablamos todos los días.",
+   "tags": [
+    "family",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "amigo",
+    "hablar",
+    "dia"
+   ]
+  },
+  {
+   "id": "s049",
+   "text": "Ellos hablan con el director.",
+   "tags": [
+    "work",
+    "plural"
+   ]
+  },
+  {
+   "id": "s050",
+   "text": "Mañana te llamo por teléfono.",
+   "tags": [
+    "future",
+    "work",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "manana",
+    "llamar",
+    "telefono"
+   ]
+  },
+  {
+   "id": "s051",
+   "text": "Dame tu número de teléfono.",
+   "tags": [
+    "work",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "dar",
+    "telefono"
+   ]
+  },
+  {
+   "id": "s052",
+   "text": "¿Me puedes dar agua?",
+   "tags": [
+    "question",
+    "food"
+   ]
+  },
+  {
+   "id": "s053",
+   "text": "Tengo mucha sed, quiero agua.",
+   "tags": [
+    "food",
+    "health",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "querer",
+    "agua"
+   ]
+  },
+  {
+   "id": "s054",
+   "text": "Vamos a comprar comida.",
+   "tags": [
+    "food",
+    "future",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "comprar",
+    "comida"
+   ]
+  },
+  {
+   "id": "s055",
+   "text": "Cocinamos para toda la familia.",
+   "tags": [
+    "food",
+    "family"
+   ]
+  },
+  {
+   "id": "s056",
+   "text": "Voy a pagar la cuenta.",
+   "tags": [
+    "shopping",
+    "future",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "pagar"
+   ]
+  },
+  {
+   "id": "s057",
+   "text": "Quiero vender mi carro.",
+   "tags": [
+    "shopping",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "querer",
+    "vender",
+    "carro"
+   ]
+  },
+  {
+   "id": "s058",
+   "text": "Camino por la calle todos los días.",
+   "tags": [
+    "daily"
+   ]
+  },
+  {
+   "id": "s059",
+   "text": "Vivo en una ciudad grande.",
+   "tags": [
+    "daily",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "ciudad"
+   ]
+  },
+  {
+   "id": "s060",
+   "text": "República Dominicana es un país bonito.",
+   "tags": [
+    "daily",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "pais"
+   ]
+  },
+  {
+   "id": "s061",
+   "text": "Abre la puerta, por favor.",
+   "tags": [
+    "daily",
+    "command"
+   ]
+  },
+  {
+   "id": "s062",
+   "text": "Cierra la ventana.",
+   "tags": [
+    "daily",
+    "command",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "cerrar"
+   ]
+  },
+  {
+   "id": "s063",
+   "text": "Espérame un momento.",
+   "tags": [
+    "daily",
+    "command",
+    "gold"
+   ],
+   "expected_lemmas": [
+    "esperar"
+   ]
+  },
+  {
+   "id": "s064",
+   "text": "Escucha con atención.",
+   "tags": [
+    "school",
+    "command"
+   ]
+  },
+  {
+   "id": "s065",
+   "text": "Siéntate aquí.",
+   "tags": [
+    "daily",
+    "command"
+   ]
+  },
+  {
+   "id": "s066",
+   "text": "Pienso en mi familia.",
+   "tags": [
+    "family",
+    "emotion"
+   ]
+  },
+  {
+   "id": "s067",
+   "text": "Siento un dolor en el pecho.",
+   "tags": [
+    "health"
+   ]
+  },
+  {
+   "id": "s068",
+   "text": "Tengo que limpiar la casa.",
+   "tags": [
+    "family",
+    "daily"
+   ]
+  },
+  {
+   "id": "s069",
+   "text": "Voy a bañarme.",
+   "tags": [
+    "daily",
+    "future"
+   ]
+  },
+  {
+   "id": "s070",
+   "text": "El doctor me dio una receta.",
+   "tags": [
+    "health",
+    "preterite"
+   ]
+  },
+  {
+   "id": "s071",
+   "text": "Ella entiende todo.",
+   "tags": [
+    "school"
+   ]
+  },
+  {
+   "id": "s072",
+   "text": "Yo sé leer y escribir.",
+   "tags": [
+    "school"
+   ]
+  },
+  {
+   "id": "s073",
+   "text": "Escribí una carta ayer.",
+   "tags": [
+    "school",
+    "preterite",
+    "time"
+   ]
+  },
+  {
+   "id": "s074",
+   "text": "Los libros están en la mesa.",
+   "tags": [
+    "library",
+    "plural"
+   ]
+  },
+  {
+   "id": "s075",
+   "text": "Hay muchos libros en la biblioteca.",
+   "tags": [
+    "library",
+    "plural"
+   ]
+  },
+  {
+   "id": "s076",
+   "text": "La computadora no funciona.",
+   "tags": [
+    "work",
+    "negation"
+   ]
+  },
+  {
+   "id": "s077",
+   "text": "Necesito usar la computadora.",
+   "tags": [
+    "library",
+    "work"
+   ]
+  },
+  {
+   "id": "s078",
+   "text": "La clase empieza a las nueve.",
+   "tags": [
+    "school",
+    "time"
+   ]
+  },
+  {
+   "id": "s079",
+   "text": "Tengo clase de lunes a viernes.",
+   "tags": [
+    "school",
+    "time"
+   ]
+  },
+  {
+   "id": "s080",
+   "text": "Mi nombre es Carlos.",
+   "tags": [
+    "introduction"
+   ]
+  },
+  {
+   "id": "s081",
+   "text": "Mucho gusto en conocerte.",
+   "tags": [
+    "greeting"
+   ]
+  },
+  {
+   "id": "s082",
+   "text": "Adiós, nos vemos mañana.",
+   "tags": [
+    "greeting",
+    "future"
+   ]
+  },
+  {
+   "id": "s083",
+   "text": "Hasta luego, cuídate.",
+   "tags": [
+    "greeting"
+   ]
+  },
+  {
+   "id": "s084",
+   "text": "Hoy no voy a trabajar.",
+   "tags": [
+    "negation",
+    "work",
+    "future",
+    "time"
+   ]
+  },
+  {
+   "id": "s085",
+   "text": "No me gusta el café sin azúcar.",
+   "tags": [
+    "negation",
+    "food"
+   ]
+  },
+  {
+   "id": "s086",
+   "text": "Ella nunca llega tarde.",
+   "tags": [
+    "negation",
+    "time"
+   ]
+  },
+  {
+   "id": "s087",
+   "text": "Nadie sabe la respuesta.",
+   "tags": [
+    "negation"
+   ]
+  },
+  {
+   "id": "s088",
+   "text": "Ninguno de ellos vino.",
+   "tags": [
+    "negation",
+    "preterite"
+   ]
+  },
+  {
+   "id": "s089",
+   "text": "Tampoco quiero ir.",
+   "tags": [
+    "negation"
+   ]
+  },
+  {
+   "id": "s090",
+   "text": "Toy cansado, pa la casa me voy.",
+   "tags": [
+    "dominicanism",
+    "typo"
+   ]
+  },
+  {
+   "id": "s091",
+   "text": "Toy en la escuela ahorita.",
+   "tags": [
+    "dominicanism",
+    "school",
+    "time"
+   ]
+  },
+  {
+   "id": "s092",
+   "text": "Ta bien, nos vemos mañana.",
+   "tags": [
+    "dominicanism",
+    "greeting"
+   ]
+  },
+  {
+   "id": "s093",
+   "text": "Tamo en la biblioteca estudiando.",
+   "tags": [
+    "dominicanism",
+    "library"
+   ]
+  },
+  {
+   "id": "s094",
+   "text": "Tamo pendiente de la clase.",
+   "tags": [
+    "dominicanism",
+    "school"
+   ]
+  },
+  {
+   "id": "s095",
+   "text": "Ahorita voy pa allá.",
+   "tags": [
+    "dominicanism",
+    "time"
+   ]
+  },
+  {
+   "id": "s096",
+   "text": "Voy a coger la guagua pa la escuela.",
+   "tags": [
+    "dominicanism",
+    "school",
+    "future"
+   ]
+  },
+  {
+   "id": "s097",
+   "text": "La guagua llegó tarde.",
+   "tags": [
+    "dominicanism",
+    "preterite"
+   ]
+  },
+  {
+   "id": "s098",
+   "text": "Mi mai está en la casa.",
+   "tags": [
+    "dominicanism",
+    "family"
+   ]
+  },
+  {
+   "id": "s099",
+   "text": "Qué lo qué, mi hermano.",
+   "tags": [
+    "dominicanism",
+    "greeting"
+   ]
+  },
+  {
+   "id": "s100",
+   "text": "Vamo a estudiar pa el examen.",
+   "tags": [
+    "dominicanism",
+    "school",
+    "future"
+   ]
+  },
+  {
+   "id": "s101",
+   "text": "No tengo chele para pagar.",
+   "tags": [
+    "dominicanism",
+    "negation"
+   ]
+  },
+  {
+   "id": "s102",
+   "text": "Eso está jevi.",
+   "tags": [
+    "dominicanism"
+   ]
+  },
+  {
+   "id": "s103",
+   "text": "Mi hijo toy orgulloso de el.",
+   "tags": [
+    "dominicanism",
+    "typo",
+    "family"
+   ]
+  },
+  {
+   "id": "s104",
+   "text": "Necesito aser la tarea.",
+   "tags": [
+    "typo",
+    "school"
+   ]
+  },
+  {
+   "id": "s105",
+   "text": "Boy a la biblioteca.",
+   "tags": [
+    "typo",
+    "library"
+   ]
+  },
+  {
+   "id": "s106",
+   "text": "Ayer ablé con mi maestro.",
+   "tags": [
+    "typo",
+    "preterite",
+    "school"
+   ]
+  },
+  {
+   "id": "s107",
+   "text": "Quiero estudar mañana.",
+   "tags": [
+    "typo",
+    "school"
+   ]
+  },
+  {
+   "id": "s108",
+   "text": "Tengo un probrema en la casa.",
+   "tags": [
+    "typo"
+   ]
+  },
+  {
+   "id": "s109",
+   "text": "Hoy ay clase en la escuela.",
+   "tags": [
+    "typo",
+    "school"
+   ]
+  },
+  {
+   "id": "s110",
+   "text": "Muchas gracias por todo.",
+   "tags": [
+    "courtesy",
+    "plural"
+   ]
+  },
+  {
+   "id": "s111",
+   "text": "Los médicos trabajan en el hospital.",
+   "tags": [
+    "health",
+    "work",
+    "plural"
+   ]
+  },
+  {
+   "id": "s112",
+   "text": "Las enfermeras ayudan a los enfermos.",
+   "tags": [
+    "health",
+    "plural",
+    "feminine"
+   ]
+  },
+  {
+   "id": "s113",
+   "text": "Mis abuelas viven con nosotros.",
+   "tags": [
+    "family",
+    "plural",
+    "feminine"
+   ]
+  },
+  {
+   "id": "s114",
+   "text": "La señora compró pan.",
+   "tags": [
+    "food",
+    "feminine",
+    "preterite"
+   ]
+  },
+  {
+   "id": "s115",
+   "text": "Los bomberos salvaron a la gente.",
+   "tags": [
+    "work",
+    "plural",
+    "preterite"
+   ]
+  },
+  {
+   "id": "s116",
+   "text": "Nosotros trabajaremos el sábado.",
+   "tags": [
+    "future",
+    "work",
+    "time"
+   ]
+  },
+  {
+   "id": "s117",
+   "text": "Ellos estudiarán en la universidad.",
+   "tags": [
+    "future",
+    "school",
+    "plural"
+   ]
+  },
+  {
+   "id": "s118",
+   "text": "Ella leyó el libro completo.",
+   "tags": [
+    "preterite",
+    "library"
+   ]
+  },
+  {
+   "id": "s119",
+   "text": "Yo bebí mucha agua.",
+   "tags": [
+    "preterite",
+    "food"
+   ]
+  },
+  {
+   "id": "s120",
+   "text": "Dormí poco anoche.",
+   "tags": [
+    "preterite",
+    "time",
+    "health"
+   ]
+  },
+  {
+   "id": "s121",
+   "text": "Vendimos la casa el año pasado.",
+   "tags": [
+    "preterite",
+    "time"
+   ]
+  },
+  {
+   "id": "s122",
+   "text": "El niño aprendió a leer.",
+   "tags": [
+    "preterite",
+    "school"
+   ]
+  },
+  {
+   "id": "s123",
+   "text": "Pedro y María son sordos.",
+   "tags": [
+    "introduction",
+    "plural"
+   ]
+  },
+  {
+   "id": "s124",
+   "text": "Las personas sordas usan lengua de señas.",
+   "tags": [
+    "plural",
+    "feminine",
+    "school"
+   ]
+  },
+  {
+   "id": "s125",
+   "text": "Quiero aprender lengua de señas dominicana.",
+   "tags": [
+    "school"
+   ]
+  },
+  {
+   "id": "s126",
+   "text": "Esta biblioteca tiene intérprete de señas.",
+   "tags": [
+    "library",
+    "work"
+   ]
+  },
+  {
+   "id": "s127",
+   "text": "¿Puedes repetir más despacio, por favor?",
+   "tags": [
+    "question",
+    "courtesy"
+   ]
+  },
+  {
+   "id": "s128",
+   "text": "El director llamó a los padres.",
+   "tags": [
+    "school",
+    "preterite",
+    "plural"
+   ]
+  },
+  {
+   "id": "s129",
+   "text": "Tengo cita con el médico el martes.",
+   "tags": [
+    "health",
+    "time"
+   ]
+  },
+  {
+   "id": "s130",
+   "text": "La tarea es para el viernes.",
+   "tags": [
+    "school",
+    "time"
+   ]
+  },
+  {
+   "id": "s131",
+   "text": "Estamos esperando el autobús.",
+   "tags": [
+    "daily"
+   ]
+  },
+  {
+   "id": "s132",
+   "text": "Camina rápido que es tarde.",
+   "tags": [
+    "daily",
+    "command"
+   ]
+  },
+  {
+   "id": "s133",
+   "text": "Hoy hace mucho calor.",
+   "tags": [
+    "daily",
+    "time"
+   ]
+  },
+  {
+   "id": "s134",
+   "text": "Mañana va a llover.",
+   "tags": [
+    "daily",
+    "future",
+    "time"
+   ]
+  }
+ ]
+}

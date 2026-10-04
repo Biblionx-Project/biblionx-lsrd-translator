@@ -1,12 +1,29 @@
 #!/usr/bin/env python3
 """
-NLP module for preprocessing and lemmatizing Spanish text -> LSRD grammar.
+NLP module: preprocesses Dominican Spanish text into an LSRD-ordered token
+sequence.
+
+Pipeline (one pass, see LSRDNlpEngine.process):
+
+    dominican normalize_text -> clause split -> tokenize/normalize
+    -> phrase segmentation -> stopword removal (wh-words kept in questions)
+    -> morphological lemmatization against the dictionary vocabulary
+    -> LSRD grammar reorder (grammar.py)
+
+All dictionary-derived indexes are built once per database path and shared
+(see get_resources), so constructing engines is cheap.
 """
 
+import json
 import os
 import re
-import sqlite3
+import threading
 import unicodedata
+
+import dominican_lexicon
+import grammar
+import morphology
+from phrases import PhraseMatcher
 
 LSRD_STOP_WORDS = {
     'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
@@ -17,133 +34,15 @@ LSRD_STOP_WORDS = {
 
 AUXILIARY_VERBS = {'es', 'son', 'ser', 'esta', 'estan', 'estar', 'fue', 'fueron', 'era', 'eran'}
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lsrd_dictionary.db")
+# Words whose morphological or fuzzy resolution is known to be wrong
+# (e.g. "senas" -> "seno"). They are kept as-is and end up fingerspelled
+# unless the dictionary has them literally.
+PROTECTED_WORDS = {'senas', 'sena'}
 
-# Conjugated forms of the ~35 most common irregular Spanish verbs, mapped to
-# their infinitive. This is an explicit whitelist on purpose: unlike blindly
-# stripping suffixes, it carries no risk of turning common nouns (which also
-# end in -a/-e/-o) into nonexistent verbs.
-IRREGULAR_VERB_MAP = {
-    # tener
-    'tengo': 'tener', 'tienes': 'tener', 'tiene': 'tener', 'tenemos': 'tener', 'tienen': 'tener',
-    'tuve': 'tener', 'tuvo': 'tener', 'tuvieron': 'tener', 'tenia': 'tener', 'tenian': 'tener',
-    # ir
-    'voy': 'ir', 'vas': 'ir', 'va': 'ir', 'vamos': 'ir', 'van': 'ir',
-    # hacer
-    'hago': 'hacer', 'haces': 'hacer', 'hace': 'hacer', 'hacemos': 'hacer', 'hacen': 'hacer',
-    'hice': 'hacer', 'hizo': 'hacer', 'hicieron': 'hacer',
-    # poder
-    'puedo': 'poder', 'puedes': 'poder', 'puede': 'poder', 'podemos': 'poder', 'pueden': 'poder',
-    'pude': 'poder', 'pudo': 'poder', 'pudieron': 'poder',
-    # decir
-    'digo': 'decir', 'dices': 'decir', 'dice': 'decir', 'decimos': 'decir', 'dicen': 'decir',
-    'dije': 'decir', 'dijo': 'decir', 'dijeron': 'decir',
-    # ver
-    'veo': 'ver', 'ves': 'ver', 've': 'ver', 'vemos': 'ver', 'ven': 'ver',
-    'vi': 'ver', 'vio': 'ver', 'vieron': 'ver',
-    # dar
-    'doy': 'dar', 'das': 'dar', 'da': 'dar', 'damos': 'dar', 'dan': 'dar',
-    'di': 'dar', 'dio': 'dar', 'dieron': 'dar',
-    # saber
-    'sabes': 'saber', 'sabe': 'saber', 'sabemos': 'saber', 'saben': 'saber',
-    'supe': 'saber', 'supo': 'saber', 'supieron': 'saber',
-    # querer (key irregular verb — "quiero" used to fail before this fix)
-    'quiero': 'querer', 'quieres': 'querer', 'quiere': 'querer', 'queremos': 'querer', 'quieren': 'querer',
-    'quise': 'querer', 'quiso': 'querer', 'quisieron': 'querer',
-    # poner
-    'pongo': 'poner', 'pones': 'poner', 'pone': 'poner', 'ponemos': 'poner', 'ponen': 'poner',
-    'puse': 'poner', 'puso': 'poner', 'pusieron': 'poner',
-    # venir
-    'vengo': 'venir', 'vienes': 'venir', 'viene': 'venir', 'venimos': 'venir', 'vienen': 'venir',
-    'vine': 'venir', 'vino': 'venir', 'vinieron': 'venir',
-    # salir
-    'salgo': 'salir', 'sales': 'salir', 'sale': 'salir', 'salimos': 'salir', 'salen': 'salir',
-    # traer
-    'traigo': 'traer', 'traes': 'traer', 'trae': 'traer', 'traemos': 'traer', 'traen': 'traer',
-    # oir
-    'oigo': 'oir', 'oyes': 'oir', 'oye': 'oir', 'oimos': 'oir', 'oyen': 'oir',
-    # conocer
-    'conozco': 'conocer', 'conoces': 'conocer', 'conoce': 'conocer', 'conocemos': 'conocer', 'conocen': 'conocer',
-    # seguir
-    'sigo': 'seguir', 'sigues': 'seguir', 'sigue': 'seguir', 'seguimos': 'seguir', 'siguen': 'seguir',
-    # pedir
-    'pido': 'pedir', 'pides': 'pedir', 'pide': 'pedir', 'pedimos': 'pedir', 'piden': 'pedir',
-    # dormir
-    'duermo': 'dormir', 'duermes': 'dormir', 'duerme': 'dormir', 'dormimos': 'dormir', 'duermen': 'dormir',
-    # sentir
-    'siento': 'sentir', 'sientes': 'sentir', 'siente': 'sentir', 'sentimos': 'sentir', 'sienten': 'sentir',
-    # jugar
-    'juego': 'jugar', 'juegas': 'jugar', 'juega': 'jugar', 'jugamos': 'jugar', 'juegan': 'jugar',
-    # pensar
-    'pienso': 'pensar', 'piensas': 'pensar', 'piensa': 'pensar', 'pensamos': 'pensar', 'piensan': 'pensar',
-    # entender
-    'entiendo': 'entender', 'entiendes': 'entender', 'entiende': 'entender', 'entendemos': 'entender', 'entienden': 'entender',
-    # volver
-    'vuelvo': 'volver', 'vuelves': 'volver', 'vuelve': 'volver', 'volvemos': 'volver', 'vuelven': 'volver',
-    # encontrar
-    'encuentro': 'encontrar', 'encuentras': 'encontrar', 'encuentra': 'encontrar', 'encontramos': 'encontrar', 'encuentran': 'encontrar',
-    # contar
-    'cuento': 'contar', 'cuentas': 'contar', 'cuenta': 'contar', 'contamos': 'contar', 'cuentan': 'contar',
-    # cerrar
-    'cierro': 'cerrar', 'cierras': 'cerrar', 'cierra': 'cerrar', 'cerramos': 'cerrar', 'cierran': 'cerrar',
-    # haber
-    'he': 'haber', 'has': 'haber', 'ha': 'haber', 'hemos': 'haber', 'han': 'haber',
-    'habia': 'haber', 'habian': 'haber',
-    # plus the 7 regular verbs already covered by the dynamic dictionary lookup below
-}
-
-_regular_conjugation_cache = None
-
-
-def _load_regular_conjugation_map():
-    """
-    Automatically generates regular conjugated forms (present tense,
-    I/you/he-she/we/they) for every -ar/-er/-ir infinitive that ALREADY
-    exists in the LSRD dictionary. Unlike blindly stripping suffixes from
-    any word, this only generates forms for verbs we already know are
-    translatable, so there's no risk of "inventing" a verb from a noun that
-    happens to end in -ar/-er/-ir (e.g. "lugar" / "place").
-    """
-    global _regular_conjugation_cache
-    if _regular_conjugation_cache is not None:
-        return _regular_conjugation_cache
-
-    mapping = {}
-    try:
-        if os.path.exists(DB_PATH):
-            conn = sqlite3.connect(DB_PATH)
-            cur = conn.cursor()
-            cur.execute("SELECT DISTINCT palabra_norm FROM palabras WHERE palabra_norm LIKE '%ar' OR palabra_norm LIKE '%er' OR palabra_norm LIKE '%ir'")
-            infinitives = [row[0] for row in cur.fetchall() if row[0] and ' ' not in row[0] and ',' not in row[0]]
-            conn.close()
-
-            endings = {
-                # present tense
-                'ar': {'o': 'ar', 'as': 'ar', 'a': 'ar', 'amos': 'ar', 'an': 'ar',
-                       # imperfect (-aba)
-                       'aba': 'ar', 'abas': 'ar', 'abamos': 'ar', 'aban': 'ar'},
-                'er': {'o': 'er', 'es': 'er', 'e': 'er', 'emos': 'er', 'en': 'er',
-                       # imperfect (-ia)
-                       'ia': 'er', 'ias': 'er', 'iamos': 'er', 'ian': 'er'},
-                'ir': {'o': 'ir', 'es': 'ir', 'e': 'ir', 'imos': 'ir', 'en': 'ir',
-                       'ia': 'ir', 'ias': 'ir', 'iamos': 'ir', 'ian': 'ir'},
-            }
-            for inf in infinitives:
-                if len(inf) < 4:
-                    continue
-                group = inf[-2:]
-                stem = inf[:-2]
-                for person_ending in endings.get(group, {}):
-                    form = stem + person_ending
-                    # Don't overwrite if the word itself already exists in the dictionary
-                    # (avoids, for example, mapping "casa"/"house" to a verb "casar"/"to marry").
-                    if form != inf:
-                        mapping.setdefault(form, inf)
-    except Exception:
-        mapping = {}
-
-    _regular_conjugation_cache = mapping
-    return mapping
+_HERE = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(_HERE, "lsrd_dictionary.db")
+DATA_DIR = os.path.join(_HERE, "data")
+SYNONYMS_EXTRA_PATH = os.path.join(DATA_DIR, "synonyms_extra.json")
 
 
 def normalize_word(word):
@@ -154,88 +53,170 @@ def normalize_word(word):
     return only_ascii
 
 
-def lemmatize_word(word_norm):
-    # 1. Common irregular verbs (explicit, safe whitelist).
-    if word_norm in IRREGULAR_VERB_MAP:
-        return IRREGULAR_VERB_MAP[word_norm]
+def load_synonyms_extra(path=SYNONYMS_EXTRA_PATH):
+    """Load curated synonyms.
 
-    # 2. Regular conjugated forms derived from infinitives that actually
-    #    exist in the LSRD dictionary.
-    regular_map = _load_regular_conjugation_map()
-    if word_norm in regular_map:
-        return regular_map[word_norm]
+    Format: {"version": 1, "entries": [{"word", "target_norm", "palabra_id", "source"}]}.
+    Returns a list of entries (empty if the file is missing or invalid).
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            entries = json.load(f).get("entries", [])
+    except (OSError, ValueError, AttributeError):
+        return []
+    return [e for e in entries if isinstance(e, dict) and e.get("word")]
 
-    if len(word_norm) <= 3:
-        return word_norm
 
-    if word_norm.endswith(('ar', 'er', 'ir')):
-        return word_norm
+class Resources:
+    """Dictionary-derived indexes shared by every engine for one database."""
 
-    # 3. Backward compatibility with the previous manual mappings (in case
-    #    the dictionary doesn't yet contain one of these infinitives).
-    if word_norm in ['trabaja', 'trabajas', 'trabajamos', 'trabajan', 'trabajando', 'trabajo']:
-        return 'trabajar'
-    if word_norm in ['estudia', 'estudias', 'estudiamos', 'estudian', 'estudiando']:
-        return 'estudiar'
-    if word_norm in ['corre', 'corres', 'corremos', 'corren', 'corriendo']:
-        return 'correr'
-    if word_norm in ['come', 'comes', 'comemos', 'comen', 'comiendo']:
-        return 'comer'
-    if word_norm in ['habla', 'hablas', 'hablamos', 'hablan', 'hablando']:
-        return 'hablar'
-    if word_norm in ['escribe', 'escribes', 'escribimos', 'escriben', 'escribiendo']:
-        return 'escribir'
-    if word_norm in ['lee', 'lees', 'leemos', 'leen', 'leyendo']:
-        return 'leer'
-    return word_norm
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self.known = morphology.build_known(db_path)
+        self.phrases = PhraseMatcher.from_db(db_path)
+
+
+_resources = {}
+_resources_lock = threading.Lock()
+
+
+def get_resources(db_path=DB_PATH):
+    key = os.path.abspath(db_path)
+    res = _resources.get(key)
+    if res is None:
+        with _resources_lock:
+            res = _resources.get(key)
+            if res is None:
+                res = _resources[key] = Resources(key)
+    return res
+
+
+def lemmatize_word(word_norm, db_path=DB_PATH):
+    """Lemmatize one normalized word against the dictionary vocabulary."""
+    return morphology.lemmatize(word_norm, get_resources(db_path).known)[0]
+
+
+class TokenSequence(list):
+    """List of LSRD tokens that also carries per-token provenance.
+
+    Behaves exactly like a plain list (and serializes as one in JSON). The
+    translator reads ``methods`` (parallel list of 'exact' | 'morphology' |
+    'phrase') and ``context`` (the normalized sentence) when present.
+    """
+
+    def __init__(self, tokens=(), methods=None, context=""):
+        super().__init__(tokens)
+        self.methods = list(methods) if methods is not None else ["exact"] * len(self)
+        self.context = context
 
 
 class LSRDNlpEngine:
+    def __init__(self, db_path=DB_PATH):
+        self.db_path = db_path
+
+    @property
+    def resources(self):
+        return get_resources(self.db_path)
+
     def tokenize(self, text):
         tokens = [normalize_word(w) for w in text.split() if w.strip()]
         return [t for t in tokens if t]
 
-    def remove_stopwords(self, tokens):
+    def remove_stopwords(self, tokens, keep_question_words=False):
         filtered = []
         for t in tokens:
-            if t not in LSRD_STOP_WORDS and t not in AUXILIARY_VERBS:
+            if keep_question_words and t in grammar.QUESTION_WORDS:
+                filtered.append(t)
+            elif t not in LSRD_STOP_WORDS and t not in AUXILIARY_VERBS:
                 filtered.append(t)
         return filtered
 
     def lemmatize_tokens(self, tokens):
-        return [lemmatize_word(t) for t in tokens]
+        return [self._lemmatize(t)[0] for t in tokens]
 
-    def reorder_grammar_lsrd(self, tokens):
-        if not tokens:
-            return []
+    def _lemmatize(self, token):
+        """Return (lemma, method); method is 'exact', 'phrase' or 'morphology'."""
+        if ' ' in token or ',' in token:
+            return token, 'phrase'
+        if token in PROTECTED_WORDS:
+            return token, 'exact'
+        lemma, how = morphology.lemmatize(token, self.resources.known)
+        if lemma == token or how in ('exact', 'none'):
+            return lemma, 'exact'
+        return lemma, 'morphology'
 
-        time_tokens = []
-        negation_tokens = []
-        other_tokens = []
+    def _stressed_preterites(self, clause):
+        """Map normalized forms to infinitives for words whose written accent
+        marks a preterite verb ("trabajó", "trabajé", "comió").
 
-        TIME_WORDS = {'ayer', 'hoy', 'manana', 'ahora', 'anoche', 'pasado', 'futuro', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo', 'mes', 'ano'}
-        NEGATION_WORDS = {'no', 'nunca', 'jamas', 'nada', 'ninguno', 'ninguna'}
+        Accent stripping turns "trabajó" into "trabajo", which is also a noun
+        in the dictionary, so the accent is the only cue that it's a verb.
+        Only infinitives that exist in the dictionary are returned.
+        """
+        known = self.resources.known
+        overrides = {}
+        for word in clause.lower().split():
+            word = word.strip(".,;:!?¡¿\"'()")
+            if len(word) < 4 or word[-1] not in 'óé':
+                continue
+            base = normalize_word(word)
+            stem = base[:-1]
+            if word.endswith('ió'):
+                candidates = [stem[:-1] + 'er', stem[:-1] + 'ir']
+            elif word.endswith('ó'):
+                candidates = [stem + 'ar']
+            else:  # -é (1st person preterite of -ar verbs)
+                candidates = [stem + 'ar']
+            for inf in candidates:
+                if inf in known:
+                    overrides[base] = inf
+                    break
+        return overrides
 
-        for t in tokens:
-            if t in TIME_WORDS:
-                time_tokens.append(t)
-            elif t in NEGATION_WORDS:
-                negation_tokens.append(t)
-            else:
-                other_tokens.append(t)
-
-        reordered = time_tokens + other_tokens + negation_tokens
-        return reordered
+    def reorder_grammar_lsrd(self, tokens, is_question=False):
+        return grammar.reorder(tokens, is_question)
 
     def process(self, text):
-        raw_tokens = self.tokenize(text)
-        clean_tokens = self.remove_stopwords(raw_tokens)
-        lemmas = self.lemmatize_tokens(clean_tokens)
-        lsrd_ordered = self.reorder_grammar_lsrd(lemmas)
+        normalized_text = dominican_lexicon.normalize_text(text)
+        clauses = grammar.split_clauses_flagged(normalized_text)
+        phrases = self.resources.phrases
+
+        raw_tokens, filtered_tokens, lemmas = [], [], []
+        ordered, methods = [], []
+        lemma_methods = {}
+
+        for clause, is_q in clauses:
+            toks = self.tokenize(clause)
+            raw_tokens.extend(toks)
+            toks = phrases.segment(toks)
+            # Stored phrase norms may carry a trailing comma ("ser humano,").
+            toks = [t.strip(' ,') if (' ' in t or ',' in t) else t for t in toks]
+            toks = self.remove_stopwords(toks, keep_question_words=is_q)
+            filtered_tokens.extend(toks)
+
+            preterites = self._stressed_preterites(clause)
+            pairs = [(preterites[t], 'morphology') if t in preterites else self._lemmatize(t)
+                     for t in toks]
+            # Conjugated copulas (estoy, soy, ...) lemmatize to ser/estar; drop
+            # them like the auxiliaries above unless the dictionary has a sign.
+            pairs = [p for p in pairs
+                     if not (p[0] in AUXILIARY_VERBS and p[0] not in self.resources.known)]
+            lemmas.extend(p[0] for p in pairs)
+            method_of = {}
+            for lemma, how in pairs:
+                method_of.setdefault(lemma, how)
+                lemma_methods.setdefault(lemma, how)
+            clause_order = grammar.reorder([p[0] for p in pairs], is_q)
+            ordered.extend(clause_order)
+            methods.extend(method_of[t] for t in clause_order)
+
         return {
             "original_text": text,
             "tokens_normalizados": raw_tokens,
-            "tokens_filtrados": clean_tokens,
+            "tokens_filtrados": filtered_tokens,
             "tokens_lematizados": lemmas,
-            "secuencia_lsrd": lsrd_ordered
+            "secuencia_lsrd": TokenSequence(ordered, methods, normalized_text),
+            "normalized_text": normalized_text,
+            "is_question": grammar.is_question_text(text),
+            "lemmatization_methods": lemma_methods,
         }

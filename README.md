@@ -1,149 +1,124 @@
-# Dominican Sign Language (LSRD) Translation Model
+# Biblionx LSRD Translator
 
-> **Biblionx-Project** — thesis project (Trabajo de Grado, UNICDA). This is the active, working repository: everything else in the [Biblionx-Project](https://github.com/Biblionx-Project) organization is either upstream VLibras reference code or supporting tooling.
+Biblionx translates Spanish text, including Dominican Spanish, into **Dominican Sign Language (Lengua de Senas Republicana Dominicana, LSRD)** sign sequences. It ships a Python translation engine (standard library only), a REST API, a web playground and a browser extension.
 
-## 📌 Overview
+> The translation input is Spanish (Dominican Republic) and the output is LSRD. Documentation, code and comments are in English; dictionary data and sign descriptions stay in Spanish because they are primary-source data from the official LSRD dictionary.
 
-This repository contains a self-contained, portable implementation of the **Spanish-to-Dominican-Sign-Language (LSRD) translation engine**, plus the REST API and browser extension that expose it as a working product.
+## Origins
 
-It's designed as an **exportable, standalone package**: the SQLite relational database (`lsrd_dictionary.db`), all 2,458 cropped vector sign illustrations (`extracted_images/`), the Natural Language Processing (NLP) engine, and interactive test scripts are all included.
+Biblionx was initially bootstrapped from the open-source VLibras project; it has since evolved into an independent development by the Biblionx team.
 
-Any developer, instructor, or researcher can copy this directory to another machine and start querying or translating immediately — **no external dependencies required** for the core CLI (standard library only).
+## What is in this repository
 
-Note: the translation pipeline itself works on **Spanish input text** (that's the language it's built to parse) and outputs LSRD sign sequences. That's a functional requirement, not a language choice for this README.
-
----
-
-## 📦 Package Contents
-
-| File / Folder | Description |
+| Path | Description |
 | :--- | :--- |
-| **`lsrd_dictionary.db`** | SQLite3 database with 2,458 lemmas, grammatical categories, movement descriptions, and references to the official PDF. |
-| **`extracted_images/`** | 2,458 cropped vector sign images in PNG format (`lsrd_0001.png` through `lsrd_2458.png`). |
-| **`main.py`** | Interactive console (CLI) — type a Spanish sentence and see the ordered LSRD translation. |
-| **`nlp_engine.py`** | NLP module: normalization, stopword filtering, verb lemmatization, and syntactic reordering. |
-| **`translator.py`** | Relational sign mapper with synonym resolution and A-Z fingerspelling fallback. |
-| **`backend_api/`** | Standalone HTTP REST API (Python `http.server`, no external deps) that the browser extension talks to. Ships with its own copy of the DB and images so it runs independently. |
-| **`browser_extension/`** | Manifest V3 browser extension: select text on any page, get an accessible LSRD sign player overlay. |
-| **`README.md`** | This file. |
+| `lsrd_dictionary.db` | SQLite database: 2,458 lemmas, categories, movement descriptions, image paths. Read-only data. |
+| `extracted_images/` | One PNG per sign (`lsrd_0001.png` ...). |
+| `main.py` | Interactive console translator. |
+| `nlp_engine.py` | Text pipeline: normalization, phrases, morphology, grammar. |
+| `translator.py` | Lookup chain from tokens to signs, with provenance and confidence. |
+| `dominican_lexicon.py`, `phrases.py`, `morphology.py`, `grammar.py` | Pipeline stages. |
+| `ml_matcher.py` | Pure Python fuzzy matcher (character n-gram TF-IDF). |
+| `llm_fallback.py` | Optional, off-by-default AI fallback. |
+| `data/` | `dominican_lexicon.json` and curated `synonyms_extra.json`. |
+| `backend_api/` | Standalone HTTP server, web playground, and synced copies of the engine. |
+| `browser_extension/` | Manifest V3 extension (v2). |
+| `scripts/` | `evaluate.py` (metrics) and `sync_backend.py` (copy engine into `backend_api/`). |
+| `tools/suggest_synonyms.py` | Reviewer helper that proposes synonyms for unknown words. |
+| `tests/` | Unit tests and the evaluation corpus. |
+| `docs/ARCHITECTURE.md` | Modules, lookup chain, confidence semantics, synonym curation. |
 
----
+## Translation pipeline
 
-## 🏗️ Architecture
+1. **Dominican normalization**: orthographic variants and Dominicanisms are rewritten to standard Spanish before analysis (for example `pa'` to `para`), only when a sign exists for the standard word.
+2. **Phrase segmentation**: multi-word dictionary entries such as `buenos dias` are merged and signed as one unit (greedy longest match).
+3. **Morphology**: a conservative lemmatizer maps conjugations, plurals, gender and diminutives to words that actually exist in the dictionary.
+4. **LSRD grammar**: clause-level reordering (time first, negation last, question words last).
+5. **Lookup chain**: exact entry, dictionary synonyms, curated synonyms, ML fuzzy match, optional AI choice, then A-Z fingerspelling.
 
-The model translates Spanish sentences to LSRD through a structured 3-stage pipeline:
+Every returned sign carries `match_method` and `confidence`. See `docs/ARCHITECTURE.md`.
 
-```
-[Input Spanish text] (e.g. "El abogado no trabaja hoy en la escuela")
-       │
-       ▼
- ┌─────────────────────────────────────────────────────────────────────────────┐
- │ 1. NLP Preprocessing Module (nlp_engine.py)                                 │
- │    - Tokenization and lowercase/accent normalization                       │
- │    - Stopword and article filtering (words with no direct sign equivalent) │
- │    - Verb lemmatization (e.g. "trabajaba" -> "trabajar")                    │
- │    - LSRD syntactic reordering: [TIME] + [PLACE] + [SUBJECT] + [VERB] + [NEGATION] │
- └───────────────────────────────────┬─────────────────────────────────────────┘
-                                     │ (LSRD grammatical sequence)
-                                     ▼
- ┌─────────────────────────────────────────────────────────────────────────────┐
- │ 2. Local Database Mapper (translator.py & lsrd_dictionary.db)               │
- │    - SQLite lookup by word or synonym against the 'palabras' table          │
- │    - Extracts cheremic parameters (handshape, orientation, movement)        │
- │    - A-Z fingerspelling fallback: if a word or proper noun isn't found,     │
- │      it's substituted with the fingerspelling alphabet sign sequence.       │
- └───────────────────────────────────┬─────────────────────────────────────────┘
-                                     │
-                                     ▼
- ┌─────────────────────────────────────────────────────────────────────────────┐
- │ 3. Output Sequence (main.py / backend_api/server.py)                        │
- │    - Ordered list of signs with their DB ID (`lsrd_XXXX`)                    │
- │    - Cheremic (Stokoe) movement description                                 │
- │    - Page number in the Official LSRD Dictionary                            │
- │    - Local path to the vector illustration (`extracted_images/lsrd_XXXX.png`)│
- └─────────────────────────────────────────────────────────────────────────────┘
-```
+### ML fuzzy matching
 
----
+Unknown words are compared with the dictionary using character n-gram TF-IDF vectors, an inverted index, and a Damerau-Levenshtein rerank. Short words and protected words never fuzzy-match. It runs locally with no network access.
 
-## 🚀 Quick Start — CLI
+### Optional AI fallback (off by default)
 
-Requires **Python 3.6+** only (standard library, **no `pip install` needed**):
+When fuzzy matching is not confident, an LLM can pick among a short list of dictionary candidates. It is disabled unless you opt in, and it is built to be cheap:
 
-1. Open a terminal in this directory:
-   ```bash
-   cd biblionx-lsrd-translator
-   ```
+- It only chooses an index among candidates (tiny output), never generates text.
+- Results, including negative ones, are cached on disk (`data/.llm_cache.json`, never committed).
+- A hard cap on calls per process (`BIBLIONX_LLM_MAX_CALLS`, default 50).
+- Any error falls back to fingerspelling.
 
-2. Run the interactive console:
-   ```bash
-   python3 main.py
-   ```
+Configure it only through environment variables; see `.env.example`. **Never commit API keys or a real `.env` file.** Keys are read from the environment and are never logged or written to disk.
 
-3. Type any sentence in Spanish.
+## Quick start
 
-### Example terminal output:
-```text
-======================================================================
-      BIBLIONX - DOMINICAN SIGN LANGUAGE (LSRD) TRANSLATION ENGINE
-======================================================================
-Type a sentence in Spanish to translate it to LSRD (or type 'exit'):
+Python 3 and the standard library are enough; no `pip install`.
 
-Spanish > El abogado no trabaja hoy en la escuela
-
---- LSRD TRANSLATION RESULT ---
-Original sentence:     "El abogado no trabaja hoy en la escuela"
-Grammatical sequence:  ['hoy', 'escuela', 'abogado', 'trabajar', 'no']
-Total signs:           5
-
-ORDERED SIGN SEQUENCE:
-  01. HOY                  (Lexical sign)       | Page 210
-      - Movement: Las manos en forma de Y con las palmas hacia arriba bajan simultáneamente en rectas paralelas.
-      - Image:    extracted_images/lsrd_1146.png
-
-  02. ESCUELA              (Lexical sign)       | Page 167
-      - Movement: Las manos planas con las palmas enfrentadas; la mano dominante arriba con los dedos hacia afuera sobre la otra mano...
-      - Image:    extracted_images/lsrd_0908.png
-
-  03. ABOGADO,DA           (Lexical sign)       | Page 30
-      - Movement: La mano dominante en forma de L toca arriba y abajo la mano plana contraria.
-      - Image:    extracted_images/lsrd_0009.png
-
-  04. TRABAJAR             (Lexical sign)       | Page 376
-      - Movement: Laborar, realizar una actividad que supone esfuerzo...
-      - Image:    extracted_images/lsrd_2124.png
-
-  05. NO                   (Lexical sign)       | Page 272
-      - Movement: La mano en forma de 3 cerrado con la palma hacia afuera, une los dedos mayor, índice y pulgar...
-      - Image:    extracted_images/lsrd_1503.png
-```
-
-*(Movement descriptions come straight from the Official LSRD Dictionary and are kept in their original Spanish — they're primary-source data, not UI text.)*
-
----
-
-## 🌐 REST API + Browser Extension
-
-`backend_api/` and `browser_extension/` together are the actual product: select text on any web page, get it translated to LSRD with a visual sign player.
-
-### Run the API server
 ```bash
-cd backend_api
-python3 server.py
+python main.py                          # interactive console
+cd backend_api && python server.py      # API + web playground
 ```
-Starts an HTTP server on `http://127.0.0.1:8000` with:
-- `POST /api/v1/translate` — body `{"texto": "..."}`, returns the NLP analysis and ordered sign sequence.
-- `GET /api/v1/words/{lemma}` — direct dictionary lookup.
-- `GET /extracted_images/{id}.png` — serves the sign images.
 
-### Load the browser extension
-1. Go to `chrome://extensions` (or your browser's equivalent), enable Developer Mode.
-2. "Load unpacked" → select the `browser_extension/` folder.
-3. With the API server running, select any text on a page — a floating "Translate to LSRD" button appears, opening an accessible sign player overlay (play/pause/prev/next, adjustable speed 0.75x–2.0x).
+Then open `http://127.0.0.1:8000/app/`.
+
+### Web playground (`/app/`)
+
+A responsive, accessible UI with light and dark themes: type or pick an example sentence, see the gloss timeline, play the sign sequence with previous/next/speed controls, and inspect each sign's description, dictionary page and match confidence.
+
+### API
+
+- `POST /api/v1/translate` with `{"texto": "..."}` returns the analysis and `secuencia_senas`.
+- `GET /api/v1/words/{lemma}` direct dictionary lookup.
+- `GET /api/v1/health` health check.
+- `GET /app/` web playground; `GET /extracted_images/{id}.png` sign images.
+
+### Browser extension (v2)
+
+Load `browser_extension/` as an unpacked extension (`chrome://extensions`, Developer Mode). Select text on any page and use the floating button or the "Translate to LSRD" context menu to open the sign player overlay. v2 adds adjustable playback speed, a settings popup (API base URL and default speed, kept in synced browser storage), a refreshed design and accessible player controls. The API server must be running.
+
+## Environment variables
+
+| Variable | Purpose | Default |
+| :--- | :--- | :--- |
+| `BIBLIONX_HOST` | Server bind address | `127.0.0.1` |
+| `BIBLIONX_PORT` | Server port | `8000` |
+| `BIBLIONX_CORS_ORIGIN` | `Access-Control-Allow-Origin` value | `*` |
+| `BIBLIONX_LLM_PROVIDER` | `anthropic`, `openai` or `ollama`; empty disables AI | empty (off) |
+| `BIBLIONX_LLM_MODEL` | Model override | provider default |
+| `BIBLIONX_LLM_MAX_CALLS` | Max model calls per process | `50` |
+| `ANTHROPIC_API_KEY` | Key for the `anthropic` provider | none |
+| `OPENAI_API_KEY`, `OPENAI_BASE_URL` | Key and optional base URL for `openai` or compatible servers | none |
+| `OLLAMA_URL` | Local Ollama endpoint | `http://127.0.0.1:11434` |
+
+## Tests and evaluation
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/evaluate.py                       # metrics on tests/data/eval_corpus.json
+python scripts/evaluate.py --out metrics.json    # also writes JSON
+python scripts/sync_backend.py                   # refresh backend_api/ copies (--check to diff only)
+```
+
+Run `sync_backend.py` after changing engine modules or data so `backend_api/` stays identical.
+
+### Metrics (134 evaluation sentences)
+
+| Metric | Baseline | Current |
+| :--- | :--- | :--- |
+| Lexical coverage | 0.689 | 0.880 |
+| Fingerspelled tokens | 151 | 57 |
+| Unique fingerspelled words | 117 | 52 |
+| Gold lemma recall | 0.797 | 0.975 |
+| Avg ms per sentence | 19.6 | 2.2 |
+
+Source: `tests/data/baseline_metrics.json` and `tests/data/after_metrics.json`. The evaluation corpus does not exercise the AI fallback.
 
 ---
 
-## 🗄️ Developer Guide: Querying `lsrd_dictionary.db` Directly
+## Developer Guide: Querying `lsrd_dictionary.db` Directly
 
 The relational database has 5 main tables (column/table names are kept in Spanish — they're the live schema used across the NLP engine, API, and extension):
 - `palabras` (id, lemma, normalized lemma, category, page).
@@ -183,7 +158,26 @@ print(f"PNG image: {row[4]}")
 
 ---
 
+
+---
+
 ## Known limitations
 
-- The lemmatizer covers ~35 common irregular Spanish verbs (explicit whitelist) plus a dictionary-driven generator for regular `-ar/-er/-ir` verbs already present in `lsrd_dictionary.db`. Verbs outside that coverage fall back to fingerspelling.
-- 63 of 2,458 dictionary entries (2.6%) are flagged for manual review; a handful of basic words (e.g. some common adjectives) are known gaps from the PDF extraction pass.
+- Question words (`como`, `donde`, `que`, ...) are kept in questions but have no signs in the dictionary, so they are fingerspelled.
+- `sena`/`senas` are excluded from morphology and fuzzy matching to avoid false matches.
+- About 2.6% of dictionary entries are flagged for manual review, and some basic words are missing from the source extraction.
+- Fuzzy matching and the AI fallback are conservative on purpose; a wrong sign is worse than fingerspelling.
+
+## Team
+
+- [@MiraP7](https://github.com/MiraP7)
+- [@Jose-hub-design](https://github.com/Jose-hub-design)
+- [@wilkinvasquez](https://github.com/wilkinvasquez)
+
+## Privacy and contributions
+
+This is a public repository. Do not commit personal data, API keys, tokens or local paths.
+
+## License
+
+Distributed under the GNU Lesser General Public License v3.0; see `LICENSE`. Code derived from the upstream VLibras project retains its original license terms.
