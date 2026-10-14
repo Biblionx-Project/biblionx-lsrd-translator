@@ -14,8 +14,9 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== MENU_ID || !tab || tab.id == null) return;
+  const opts = info.frameId != null ? { frameId: info.frameId } : {};
   chrome.tabs
-    .sendMessage(tab.id, { type: "biblionx:translate", text: info.selectionText || "" })
+    .sendMessage(tab.id, { type: "biblionx:translate", text: info.selectionText || "" }, opts)
     .catch(() => {});
 });
 

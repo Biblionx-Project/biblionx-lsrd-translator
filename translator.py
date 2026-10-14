@@ -115,6 +115,12 @@ class _Index:
                 if ',' in norm:
                     self.exact.setdefault(norm.rstrip(', '), pid)
                     self.prefix.setdefault(norm.split(',')[0].strip(), pid)
+                stripped = norm.strip('¿?¡!').strip()
+                if stripped and stripped != norm:
+                    self.exact.setdefault(stripped, pid)
+                    if ',' in stripped:
+                        self.exact.setdefault(stripped.rstrip(', '), pid)
+                        self.prefix.setdefault(stripped.split(',')[0].strip(), pid)
             self.synonym = {}
             try:
                 for pid, syn in conn.execute(

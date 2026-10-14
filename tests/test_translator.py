@@ -33,6 +33,17 @@ class TranslatorChainTests(unittest.TestCase):
         self.assertFalse(out[0]["es_deletreo"])
         self.assertTrue(out[0]["id"].startswith("lsrd_"))
 
+    def test_question_words_match_official_signs(self):
+        for q_word, expected_id in [("donde", "lsrd_2374"), ("que", "lsrd_2377"),
+                                    ("como", "lsrd_2370"), ("cual", "lsrd_2371"),
+                                    ("cuando", "lsrd_2372"), ("quien", "lsrd_2378"),
+                                    ("por que", "lsrd_2375")]:
+            out = self.tr.translate_sequence([q_word])
+            self.assertEqual(len(out), 1, f"Failed for {q_word}")
+            self.assertEqual(out[0]["match_method"], "exact", f"Failed for {q_word}")
+            self.assertEqual(out[0]["id"], expected_id, f"Failed for {q_word}")
+            self.assertFalse(out[0]["es_deletreo"], f"Failed for {q_word}")
+
     def test_fuzzy(self):
         out = self.tr.translate_sequence(["abogadoo"])
         self.assertEqual(out[0]["match_method"], "fuzzy")

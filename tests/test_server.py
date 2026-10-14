@@ -7,7 +7,10 @@ import sys
 import time
 import unittest
 
-import _common
+try:
+    import _common
+except ModuleNotFoundError:
+    from tests import _common
 
 SERVER = os.path.join(_common.ROOT, "backend_api", "server.py")
 JSON_HDR = {"Content-Type": "application/json"}

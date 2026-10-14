@@ -1,6 +1,6 @@
 # Biblionx LSRD Translator
 
-Biblionx translates Spanish text, including Dominican Spanish, into **Dominican Sign Language (Lengua de Senas Republicana Dominicana, LSRD)** sign sequences. It ships a Python translation engine (standard library only), a REST API, a web playground and a browser extension.
+Biblionx translates Spanish text, including Dominican Spanish, into **Dominican Sign Language (Lengua de Señas Dominicana, LSRD)** sign sequences. It ships a Python translation engine (standard library only), a REST API, a web playground and a browser extension.
 
 > The translation input is Spanish (Dominican Republic) and the output is LSRD. Documentation, code and comments are in English; dictionary data and sign descriptions stay in Spanish because they are primary-source data from the official LSRD dictionary.
 

@@ -46,6 +46,7 @@ NEGATION_WORDS = {'no', 'nunca', 'jamas', 'nada', 'ninguno', 'ninguna'}
 QUESTION_WORDS = {
     'que', 'quien', 'quienes', 'donde', 'cuando', 'como', 'cual', 'cuales',
     'cuanto', 'cuanta', 'cuantos', 'cuantas',
+    '¿por que?', 'por que', 'para que',
 }
 
 # Multi-token wh-expressions, matched before single words.
@@ -191,6 +192,12 @@ if __name__ == '__main__':
     assert reorder(['que', 'querer', 'no'], True) == ['querer', 'no', 'que']
     assert reorder(['por', 'que', 'llorar', 'hoy'], True) == \
         ['hoy', 'llorar', 'por', 'que']
+    assert reorder(['¿por que?', 'llorar', 'hoy'], True) == \
+        ['hoy', 'llorar', '¿por que?']
+    assert reorder(['por que', 'llorar', 'hoy'], True) == \
+        ['hoy', 'llorar', 'por que']
+    assert reorder(['para que', 'llorar', 'hoy'], True) == \
+        ['hoy', 'llorar', 'para que']
     assert reorder(['cuantos', 'ano', 'tener'], True) == ['ano', 'tener', 'cuantos']
     # Quantity after noun only with a noun set.
     assert reorder(['dos', 'libro']) == ['dos', 'libro']

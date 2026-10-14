@@ -74,13 +74,114 @@
   }
   function removeFab() { if (fab) { fab.remove(); fab = null; } }
 
+  function getActiveElement(rootNode = document) {
+    let active = rootNode.activeElement;
+    while (active && active.shadowRoot && active.shadowRoot.activeElement) {
+      active = active.shadowRoot.activeElement;
+    }
+    return active;
+  }
+
+  function getSelectedTextInfo() {
+    const active = getActiveElement();
+    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+      try {
+        const start = active.selectionStart;
+        const end = active.selectionEnd;
+        if (typeof start === "number" && typeof end === "number" && start !== end) {
+          const val = active.value;
+          if (val) {
+            const text = val.substring(Math.min(start, end), Math.max(start, end)).trim();
+            if (text) return { text, element: active };
+          }
+        }
+      } catch (e) {
+        /* Some input types throw when reading selectionStart/selectionEnd */
+      }
+    }
+    const sel = window.getSelection();
+    const text = ((sel ? sel.toString() : "") || "").trim();
+    return { text, element: null };
+  }
+
+  function getSelectionCoords(element) {
+    if (element && typeof element.getBoundingClientRect === "function") {
+      const rect = element.getBoundingClientRect();
+      return {
+        x: rect.left + window.scrollX,
+        y: rect.bottom + window.scrollY,
+      };
+    }
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      const rects = range.getClientRects();
+      if (rects.length > 0) {
+        const r = rects[rects.length - 1];
+        return {
+          x: r.right + window.scrollX,
+          y: r.bottom + window.scrollY,
+        };
+      }
+      const r = range.getBoundingClientRect();
+      if (r && (r.width > 0 || r.height > 0 || r.top > 0 || r.left > 0)) {
+        return {
+          x: r.right + window.scrollX,
+          y: r.bottom + window.scrollY,
+        };
+      }
+    }
+    return { x: 16, y: 16 + window.scrollY };
+  }
+
+  function checkSelection(x, y) {
+    const info = getSelectedTextInfo();
+    if (info.text && info.text.length <= 2000) {
+      if (x == null || y == null) {
+        const coords = getSelectionCoords(info.element);
+        x = coords.x;
+        y = coords.y;
+      }
+      showFab(x, y, info.text);
+    } else {
+      removeFab();
+    }
+  }
+
   document.addEventListener("mouseup", (e) => {
     if (host && e.composedPath().includes(host)) return;
     setTimeout(() => {
-      const text = ((window.getSelection() || "").toString() || "").trim();
-      if (text && text.length <= 2000) showFab(e.pageX, e.pageY, text);
-      else removeFab();
+      checkSelection(e.pageX, e.pageY);
     }, 0);
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (scrim) return;
+    if (host && e.composedPath().includes(host)) return;
+
+    const isSelectAll = (e.ctrlKey || e.metaKey) && (e.key === "a" || e.key === "A");
+    const isShiftNav = e.shiftKey && (
+      e.key === "ArrowLeft" || e.key === "ArrowRight" ||
+      e.key === "ArrowUp" || e.key === "ArrowDown" ||
+      e.key === "Home" || e.key === "End"
+    );
+    const isShiftRelease = e.key === "Shift";
+
+    if (isSelectAll || isShiftNav || isShiftRelease) {
+      setTimeout(() => {
+        if (!scrim) checkSelection();
+      }, 0);
+    } else {
+      const info = getSelectedTextInfo();
+      if (!info.text) removeFab();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && fab) {
+      e.preventDefault();
+      removeFab();
+    }
   });
 
   if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
@@ -127,7 +228,7 @@
     if (e.key === "Tab") { trapFocus(e); return; }
     if (!seq.length) return;
     const tag = (e.composedPath()[0] || {}).tagName;
-    if (e.key === " " && tag !== "BUTTON") { e.preventDefault(); togglePlay(); }
+    if (e.key === " " && tag !== "BUTTON" && tag !== "INPUT") { e.preventDefault(); togglePlay(); }
     else if (e.key === "ArrowRight" && tag !== "INPUT") { e.preventDefault(); go(idx + 1); }
     else if (e.key === "ArrowLeft" && tag !== "INPUT") { e.preventDefault(); go(idx - 1); }
   }

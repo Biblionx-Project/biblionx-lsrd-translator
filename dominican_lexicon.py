@@ -67,19 +67,57 @@ def normalize_text(text):
     if not lex:
         return text
 
-    def sub(m):
-        tok = m.group(0)
-        key = _fold(tok)
-        repl = lex.get(key)
-        if repl is None and "'" in key:
-            repl = lex.get(key.strip("'"))
-            if repl is not None and key.endswith("'") and not key.startswith("'"):
-                pass
-        if repl is None:
-            return tok
-        return _match_case(tok, repl)
+    matches = list(_TOKEN_RE.finditer(text))
+    if not matches:
+        return text
 
-    return _TOKEN_RE.sub(sub, text)
+    max_phrase_len = max((len(k.split()) for k in lex if ' ' in k), default=1)
+    i = 0
+    n = len(matches)
+    replacements = []
+
+    while i < n:
+        matched_phrase = False
+        if max_phrase_len > 1:
+            for size in range(min(max_phrase_len, n - i), 1, -1):
+                span_valid = True
+                for j in range(i, i + size - 1):
+                    between = text[matches[j].end():matches[j + 1].start()]
+                    if not between or not between.isspace():
+                        span_valid = False
+                        break
+                if not span_valid:
+                    continue
+
+                phrase_key = " ".join(_fold(matches[j].group(0)) for j in range(i, i + size))
+                repl = lex.get(phrase_key)
+                if repl is not None:
+                    span_start = matches[i].start()
+                    span_end = matches[i + size - 1].end()
+                    orig_span = text[span_start:span_end]
+                    replacements.append((span_start, span_end, _match_case(orig_span, repl)))
+                    i += size
+                    matched_phrase = True
+                    break
+
+        if not matched_phrase:
+            m = matches[i]
+            tok = m.group(0)
+            key = _fold(tok)
+            repl = lex.get(key)
+            if repl is None and "'" in key:
+                repl = lex.get(key.strip("'"))
+            if repl is not None:
+                replacements.append((m.start(), m.end(), _match_case(tok, repl)))
+            i += 1
+
+    if not replacements:
+        return text
+
+    result = list(text)
+    for start, end, repl in reversed(replacements):
+        result[start:end] = list(repl)
+    return "".join(result)
 
 
 def verify_lexical(db_path=DB_PATH, path=LEXICON_PATH):
@@ -112,6 +150,15 @@ if __name__ == "__main__":
     assert normalize_text("Voy en guagua") == "Voy en autobus"
     assert normalize_text("'hola' amigo") == "'hola' amigo"
     assert normalize_text("tanto paso") == "tanto paso"
+    assert normalize_text("klk") == "hola"
+    assert normalize_text("que lo que") == "hola"
+    assert normalize_text("dime a ver") == "hola"
+    assert normalize_text("manin") == "amigo"
+    assert normalize_text("de lo mio") == "amigo"
+    assert normalize_text("ta to") == "bien"
+    assert normalize_text("quillao") == "enojado"
+    assert normalize_text("manso") == "tranquilo"
+    assert normalize_text("jevi") == "bueno"
     assert normalize_text("") == ""
     if os.path.exists(DB_PATH):
         bad = verify_lexical()

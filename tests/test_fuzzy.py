@@ -1,4 +1,10 @@
+import os
+import sys
 import unittest
+
+_TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
+if _TESTS_DIR not in sys.path:
+    sys.path.insert(0, _TESTS_DIR)
 
 import _common  # noqa: F401
 import ml_matcher

@@ -1,8 +1,13 @@
 import os
 import re
+import sys
 import tempfile
 import unittest
 from unittest import mock
+
+_TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
+if _TESTS_DIR not in sys.path:
+    sys.path.insert(0, _TESTS_DIR)
 
 import _common
 import llm_fallback

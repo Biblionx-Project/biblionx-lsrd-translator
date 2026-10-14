@@ -1,10 +1,16 @@
 import json
 import os
+import sys
 import tempfile
 import threading
 import unittest
 from unittest import mock
 
+_TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
+if _TESTS_DIR not in sys.path:
+    sys.path.insert(0, _TESTS_DIR)
+
+import _common  # noqa: F401
 import llm_fallback
 
 CANDS = ["pan", "dulce", "casa"]

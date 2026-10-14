@@ -32,6 +32,18 @@ class DominicanNormalizationTests(unittest.TestCase):
         self.assertEqual(nlp_engine.normalize_word("\u00c1rbol,"), "arbol")
         self.assertEqual(nlp_engine.normalize_word("  Ni\u00f1o! "), "nino")
 
+    def test_dominican_slang_lexicon(self):
+        self.assertEqual(dl.normalize_text("klk manin"), "hola amigo")
+        self.assertEqual(dl.normalize_text("que lo que"), "hola")
+        self.assertEqual(dl.normalize_text("dime a ver"), "hola")
+        self.assertEqual(dl.normalize_text("de lo mio"), "amigo")
+        self.assertEqual(dl.normalize_text("ta to"), "bien")
+        self.assertEqual(dl.normalize_text("ta quillao"), "esta enojado")
+        self.assertEqual(dl.normalize_text("manso"), "tranquilo")
+        self.assertEqual(dl.normalize_text("jevi"), "bueno")
+        self.assertEqual(dl.normalize_text("heavy"), "bueno")
+        self.assertEqual(dl.normalize_text("yala"), "bien")
+
 
 if __name__ == "__main__":
     unittest.main()

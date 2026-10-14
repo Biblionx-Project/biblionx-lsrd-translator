@@ -44,6 +44,9 @@ class GrammarTests(unittest.TestCase):
     def test_question_word_moves_to_end_only_in_questions(self):
         self.assertEqual(grammar.reorder(["donde", "vivir", "tu"], True), ["vivir", "tu", "donde"])
         self.assertEqual(grammar.reorder(["donde", "vivir"], False), ["donde", "vivir"])
+        self.assertEqual(grammar.reorder(["¿por que?", "llorar"], True), ["llorar", "¿por que?"])
+        self.assertEqual(grammar.reorder(["por que", "llorar"], True), ["llorar", "por que"])
+        self.assertEqual(grammar.reorder(["para que", "llorar"], True), ["llorar", "para que"])
 
     def test_empty(self):
         self.assertEqual(grammar.reorder([]), [])
@@ -63,6 +66,9 @@ class GrammarTests(unittest.TestCase):
         res = eng.process("\u00bfD\u00f3nde vive el abogado?")
         self.assertTrue(res["is_question"])
         self.assertEqual(list(res["secuencia_lsrd"]), ["vivir", "abogado", "donde"])
+        res_por_que = eng.process("\u00bfPor qu\u00e9 lloras?")
+        self.assertTrue(res_por_que["is_question"])
+        self.assertEqual(list(res_por_que["secuencia_lsrd"]), ["llorar", "\u00bfpor que?"])
 
     def test_process_keys(self):
         res = nlp_engine.LSRDNlpEngine().process("casa")
