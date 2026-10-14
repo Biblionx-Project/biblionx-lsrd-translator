@@ -4,10 +4,6 @@ Biblionx translates Spanish text, including Dominican Spanish, into **Dominican 
 
 > The translation input is Spanish (Dominican Republic) and the output is LSRD. Documentation, code and comments are in English; dictionary data and sign descriptions stay in Spanish because they are primary-source data from the official LSRD dictionary.
 
-## Origins
-
-Biblionx was initially bootstrapped from the open-source VLibras project; it has since evolved into an independent development by the Biblionx team.
-
 ## What is in this repository
 
 The repository root is the single source of truth for the engine; `backend_api/` imports it instead of keeping copies.
@@ -225,6 +221,7 @@ print(f"PNG image path: {row[4]}")
 
 This is a public repository. Do not commit personal data, API keys, tokens or local paths.
 
-## License
+## Origins
 
-Distributed under the GNU Lesser General Public License v3.0; see `LICENSE`. Code derived from the upstream VLibras project retains its original license terms.
+This project was initially forked from the open-source VLibras project. It has since evolved
+enough to stand as an independent project of its own. Licensed under LGPLv3 — see [LICENSE](LICENSE).

@@ -2,8 +2,6 @@
 
 Biblionx translates Spanish (Dominican Republic) text into Dominican Sign Language (LSRD) sign sequences. The core is pure Python (standard library only) and works on a read-only SQLite dictionary (`lsrd_dictionary.db`).
 
-Origins: Biblionx was initially bootstrapped from the open-source VLibras project; it has since evolved into an independent development by the Biblionx team.
-
 ## Module diagram
 
 ```
