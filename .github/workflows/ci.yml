@@ -7,13 +7,17 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
 
@@ -21,14 +25,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Unit tests (no images required)
+      - name: Version consistency
+        run: python scripts/check_version.py
+
+      - name: Unit tests (image fixture is committed)
         run: python -m unittest discover -s tests -v
 
       - name: Evaluate translator
         run: python scripts/evaluate.py --out /tmp/m.json
 
       - name: Quality gate
-        run: python scripts/check_metrics.py /tmp/m.json --min-coverage 0.85 --min-recall 0.95
+        run: |
+          python scripts/check_metrics.py /tmp/m.json \
+            --min-coverage 0.88 --min-recall 0.95 --min-precision 0.93 \
+            --max-fingerspelling-rate 0.12 --min-order-accuracy 1.0 --max-p95-ms 500
 
       - uses: actions/setup-node@v4
         with:

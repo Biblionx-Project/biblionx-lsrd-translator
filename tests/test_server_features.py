@@ -156,16 +156,21 @@ class MissingImagesTests(ServerCase):
 
 
 class ImagePresentTests(ServerCase):
-    ENV = {"BIBLIONX_RATE_PER_MIN": "0"}
+    """Uses a tiny committed fixture, so it always runs (no local images needed)."""
+    FIXTURES = os.path.join(_common.ROOT, "tests", "fixtures", "images")
+    ENV = {"BIBLIONX_RATE_PER_MIN": "0", "BIBLIONX_IMAGES_DIR": FIXTURES}
 
     def test_present_image_gets_url(self):
-        # Only meaningful when the local (gitignored) images exist.
-        if not os.path.isdir(os.path.join(_common.ROOT, "extracted_images")):
-            self.skipTest("local extracted_images not present")
-        _, _, body = self.post_text("casa")
-        for sign in json.loads(body)["secuencia_senas"]:
-            if sign.get("ruta_imagen") and sign["image_available"]:
-                self.assertIn("/extracted_images/", sign["url_imagen"])
+        self.assertTrue(os.path.isfile(os.path.join(self.FIXTURES, "lsrd_0001.png")))
+        _, _, body = self.post_text("a")
+        signs = [s for s in json.loads(body)["secuencia_senas"]
+                 if str(s.get("ruta_imagen", "")).endswith("lsrd_0001.png")]
+        self.assertTrue(signs, "expected the sign for 'A' (lsrd_0001)")
+        for sign in signs:
+            self.assertIs(sign["image_available"], True)
+            self.assertIn("/extracted_images/lsrd_0001.png", sign["url_imagen"])
+        status, headers, _ = self.request("GET", "/extracted_images/lsrd_0001.png")
+        self.assertEqual(status, 200)
 
 
 class CorsConfiguredTests(ServerCase):

@@ -4,6 +4,34 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] - 2026-10-20
+
+Dictionary recovery, honest metrics, one version source and a CI that runs every test.
+
+### Added
+- Dominican lexicon enhancements, question-sign indexing in the engine and a manual test page (`test_page.html`).
+- 18 dictionary entries that were printed in the official PDF but missing from the database
+  (`lsrd_2459` to `lsrd_2476`: DICCIONARIO, GRANDE, GRANIZO, GRAPA, GRAPADORA, GRAPAR, GRITAR, GROSERO, RA, GRÚA,
+  GUANDUL, GUANTE, GUANTE (DEPORTE), GUERRA, GUIAR, GUINEO, LOCRIO DE POLLO, MANGA CORTA, MANGA LARGA), with
+  `tools/recover_dictionary_entries.py`, `tools/find_dictionary_gaps.py` and `docs/DICTIONARY_GAPS.md`.
+- 24 curated synonym mappings marked `curated-pending-review` (interpreter review pending).
+- Evaluation metrics: per-method counts, share and confidence, lemma precision, order accuracy, per-tag breakdown,
+  fingerspelling rate, OOV list and latency p50/p95/max. Corpus gains `allowed_lemmas` and `expected_order`.
+- `check_metrics.py` flags `--min-precision`, `--max-fingerspelling-rate`, `--min-order-accuracy`, `--max-p95-ms`.
+- `VERSION` file as the single version source and `scripts/check_version.py` (exit 1 on mismatch), run in CI and tests.
+- Committed 1x1 fixture image under `tests/fixtures/images/` so the image-serving test always runs.
+- CI: Python 3.14 in the matrix, version check, full metrics gate, concurrency cancellation.
+
+### Changed
+- Browser extension (Manifest V3): accessibility improvements.
+- The project was rebranded to Biblionx; VLibras is kept only as a fork note.
+- `evaluate.py` now keeps morphology and phrase provenance per token instead of reporting everything as `exact`.
+- Lexical coverage 0.8795 to 0.9070; fingerspelled tokens 57 to 44; gold lemma recall stays 0.9747.
+- The server, the extension manifest and the OpenAPI spec now all report the same version.
+
+### Fixed
+- The image test was silently skipped in CI because `extracted_images/` is not tracked.
+
 ## [2.1.0] - 2026-10-04
 
 Production hardening.
@@ -46,3 +74,7 @@ ML/NLP translation layer and UI refresh.
 
 - Initial LSRD translation engine, SQLite dictionary, REST API, browser extension and English-translated docs.
 
+[2.2.0]: https://github.com/Biblionx-Project/biblionx-lsrd-translator/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/Biblionx-Project/biblionx-lsrd-translator/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/Biblionx-Project/biblionx-lsrd-translator/compare/v1.0.0...v2.0.0
+[1.0.0]: https://github.com/Biblionx-Project/biblionx-lsrd-translator/releases/tag/v1.0.0

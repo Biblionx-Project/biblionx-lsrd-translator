@@ -4,6 +4,8 @@ Biblionx translates Spanish text, including Dominican Spanish, into **Dominican 
 
 > The translation input is Spanish (Dominican Republic) and the output is LSRD. Documentation, code and comments are in English; dictionary data and sign descriptions stay in Spanish because they are primary-source data from the official LSRD dictionary.
 
+Current version: **2.2.0** (single source: the `VERSION` file, checked by `scripts/check_version.py`).
+
 ## What is in this repository
 
 The repository root is the single source of truth for the engine; `backend_api/` imports it instead of keeping copies.
