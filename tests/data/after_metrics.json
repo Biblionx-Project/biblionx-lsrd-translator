@@ -1,25 +1,19 @@
 {
+  "metrics_version": 2,
   "sentences": 134,
   "output_tokens": 473,
-  "lexical_tokens": 416,
-  "lexical_coverage": 0.8795,
-  "fingerspelled_tokens": 57,
-  "unique_fingerspelled_words": 52,
+  "lexical_tokens": 429,
+  "lexical_coverage": 0.907,
+  "fingerspelled_tokens": 44,
+  "fingerspelling_rate": 0.093,
+  "unique_fingerspelled_words": 41,
   "top_fingerspelled": [
     {
       "word": "poder",
       "count": 3
     },
     {
-      "word": "donde",
-      "count": 2
-    },
-    {
       "word": "haber",
-      "count": 2
-    },
-    {
-      "word": "respuesta",
       "count": 2
     },
     {
@@ -43,26 +37,6 @@
       "count": 1
     },
     {
-      "word": "cuanto",
-      "count": 1
-    },
-    {
-      "word": "que",
-      "count": 1
-    },
-    {
-      "word": "como",
-      "count": 1
-    },
-    {
-      "word": "quien",
-      "count": 1
-    },
-    {
-      "word": "cuando",
-      "count": 1
-    },
-    {
       "word": "proximo",
       "count": 1
     },
@@ -71,19 +45,11 @@
       "count": 1
     },
     {
-      "word": "jugar",
-      "count": 1
-    },
-    {
       "word": "sed",
       "count": 1
     },
     {
       "word": "cocinamos",
-      "count": 1
-    },
-    {
-      "word": "grande",
       "count": 1
     },
     {
@@ -131,15 +97,7 @@
       "count": 1
     },
     {
-      "word": "lo",
-      "count": 1
-    },
-    {
       "word": "chele",
-      "count": 1
-    },
-    {
-      "word": "jevi",
       "count": 1
     },
     {
@@ -165,8 +123,146 @@
     {
       "word": "probrema",
       "count": 1
+    },
+    {
+      "word": "ay",
+      "count": 1
+    },
+    {
+      "word": "senora",
+      "count": 1
+    },
+    {
+      "word": "nino",
+      "count": 1
+    },
+    {
+      "word": "pedro",
+      "count": 1
+    },
+    {
+      "word": "maria",
+      "count": 1
+    },
+    {
+      "word": "sordos",
+      "count": 1
+    },
+    {
+      "word": "sordas",
+      "count": 1
+    },
+    {
+      "word": "interprete",
+      "count": 1
+    },
+    {
+      "word": "senas",
+      "count": 1
+    },
+    {
+      "word": "padres",
+      "count": 1
+    },
+    {
+      "word": "hacer",
+      "count": 1
     }
   ],
+  "oov_words": [
+    "poder",
+    "haber",
+    "able",
+    "ana",
+    "aser",
+    "ay",
+    "bonito",
+    "boy",
+    "carlos",
+    "chele",
+    "cocinamos",
+    "cuesta",
+    "estudar",
+    "funciona",
+    "hacer",
+    "hasta",
+    "interprete",
+    "llover",
+    "mai",
+    "maria",
+    "momento",
+    "nadie",
+    "ninas",
+    "ninguno",
+    "nino",
+    "ninos",
+    "orgulloso",
+    "padres",
+    "pedro",
+    "pendiente",
+    "porque",
+    "prestar",
+    "probrema",
+    "proximo",
+    "receta",
+    "sed",
+    "senas",
+    "senora",
+    "sordas",
+    "sordos",
+    "tampoco"
+  ],
+  "fingerspelling_per_sentence": {
+    "mean_rate": 0.0945,
+    "p95_rate": 0.3333,
+    "max_rate": 0.75,
+    "sentences_with_fingerspelling": 41,
+    "sentences_fully_lexical": 93,
+    "worst_sentences": [
+      {
+        "id": "s123",
+        "rate": 0.75
+      },
+      {
+        "id": "s063",
+        "rate": 0.5
+      },
+      {
+        "id": "s094",
+        "rate": 0.5
+      },
+      {
+        "id": "s126",
+        "rate": 0.5
+      },
+      {
+        "id": "s008",
+        "rate": 0.3333
+      }
+    ]
+  },
+  "match_method_counts": {
+    "exact": 271,
+    "morphology": 124,
+    "fingerspelling": 44,
+    "curated_synonym": 22,
+    "phrase": 12
+  },
+  "match_method_share": {
+    "exact": 0.5729,
+    "morphology": 0.2622,
+    "fingerspelling": 0.093,
+    "curated_synonym": 0.0465,
+    "phrase": 0.0254
+  },
+  "avg_confidence_by_method": {
+    "curated_synonym": 0.85,
+    "exact": 1.0,
+    "fingerspelling": 0.5,
+    "morphology": 0.9,
+    "phrase": 0.95
+  },
+  "avg_confidence": 0.919,
   "gold_entries": 42,
   "gold_lemmas_expected": 79,
   "gold_lemma_recall": 0.9747,
@@ -174,10 +270,297 @@
     "dia": 1,
     "saber": 1
   },
-  "avg_ms_per_sentence": 2.246,
-  "match_method_counts": {
-    "exact": 397,
-    "curated_synonym": 19
+  "gold_content_signs": 115,
+  "gold_lemma_precision": 0.9739,
+  "gold_unexpected_signs": {
+    "vivo": 2,
+    "comimos": 1
   },
-  "avg_confidence": 0.7787
+  "gold_order_entries": 21,
+  "gold_order_accuracy": 1.0,
+  "gold_order_pairwise_accuracy": 1.0,
+  "gold_order_failures": [],
+  "by_tag": {
+    "command": {
+      "sentences": 6,
+      "output_tokens": 14,
+      "lexical_coverage": 0.9286,
+      "fingerspelling_rate": 0.0714,
+      "mean_sentence_fingerspelling_rate": 0.0833,
+      "avg_confidence": 0.9071,
+      "gold_entries": 2,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0
+    },
+    "courtesy": {
+      "sentences": 4,
+      "output_tokens": 15,
+      "lexical_coverage": 0.9333,
+      "fingerspelling_rate": 0.0667,
+      "mean_sentence_fingerspelling_rate": 0.05,
+      "avg_confidence": 0.95,
+      "gold_entries": 1,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0,
+      "gold_order_entries": 1,
+      "gold_order_accuracy": 1.0
+    },
+    "daily": {
+      "sentences": 13,
+      "output_tokens": 38,
+      "lexical_coverage": 0.8947,
+      "fingerspelling_rate": 0.1053,
+      "mean_sentence_fingerspelling_rate": 0.1026,
+      "avg_confidence": 0.9092,
+      "gold_entries": 4,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 0.875
+    },
+    "dominicanism": {
+      "sentences": 15,
+      "output_tokens": 48,
+      "lexical_coverage": 0.9167,
+      "fingerspelling_rate": 0.0833,
+      "mean_sentence_fingerspelling_rate": 0.0944,
+      "avg_confidence": 0.9292,
+      "gold_entries": 1,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 0.75,
+      "gold_order_entries": 2,
+      "gold_order_accuracy": 1.0
+    },
+    "emotion": {
+      "sentences": 3,
+      "output_tokens": 12,
+      "lexical_coverage": 0.9167,
+      "fingerspelling_rate": 0.0833,
+      "mean_sentence_fingerspelling_rate": 0.0556,
+      "avg_confidence": 0.9292,
+      "gold_entries": 1,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0
+    },
+    "family": {
+      "sentences": 14,
+      "output_tokens": 52,
+      "lexical_coverage": 0.9231,
+      "fingerspelling_rate": 0.0769,
+      "mean_sentence_fingerspelling_rate": 0.0952,
+      "avg_confidence": 0.9173,
+      "gold_entries": 6,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0
+    },
+    "feminine": {
+      "sentences": 8,
+      "output_tokens": 29,
+      "lexical_coverage": 0.8966,
+      "fingerspelling_rate": 0.1034,
+      "mean_sentence_fingerspelling_rate": 0.1146,
+      "avg_confidence": 0.8776,
+      "gold_entries": 2,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0
+    },
+    "food": {
+      "sentences": 8,
+      "output_tokens": 30,
+      "lexical_coverage": 0.8667,
+      "fingerspelling_rate": 0.1333,
+      "mean_sentence_fingerspelling_rate": 0.1396,
+      "avg_confidence": 0.895,
+      "gold_entries": 3,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 0.9091,
+      "gold_order_entries": 1,
+      "gold_order_accuracy": 1.0
+    },
+    "future": {
+      "sentences": 17,
+      "output_tokens": 69,
+      "lexical_coverage": 0.971,
+      "fingerspelling_rate": 0.029,
+      "mean_sentence_fingerspelling_rate": 0.0265,
+      "avg_confidence": 0.9565,
+      "gold_entries": 7,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0,
+      "gold_order_entries": 8,
+      "gold_order_accuracy": 1.0
+    },
+    "gold": {
+      "sentences": 42,
+      "output_tokens": 161,
+      "lexical_coverage": 0.9441,
+      "fingerspelling_rate": 0.0559,
+      "mean_sentence_fingerspelling_rate": 0.0566,
+      "avg_confidence": 0.937,
+      "gold_entries": 42,
+      "gold_lemma_recall": 0.9747,
+      "gold_lemma_precision": 0.9739,
+      "gold_order_entries": 10,
+      "gold_order_accuracy": 1.0
+    },
+    "greeting": {
+      "sentences": 7,
+      "output_tokens": 25,
+      "lexical_coverage": 0.92,
+      "fingerspelling_rate": 0.08,
+      "mean_sentence_fingerspelling_rate": 0.068,
+      "avg_confidence": 0.916,
+      "gold_entries": 2,
+      "gold_lemma_recall": 0.6667,
+      "gold_lemma_precision": 0.8333
+    },
+    "health": {
+      "sentences": 12,
+      "output_tokens": 46,
+      "lexical_coverage": 0.9565,
+      "fingerspelling_rate": 0.0435,
+      "mean_sentence_fingerspelling_rate": 0.0375,
+      "avg_confidence": 0.9391,
+      "gold_entries": 5,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0,
+      "gold_order_entries": 3,
+      "gold_order_accuracy": 1.0
+    },
+    "introduction": {
+      "sentences": 3,
+      "output_tokens": 14,
+      "lexical_coverage": 0.6429,
+      "fingerspelling_rate": 0.3571,
+      "mean_sentence_fingerspelling_rate": 0.4087,
+      "avg_confidence": 0.8036,
+      "gold_entries": 1,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 0.75
+    },
+    "library": {
+      "sentences": 13,
+      "output_tokens": 44,
+      "lexical_coverage": 0.8636,
+      "fingerspelling_rate": 0.1364,
+      "mean_sentence_fingerspelling_rate": 0.1282,
+      "avg_confidence": 0.9045,
+      "gold_entries": 3,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0
+    },
+    "negation": {
+      "sentences": 15,
+      "output_tokens": 57,
+      "lexical_coverage": 0.8772,
+      "fingerspelling_rate": 0.1228,
+      "mean_sentence_fingerspelling_rate": 0.1333,
+      "avg_confidence": 0.907,
+      "gold_entries": 6,
+      "gold_lemma_recall": 0.9286,
+      "gold_lemma_precision": 1.0,
+      "gold_order_entries": 8,
+      "gold_order_accuracy": 1.0
+    },
+    "plural": {
+      "sentences": 18,
+      "output_tokens": 63,
+      "lexical_coverage": 0.873,
+      "fingerspelling_rate": 0.127,
+      "mean_sentence_fingerspelling_rate": 0.1204,
+      "avg_confidence": 0.8786,
+      "gold_entries": 3,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0
+    },
+    "preterite": {
+      "sentences": 21,
+      "output_tokens": 80,
+      "lexical_coverage": 0.925,
+      "fingerspelling_rate": 0.075,
+      "mean_sentence_fingerspelling_rate": 0.0794,
+      "avg_confidence": 0.9287,
+      "gold_entries": 7,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 0.9583,
+      "gold_order_entries": 7,
+      "gold_order_accuracy": 1.0
+    },
+    "question": {
+      "sentences": 11,
+      "output_tokens": 33,
+      "lexical_coverage": 0.8788,
+      "fingerspelling_rate": 0.1212,
+      "mean_sentence_fingerspelling_rate": 0.0939,
+      "avg_confidence": 0.9152,
+      "gold_entries": 6,
+      "gold_lemma_recall": 0.8571,
+      "gold_lemma_precision": 1.0,
+      "gold_order_entries": 1,
+      "gold_order_accuracy": 1.0
+    },
+    "school": {
+      "sentences": 30,
+      "output_tokens": 107,
+      "lexical_coverage": 0.9159,
+      "fingerspelling_rate": 0.0841,
+      "mean_sentence_fingerspelling_rate": 0.0917,
+      "avg_confidence": 0.9257,
+      "gold_entries": 5,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0,
+      "gold_order_entries": 3,
+      "gold_order_accuracy": 1.0
+    },
+    "shopping": {
+      "sentences": 3,
+      "output_tokens": 11,
+      "lexical_coverage": 0.9091,
+      "fingerspelling_rate": 0.0909,
+      "mean_sentence_fingerspelling_rate": 0.1111,
+      "avg_confidence": 0.9364,
+      "gold_entries": 2,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0
+    },
+    "time": {
+      "sentences": 29,
+      "output_tokens": 107,
+      "lexical_coverage": 0.972,
+      "fingerspelling_rate": 0.028,
+      "mean_sentence_fingerspelling_rate": 0.0241,
+      "avg_confidence": 0.9593,
+      "gold_entries": 10,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 0.9677,
+      "gold_order_entries": 14,
+      "gold_order_accuracy": 1.0
+    },
+    "typo": {
+      "sentences": 8,
+      "output_tokens": 27,
+      "lexical_coverage": 0.7407,
+      "fingerspelling_rate": 0.2593,
+      "mean_sentence_fingerspelling_rate": 0.2708,
+      "avg_confidence": 0.85
+    },
+    "work": {
+      "sentences": 14,
+      "output_tokens": 49,
+      "lexical_coverage": 0.9388,
+      "fingerspelling_rate": 0.0612,
+      "mean_sentence_fingerspelling_rate": 0.0595,
+      "avg_confidence": 0.9388,
+      "gold_entries": 5,
+      "gold_lemma_recall": 1.0,
+      "gold_lemma_precision": 1.0,
+      "gold_order_entries": 5,
+      "gold_order_accuracy": 1.0
+    }
+  },
+  "latency_ms": {
+    "mean": 1.894,
+    "p50": 1.289,
+    "p95": 3.463,
+    "max": 71.201
+  },
+  "avg_ms_per_sentence": 1.894
 }

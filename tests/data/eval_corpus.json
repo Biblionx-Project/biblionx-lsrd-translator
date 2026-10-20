@@ -1,7 +1,7 @@
 {
  "version": 1,
  "language": "es-DO",
- "description": "Evaluation corpus of Dominican Spanish sentences; entries tagged gold carry expected_lemmas verified against the dictionary.",
+ "description": "Evaluation corpus of Dominican Spanish sentences; entries tagged gold carry expected_lemmas verified against the dictionary. Optional allowed_lemmas lists acceptable extra content signs (not counted against precision) and expected_order lists lemmas whose relative order is fixed by the LSRD grammar rules (TIME first, NEGATION last).",
  "items": [
   {
    "id": "s001",
@@ -13,6 +13,10 @@
    ],
    "expected_lemmas": [
     "dia"
+   ],
+   "allowed_lemmas": [
+    "buenos dias",
+    "¿como estas?"
    ]
   },
   {
@@ -26,6 +30,9 @@
    "expected_lemmas": [
     "hola",
     "llamar"
+   ],
+   "allowed_lemmas": [
+    "santiago"
    ]
   },
   {
@@ -48,6 +55,10 @@
     "perdon",
     "entender",
     "pregunta"
+   ],
+   "expected_order": [
+    "entender",
+    "no"
    ]
   },
   {
@@ -61,6 +72,10 @@
    "expected_lemmas": [
     "escuela",
     "dia"
+   ],
+   "allowed_lemmas": [
+    "ir",
+    "todo"
    ]
   },
   {
@@ -70,6 +85,10 @@
     "school",
     "time",
     "future"
+   ],
+   "expected_order": [
+    "manana",
+    "examen"
    ]
   },
   {
@@ -83,6 +102,10 @@
    "expected_lemmas": [
     "tarea",
     "mucho"
+   ],
+   "allowed_lemmas": [
+    "maestro",
+    "poner"
    ]
   },
   {
@@ -151,6 +174,9 @@
    "expected_lemmas": [
     "trabajar",
     "hospital"
+   ],
+   "allowed_lemmas": [
+    "mama"
    ]
   },
   {
@@ -164,6 +190,10 @@
    "expected_lemmas": [
     "comprar",
     "carro"
+   ],
+   "allowed_lemmas": [
+    "papa",
+    "nuevo"
    ]
   },
   {
@@ -220,6 +250,10 @@
     "ir",
     "medico",
     "manana"
+   ],
+   "expected_order": [
+    "manana",
+    "medico"
    ]
   },
   {
@@ -232,6 +266,9 @@
    "expected_lemmas": [
     "hospital",
     "casa"
+   ],
+   "allowed_lemmas": [
+    "cerca"
    ]
   },
   {
@@ -268,6 +305,11 @@
     "tener",
     "tiempo",
     "ahora"
+   ],
+   "expected_order": [
+    "ahora",
+    "tener",
+    "no"
    ]
   },
   {
@@ -275,6 +317,10 @@
    "text": "Nunca he visto eso.",
    "tags": [
     "negation"
+   ],
+   "expected_order": [
+    "ver",
+    "nunca"
    ]
   },
   {
@@ -287,6 +333,9 @@
    "expected_lemmas": [
     "querer",
     "nada"
+   ],
+   "allowed_lemmas": [
+    "comer"
    ]
   },
   {
@@ -298,6 +347,9 @@
    ],
    "expected_lemmas": [
     "saber"
+   ],
+   "allowed_lemmas": [
+    "respuesta"
    ]
   },
   {
@@ -362,6 +414,11 @@
    "expected_lemmas": [
     "venir",
     "ayer"
+   ],
+   "expected_order": [
+    "ayer",
+    "venir",
+    "no"
    ]
   },
   {
@@ -385,6 +442,13 @@
     "ayer",
     "ir",
     "trabajo"
+   ],
+   "allowed_lemmas": [
+    "temprano"
+   ],
+   "expected_order": [
+    "ayer",
+    "trabajo"
    ]
   },
   {
@@ -399,6 +463,14 @@
    ],
    "expected_lemmas": [
     "ayer"
+   ],
+   "allowed_lemmas": [
+    "arroz",
+    "habichuelas"
+   ],
+   "expected_order": [
+    "ayer",
+    "arroz"
    ]
   },
   {
@@ -422,6 +494,13 @@
    "expected_lemmas": [
     "lunes",
     "escuela"
+   ],
+   "allowed_lemmas": [
+    "ir"
+   ],
+   "expected_order": [
+    "lunes",
+    "escuela"
    ]
   },
   {
@@ -434,6 +513,14 @@
    ],
    "expected_lemmas": [
     "domingo"
+   ],
+   "allowed_lemmas": [
+    "ir",
+    "iglesia"
+   ],
+   "expected_order": [
+    "domingo",
+    "iglesia"
    ]
   },
   {
@@ -468,6 +555,14 @@
    ],
    "expected_lemmas": [
     "mes"
+   ],
+   "allowed_lemmas": [
+    "viajar",
+    "puerto plata"
+   ],
+   "expected_order": [
+    "mes",
+    "viajar"
    ]
   },
   {
@@ -489,6 +584,9 @@
    "expected_lemmas": [
     "siempre",
     "tiempo"
+   ],
+   "allowed_lemmas": [
+    "llegar"
    ]
   },
   {
@@ -501,6 +599,10 @@
    ],
    "expected_lemmas": [
     "aprender"
+   ],
+   "allowed_lemmas": [
+    "estudiante",
+    "rapido"
    ]
   },
   {
@@ -532,6 +634,10 @@
    ],
    "expected_lemmas": [
     "bueno"
+   ],
+   "allowed_lemmas": [
+    "amigo",
+    "muy"
    ]
   },
   {
@@ -545,6 +651,9 @@
     "amigo",
     "hablar",
     "dia"
+   ],
+   "allowed_lemmas": [
+    "todo"
    ]
   },
   {
@@ -567,6 +676,10 @@
     "manana",
     "llamar",
     "telefono"
+   ],
+   "expected_order": [
+    "manana",
+    "llamar"
    ]
   },
   {
@@ -579,6 +692,9 @@
    "expected_lemmas": [
     "dar",
     "telefono"
+   ],
+   "allowed_lemmas": [
+    "numero"
    ]
   },
   {
@@ -600,6 +716,10 @@
    "expected_lemmas": [
     "querer",
     "agua"
+   ],
+   "allowed_lemmas": [
+    "tener",
+    "mucho"
    ]
   },
   {
@@ -613,6 +733,9 @@
    "expected_lemmas": [
     "comprar",
     "comida"
+   ],
+   "allowed_lemmas": [
+    "ir"
    ]
   },
   {
@@ -633,6 +756,10 @@
    ],
    "expected_lemmas": [
     "pagar"
+   ],
+   "allowed_lemmas": [
+    "ir",
+    "cuenta"
    ]
   },
   {
@@ -664,6 +791,9 @@
    ],
    "expected_lemmas": [
     "ciudad"
+   ],
+   "allowed_lemmas": [
+    "grande"
    ]
   },
   {
@@ -675,6 +805,9 @@
    ],
    "expected_lemmas": [
     "pais"
+   ],
+   "allowed_lemmas": [
+    "republica dominicana"
    ]
   },
   {
@@ -695,6 +828,9 @@
    ],
    "expected_lemmas": [
     "cerrar"
+   ],
+   "allowed_lemmas": [
+    "ventana"
    ]
   },
   {
@@ -785,6 +921,11 @@
     "school",
     "preterite",
     "time"
+   ],
+   "expected_order": [
+    "ayer",
+    "escribir",
+    "carta"
    ]
   },
   {
@@ -809,6 +950,10 @@
    "tags": [
     "work",
     "negation"
+   ],
+   "expected_order": [
+    "computadora",
+    "no"
    ]
   },
   {
@@ -872,6 +1017,11 @@
     "work",
     "future",
     "time"
+   ],
+   "expected_order": [
+    "hoy",
+    "trabajar",
+    "no"
    ]
   },
   {
@@ -888,6 +1038,10 @@
    "tags": [
     "negation",
     "time"
+   ],
+   "expected_order": [
+    "llegar",
+    "nunca"
    ]
   },
   {
@@ -1009,6 +1163,10 @@
    "tags": [
     "dominicanism",
     "negation"
+   ],
+   "expected_order": [
+    "chele",
+    "no"
    ]
   },
   {
@@ -1135,6 +1293,10 @@
     "future",
     "work",
     "time"
+   ],
+   "expected_order": [
+    "sabado",
+    "trabajar"
    ]
   },
   {
@@ -1169,6 +1331,10 @@
     "preterite",
     "time",
     "health"
+   ],
+   "expected_order": [
+    "anoche",
+    "dormir"
    ]
   },
   {
@@ -1177,6 +1343,11 @@
    "tags": [
     "preterite",
     "time"
+   ],
+   "expected_order": [
+    "ano",
+    "vender",
+    "casa"
    ]
   },
   {
@@ -1242,6 +1413,10 @@
    "tags": [
     "health",
     "time"
+   ],
+   "expected_order": [
+    "martes",
+    "cita"
    ]
   },
   {
