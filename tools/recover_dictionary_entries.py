@@ -176,7 +176,8 @@ def parse_page(pno, width, height, lines, rules):
     halves = [(0, width / 2), (width / 2, width)] if width > 900 else [(0, width)]
     for hx0, hx1 in halves:
         in_half = [l for l in lines if hx0 <= (l.x0 + l.x1) / 2 < hx1]
-        half_rules = [r for r in rules if hx0 <= (r[0] + r[2]) / 2 < hx1]
+        # Grid rules span the whole cell (~440 pt); shorter flat lines belong to drawings.
+        half_rules = [r for r in rules if hx0 <= (r[0] + r[2]) / 2 < hx1 and r[2] - r[0] > 300]
         if half_rules:
             cell_x0 = min(r[0] for r in half_rules) - 6
             cell_x1 = max(r[2] for r in half_rules) + 6
@@ -192,8 +193,12 @@ def parse_page(pno, width, height, lines, rules):
             if not heads:
                 continue
             column = [l for l in cell if l.kind in ("headword", "category", "definition", "body")]
-            tx0 = min(l.x0 for l in column)
-            tx1 = max(l.x1 for l in column)
+            # The text column is left-aligned with the headword; captions printed inside the
+            # drawing ("seña número uno", Poppins too) must not widen it.
+            hx = min(h[0].x0 for h in heads)
+            aligned = [l for l in column if hx - 15 <= l.x0 <= hx + 40] or column
+            tx0 = min(l.x0 for l in aligned)
+            tx1 = max(l.x1 for l in aligned)
             # Illustration: the wider free side of the cell, next to the text column.
             if tx0 - cell_x0 >= cell_x1 - tx1:
                 ill = (cell_x0, b0 + 3, tx0 - 3, b1 - 3)
