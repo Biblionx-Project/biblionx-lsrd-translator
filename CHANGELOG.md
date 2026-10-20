@@ -31,6 +31,10 @@ Dictionary recovery, honest metrics, one version source and a CI that runs every
 
 ### Fixed
 - The image test was silently skipped in CI because `extracted_images/` is not tracked.
+- About half of the local sign images (1,228 of 2,458) were crops of dictionary text instead of the sign illustration,
+  a systematic error of the original extraction. `tools/recrop_sign_images.py` regenerates every image from the official
+  PDF (pdfminer.six + pypdfium2) with a skin-tone QA check; `tests/test_image_quality.py` guards it and
+  `docs/IMAGES.md` documents the process. Images remain outside git.
 - Browser extension: a triple click (several `mouseup` events) created duplicate overlay hosts, leaving orphaned
   floating buttons on the page; host creation is now shared by concurrent callers.
 - Browser extension: the floating button label no longer wraps onto two lines.
