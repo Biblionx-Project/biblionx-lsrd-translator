@@ -31,6 +31,11 @@ Dictionary recovery, honest metrics, one version source and a CI that runs every
 
 ### Fixed
 - The image test was silently skipped in CI because `extracted_images/` is not tracked.
+- Browser extension: a triple click (several `mouseup` events) created duplicate overlay hosts, leaving orphaned
+  floating buttons on the page; host creation is now shared by concurrent callers.
+- Browser extension: the floating button label no longer wraps onto two lines.
+- Browser extension: deterministic matches (morphology, phrases) were badged as "AI"; badges now name the actual
+  method (approximate match, AI match, synonym) and only appear for non-exact lookups.
 
 ## [2.1.0] - 2026-10-04
 

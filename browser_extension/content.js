@@ -9,7 +9,6 @@
 
   const BASE_STEP_MS = 1500;
   const SPEEDS = { min: 0.5, max: 2, step: 0.25 };
-  const EXACT_METHODS = ["exact", "direct", "dictionary", "synonym", "lemma"];
   const ICONS = {
     hand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12V6a1.5 1.5 0 0 1 3 0v5m0-6.5a1.5 1.5 0 0 1 3 0V11m0-5a1.5 1.5 0 0 1 3 0v6m0-3a1.5 1.5 0 0 1 3 0v5a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.5-2.7L4 15.5a1.6 1.6 0 0 1 2.4-2L7 14"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
@@ -38,8 +37,17 @@
     } catch (e) { /* keep defaults */ }
   }
 
-  async function ensureHost() {
-    if (host && host.isConnected) return;
+  // Concurrent callers (a triple click fires several mouseup events) share one
+  // creation promise; otherwise each would append its own host while the first
+  // one is still awaiting styles.css, leaving orphaned floating buttons behind.
+  let hostPending = null;
+  function ensureHost() {
+    if (host && host.isConnected) return Promise.resolve();
+    if (!hostPending) hostPending = createHost().finally(() => { hostPending = null; });
+    return hostPending;
+  }
+
+  async function createHost() {
     if (cssText === null) {
       try { cssText = await (await fetch(chrome.runtime.getURL("styles.css"))).text(); } catch (e) { cssText = ""; }
     }
@@ -289,10 +297,15 @@
     try { return new URL(u, apiBase + "/").href; } catch (e) { return ""; }
   }
   const chipLabel = (s) => (s.es_deletreo ? (s.letra || s.palabra_es || "?") : (s.palabra_es || "?"));
-  function isFuzzy(s) {
-    const m = String(s.match_method || "").toLowerCase();
-    if (!m) return false;
-    return !EXACT_METHODS.includes(m);
+  // Badge only the non-deterministic matches. Morphology, phrases and dictionary
+  // synonyms are exact lookups of a known form, so they get no badge.
+  const MATCH_BADGES = {
+    fuzzy: { chip: "approx", label: "Approximate match" },
+    ai: { chip: "AI", label: "AI match" },
+    curated_synonym: { chip: "syn", label: "Synonym" },
+  };
+  function matchBadge(s) {
+    return MATCH_BADGES[String(s.match_method || "").toLowerCase()] || null;
   }
 
   function renderPlayer() {
@@ -321,7 +334,8 @@
       b.type = "button";
       b.className = "chip" + (s.es_deletreo ? " spell" : "");
       b.setAttribute("role", "listitem");
-      const tag = s.es_deletreo ? '<span class="tag">spelled</span>' : isFuzzy(s) ? '<span class="tag ai">AI</span>' : "";
+      const mb = matchBadge(s);
+      const tag = s.es_deletreo ? '<span class="tag">spelled</span>' : mb ? `<span class="tag ai">${esc(mb.chip)}</span>` : "";
       b.innerHTML = `${esc(chipLabel(s))}${tag}`;
       b.setAttribute("aria-label", `Sign ${i + 1} of ${seq.length}: ${chipLabel(s)}${s.es_deletreo ? ", fingerspelled" : ""}`);
       b.addEventListener("click", () => go(i));
@@ -344,9 +358,9 @@
     const stage = q("#bx-stage");
     const badges = [];
     if (s.es_deletreo) badges.push('<span class="badge spell">Fingerspelled</span>');
-    else if (isFuzzy(s)) {
+    else if (matchBadge(s)) {
       const c = typeof s.confidence === "number" ? ` ${Math.round(s.confidence * 100)}%` : "";
-      badges.push(`<span class="badge ai">AI match${c}</span>`);
+      badges.push(`<span class="badge ai">${esc(matchBadge(s).label)}${c}</span>`);
     }
     const missing = s.image_available === false || !s.url_imagen;
     const url = missing ? "" : imgUrl(s.url_imagen);
