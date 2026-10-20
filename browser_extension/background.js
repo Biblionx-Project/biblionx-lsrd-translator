@@ -51,3 +51,38 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   })();
   return true; // async response
 });
+
+// Sign images are fetched here and handed to the page as data: URLs. A content
+// script <img> pointing at http://127.0.0.1 is blocked as mixed content on
+// HTTPS pages, but the service worker is not. Only image paths on the configured
+// API origin are proxied.
+function toBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (!msg || msg.type !== "biblionx:image") return false;
+  (async () => {
+    try {
+      const { apiBase } = await getSettings();
+      const target = new URL(String(msg.url || ""));
+      if (target.origin !== new URL(apiBase).origin || !target.pathname.startsWith("/extracted_images/")) {
+        sendResponse({ ok: false, error: "URL not allowed" });
+        return;
+      }
+      const res = await fetch(target.href);
+      const type = res.headers.get("Content-Type") || "";
+      if (!res.ok || !type.startsWith("image/")) {
+        sendResponse({ ok: false, error: `HTTP ${res.status}` });
+        return;
+      }
+      sendResponse({ ok: true, dataUrl: `data:${type};base64,${toBase64(await res.arrayBuffer())}` });
+    } catch (err) {
+      sendResponse({ ok: false, error: String((err && err.message) || err) });
+    }
+  })();
+  return true; // async response
+});

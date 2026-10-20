@@ -292,6 +292,19 @@
   }
 
   /* ---------- Player ---------- */
+  const imageCache = new Map();
+  function loadImage(url) {
+    if (!imageCache.has(url)) {
+      const p = chrome.runtime.sendMessage({ type: "biblionx:image", url }).then((res) => {
+        if (res && res.ok && res.dataUrl) return res.dataUrl;
+        throw new Error((res && res.error) || "image unavailable");
+      });
+      p.catch(() => imageCache.delete(url));
+      imageCache.set(url, p);
+    }
+    return imageCache.get(url);
+  }
+
   function imgUrl(u) {
     if (!u) return "";
     try { return new URL(u, apiBase + "/").href; } catch (e) { return ""; }
@@ -365,16 +378,21 @@
     const missing = s.image_available === false || !s.url_imagen;
     const url = missing ? "" : imgUrl(s.url_imagen);
     const letter = (chipLabel(s) || "?").charAt(0).toUpperCase();
-    stage.innerHTML = (url ? `<img src="${esc(url)}" alt="">` : textCard(s, letter))
+    stage.innerHTML = (url ? `<img alt="">` : textCard(s, letter))
       + `<div class="badges">${badges.join("")}</div><div class="counter">${idx + 1} / ${seq.length}</div>`;
     const img = stage.querySelector("img");
     if (img) {
       img.alt = `LSRD sign for ${chipLabel(s)}`;
-      img.addEventListener("error", () => {
+      const fallback = () => {
+        if (!img.isConnected) return;
         const t = document.createElement("div");
         t.innerHTML = textCard(s, letter);
         img.replaceWith(t.firstChild);
-      });
+      };
+      img.addEventListener("error", fallback);
+      // Images come through the service worker: on HTTPS pages a direct
+      // http://127.0.0.1 <img> is blocked as mixed content.
+      loadImage(url).then((data) => { if (img.isConnected) img.src = data; }, fallback);
     }
     q("#bx-word").textContent = s.es_deletreo ? `${s.letra || ""} (letter)` : (s.palabra_es || "");
     q("#bx-desc").textContent = s.descripcion_sena || "";

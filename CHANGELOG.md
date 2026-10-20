@@ -9,7 +9,7 @@ All notable changes to this project are documented here. The format follows
 Dictionary recovery, honest metrics, one version source and a CI that runs every test.
 
 ### Added
-- Dominican lexicon enhancements, question-sign indexing in the engine and a manual test page (`test_page.html`).
+- Dominican lexicon enhancements, question-sign indexing in the engine and a manual extension test page served at `/app/test_page.html`.
 - 18 dictionary entries that were printed in the official PDF but missing from the database
   (`lsrd_2459` to `lsrd_2476`: DICCIONARIO, GRANDE, GRANIZO, GRAPA, GRAPADORA, GRAPAR, GRITAR, GROSERO, RA, GRÚA,
   GUANDUL, GUANTE, GUANTE (DEPORTE), GUERRA, GUIAR, GUINEO, LOCRIO DE POLLO, MANGA CORTA, MANGA LARGA), with
@@ -34,6 +34,11 @@ Dictionary recovery, honest metrics, one version source and a CI that runs every
 - Browser extension: a triple click (several `mouseup` events) created duplicate overlay hosts, leaving orphaned
   floating buttons on the page; host creation is now shared by concurrent callers.
 - Browser extension: the floating button label no longer wraps onto two lines.
+- Browser extension: sign images stayed blank on HTTPS pages because a direct `http://127.0.0.1` image is blocked as
+  mixed content; images are now fetched by the service worker (only `/extracted_images/` on the configured API origin)
+  and passed to the player as `data:` URLs, with the text card as fallback.
+- `/app/test_page.html` rendered unstyled under the `/app/` CSP; its styles now live in `test_page.css`, and the
+  duplicate copy at the repository root was removed.
 - Browser extension: deterministic matches (morphology, phrases) were badged as "AI"; badges now name the actual
   method (approximate match, AI match, synonym) and only appear for non-exact lookups.
 
