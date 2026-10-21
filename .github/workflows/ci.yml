@@ -31,14 +31,27 @@ jobs:
       - name: Unit tests (image fixture is committed)
         run: python -m unittest discover -s tests -v
 
-      - name: Evaluate translator
-        run: python scripts/evaluate.py --out /tmp/m.json
+      - name: Evaluate translator (gold corpus and realistic paragraphs)
+        run: |
+          python scripts/evaluate.py \
+            --corpus tests/data/eval_corpus.json \
+            --corpus tests/data/eval_corpus_realistic.json \
+            --out /tmp/m.json
 
       - name: Quality gate
         run: |
           python scripts/check_metrics.py /tmp/m.json \
             --min-coverage 0.88 --min-recall 0.95 --min-precision 0.93 \
             --max-fingerspelling-rate 0.12 --min-order-accuracy 1.0 --max-p95-ms 500
+
+      # Realistic web paragraphs (no gold lemmas). Measured after the vocabulary
+      # expansion: coverage 0.7759, common-word fingerspelling 0.2148. Proper
+      # nouns are legitimately spelled, so only common words are gated; the
+      # limits sit slightly above/below the measured values.
+      - name: Quality gate (realistic corpus)
+        run: |
+          python scripts/check_metrics.py /tmp/m.json --corpus eval_corpus_realistic \
+            --min-coverage 0.76 --max-common-fingerspelling-rate 0.23 --max-p95-ms 500
 
       - uses: actions/setup-node@v4
         with:

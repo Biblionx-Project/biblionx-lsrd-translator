@@ -21,6 +21,29 @@ Dictionary recovery, honest metrics, one version source and a CI that runs every
 - `VERSION` file as the single version source and `scripts/check_version.py` (exit 1 on mismatch), run in CI and tests.
 - Committed 1x1 fixture image under `tests/fixtures/images/` so the image-serving test always runs.
 - CI: Python 3.14 in the matrix, version check, full metrics gate, concurrency cancellation.
+- Realistic evaluation corpus `tests/data/eval_corpus_realistic.json`: 42 original paragraphs of 2-4 sentences in the
+  registers people select on Dominican web pages (encyclopedic, local news, school notices, health, government, sports,
+  weather, informal social media with dominicanisms), each tagged with `register` and `has_proper_nouns`. It has no gold
+  lemmas; it measures how much real text ends up fingerspelled. Saved runs: `tests/data/realistic_baseline.json`
+  (before the work below) and `tests/data/realistic_after.json`.
+- `evaluate.py` accepts several `--corpus` files and reports each one (`corpora` object keyed by file name; the top
+  level still mirrors the first corpus, so existing readers and gates are unchanged). New metrics (`metrics_version` 3):
+  `fingerspelled_word_rate` (words, not letters), `fingerspelled_letters`, `letters_per_lexical_sign`, and the split of
+  spelled words into proper nouns (capitalized mid-sentence in the original text) and common words, with
+  `common_fingerspelled_word_rate` as the figure that matters (proper nouns are legitimately spelled). Also per tag.
+- `check_metrics.py`: `--corpus NAME` selects one corpus of a multi-corpus file and `--max-common-fingerspelling-rate`
+  gates common-word spelling; a corpus without gold lemmas is not failed on recall. CI gates the realistic corpus
+  (coverage >= 0.76, common-word fingerspelling <= 0.23).
+- Optional semantic AI fallback (`llm_fallback.choose_semantic`): the model receives the word, its sentence and the whole
+  list of sign lemmas as a prompt-cached block and may only answer with an existing lemma or `NONE`. Cached on disk
+  (negatives too), subject to the call cap and rate limit, confidence capped at 0.6. Off by default and never used by
+  the evaluation.
+- Fingerspelled letter items carry `spelled_word`, `spelled_index` and `spelled_length`, so clients can group the
+  letters of one word (see `docs/ARCHITECTURE.md`).
+- 707 curated mappings in `data/synonyms_extra.json`, all `curated-pending-review`, linking previously fingerspelled
+  derived forms to an existing sign (for example llover to LLUVIA, recomendar to RECOMENDACION, central to CENTRO,
+  poblada to PUEBLO). Meaning shifts (poder, publico) and proper nouns stay unmapped. `tools/expand_vocabulary.py`
+  proposes further candidates into `data/vocabulary_candidates.json` for interpreter review.
 
 ### Changed
 - Browser extension (Manifest V3): accessibility improvements.
@@ -28,6 +51,18 @@ Dictionary recovery, honest metrics, one version source and a CI that runs every
 - `evaluate.py` now keeps morphology and phrase provenance per token instead of reporting everything as `exact`.
 - Lexical coverage 0.8795 to 0.9070; fingerspelled tokens 57 to 44; gold lemma recall stays 0.9747.
 - The server, the extension manifest and the OpenAPI spec now all report the same version.
+- The AI fallback no longer chooses among fuzzy spelling neighbours inside the translator; it is the semantic fallback
+  described above (the neighbour-index `choose()` remains for `tools/suggest_synonyms.py`). AI match confidence is
+  capped at 0.6 (was 0.7).
+- Signless function words are dropped instead of fingerspelled: object clitics (lo, le, les, os), relative forms
+  (cuales, quienes, cuyo), prepositions (ante, hacia, segun, desde, hasta) and connectors (aunque, pues, sino);
+  `haber` is treated as an auxiliary. Words that own a sign (mi, te, me, nos, ni, no) are kept.
+- The web player and the browser extension show one timeline chip per fingerspelled word (current letter highlighted,
+  per-word progress, caption) instead of one slot per letter.
+- Realistic text, before to after this work (42 paragraphs): lexical coverage 0.7015 to 0.7759, fingerspelled words
+  280 to 208, fingerspelled letters 2,067 to 1,534, letters per lexical sign 3.14 to 2.13, common-word fingerspelling
+  rate 0.2887 to 0.2148. The corpus was visible to the vocabulary harvest, so it is a development set; on 12 unseen
+  paragraphs the common-word rate went from 0.2996 to 0.2536. Gold corpus: fingerspelling rate 0.0930 to 0.0787.
 
 ### Fixed
 - The image test was silently skipped in CI because `extracted_images/` is not tracked.

@@ -24,7 +24,7 @@ Biblionx translates Spanish (Dominican Republic) text into Dominican Sign Langua
  |   in-memory indexes from lsrd_dictionary.db     |
  |   data/synonyms_extra.json  curated synonyms    |
  |   ml_matcher.py   fuzzy char n-gram TF-IDF      |
- |   llm_fallback.py optional AI choice (off)      |
+ |   llm_fallback.py optional semantic AI (off)    |
  |   A-Z fingerspelling                            |
  +-------------------------+-----------------------+
                            v
@@ -71,12 +71,12 @@ For each token the first hit wins:
 
 1. **Exact**: `palabras.palabra_norm` equals the token (this includes merged phrase tokens).
 2. **Dictionary synonym**: `sinonimos_mapeo.sinonimo_norm`.
-3. **Curated synonym**: `data/synonyms_extra.json`.
+3. **Curated synonym**: `data/synonyms_extra.json` (about 990 entries; those with `source: curated-pending-review` link a derived or related form to an existing sign and still need interpreter validation).
 4. **Fuzzy ML match**: character n-gram (2-4) TF-IDF cosine through an inverted index, reranked by normalized Damerau-Levenshtein with small bonuses. Guards: words of 3 characters or fewer, words with digits and protected words never fuzzy-match; a score threshold and bounded edit distance are required.
-5. **AI choice** (optional): the model picks one index among the fuzzy candidates.
-6. **Fingerspelling**: the word is spelled with the A-Z sign sequence.
+5. **Semantic AI choice** (optional, off by default): when every deterministic step missed, the model receives the word, its sentence and the complete list of dictionary sign lemmas, and must answer with exactly one listed lemma or `NONE`. The answer is validated against that list, so the model can only select a sign that exists; function words and proper names without a sign are answered `NONE`. Confidence is capped at 0.6. See "AI fallback and cost" below.
+6. **Fingerspelling**: the word is spelled with the A-Z sign sequence (grouped per word, see below).
 
-Morphology runs earlier, in the NLP stage, and only returns a lemma that is reachable in the dictionary (or from an explicit irregular-verb map), so it cannot invent words without signs.
+Before the lookup, the NLP stage drops function words that have no sign of their own (`LSRD_STOP_WORDS` in `nlp_engine.py`: articles, object clitics `lo/le/les`, signless prepositions and connectors) and the auxiliaries in `AUXILIARY_VERBS`; a word that owns a sign is never dropped. Morphology runs in the same stage, and only returns a lemma that is reachable in the dictionary (or from an explicit irregular-verb map), so it cannot invent words without signs.
 
 ## match_method and confidence
 
@@ -90,14 +90,30 @@ Every sign returned by the translator includes `match_method` and `confidence` (
 | `synonym` | `sinonimos_mapeo` entry | 0.9 |
 | `curated_synonym` | Reviewed entry from `synonyms_extra.json` | 0.85 |
 | `fuzzy` | ML nearest neighbour; also sets `matched_norm` | the match score |
-| `ai` | Candidate chosen by the optional LLM; also sets `matched_norm` | 0.7 |
+| `ai` | Existing lemma chosen by the optional semantic AI fallback; also sets `matched_norm` | at most 0.6 |
 | `fingerspelling` | No sign found, spelled letter by letter | 0.5 |
 
 Clients can use `confidence` to highlight uncertain signs (for example in the web playground).
 
+## Fingerspelling contract (grouped by word)
+
+A word with no sign is returned as one item per letter, in order, each with `es_deletreo: true`, `letra` (the upper-case letter), `match_method: "fingerspelling"` and `confidence: 0.5`. Since 2.2.0 every letter item also carries:
+
+| Field | Meaning |
+| :--- | :--- |
+| `spelled_word` | The token being spelled (identical on every letter of that word) |
+| `spelled_index` | 0-based position of the letter among the letters emitted for the word |
+| `spelled_length` | Number of letter items emitted for the word (characters without a letter sign, such as digits, are skipped and not counted) |
+
+The API stays a flat list, so older clients keep working. UIs (`backend_api/web/app.js`, `browser_extension/content.js`) use these fields to show one timeline chip per spelled word, with the current letter highlighted, a per-word progress counter and a "fingerspelled" caption, instead of one slot per letter. When the fields are absent (an older server), they merge consecutive `es_deletreo` items instead. Consumers that need counts must therefore count words with `spelled_word` (or runs of `es_deletreo`), not letters; `scripts/evaluate.py` reports both (`fingerspelled_tokens` versus `fingerspelled_letters`).
+
 ## AI fallback and cost
 
-Disabled unless `BIBLIONX_LLM_PROVIDER` is `anthropic`, `openai` or `ollama`. Keys come only from environment variables (see `.env.example`); never commit them. Costs are bounded by: tiny prompts and output (an index among at most 12 candidates), an on-disk cache that also stores negative answers, an optional per-process call cap (`BIBLIONX_LLM_MAX_CALLS`, default 0 = unlimited so demos translate broadly), an optional rate limit (`BIBLIONX_LLM_RATE_PER_MIN`, default off; 30 recommended for public deployments together with a monthly spend limit in the provider console), a short timeout, and silent fallback to fingerspelling on any error.
+Disabled unless `BIBLIONX_LLM_PROVIDER` is `anthropic`, `openai` or `ollama`. Keys come only from environment variables (see `.env.example`); never commit them. It runs after the exact, synonym, curated and fuzzy steps and before fingerspelling, only for tokens of at least 3 characters without digits and not protected.
+
+`llm_fallback.LLMFallback.choose_semantic()` builds one stable system block with the instructions and every dictionary sign lemma (deduplicated and sorted, letter signs excluded), and sends the word plus its sentence (at most 300 characters) as the only variable part. With Anthropic the block carries `cache_control: ephemeral`, so repeated calls pay cache-read prices; OpenAI caches long prefixes automatically; Ollama receives a larger context window. The reply is parsed against the lemma list (accent and case insensitive), so prose, `NONE` and invented lemmas all resolve to "no match" and the word is fingerspelled. The older `choose()` (an index among at most 12 fuzzy candidates) remains for `tools/suggest_synonyms.py`.
+
+Costs are bounded by: a tiny answer (24 output tokens), the cached prompt prefix, an on-disk cache that also stores negative answers (the key includes the sentence and a hash of the vocabulary, so a changed dictionary never reuses stale answers), an optional per-process call cap (`BIBLIONX_LLM_MAX_CALLS`, default 0 = unlimited so demos translate broadly), an optional rate limit (`BIBLIONX_LLM_RATE_PER_MIN`, default off; 30 recommended for public deployments together with a monthly spend limit in the provider console), a short timeout, and silent fallback to fingerspelling on any error. `scripts/evaluate.py` clears the `BIBLIONX_LLM_*` variables, so the published metrics never include AI matches and stay deterministic and free.
 
 ## How to curate synonyms
 
@@ -115,7 +131,7 @@ Curated synonyms live in `data/synonyms_extra.json`:
 - `word`: normalized input form (lowercase, no accents).
 - `target_norm`: the `palabra_norm` of the dictionary entry it should resolve to.
 - `palabra_id`: that entry's id; verify it in the database.
-- `source`: `curated` for human-reviewed entries.
+- `source`: `curated` for human-reviewed entries, `curated-pending-review` for mappings waiting for an interpreter. Only link a word to an existing sign when the meaning is the same or it is the standard LSRD way to express it (a noun/verb pair such as lluvia/llover usually shares one sign).
 
 Workflow:
 
@@ -128,4 +144,11 @@ Prefer no synonym over a doubtful one: a wrong sign is worse than fingerspelling
 
 ## Quality and validation
 
-CI (`.github/workflows/ci.yml`) runs the tests and the metrics gate (`scripts/check_metrics.py`). Expert review sheets live in `docs/validation/` (generated by `tools/export_review_sheets.py`), and dictionary gaps are tracked in `docs/DICTIONARY_GAPS.md`.
+CI (`.github/workflows/ci.yml`) runs the tests and the metrics gates (`scripts/check_metrics.py`). Expert review sheets live in `docs/validation/` (generated by `tools/export_review_sheets.py`), and dictionary gaps are tracked in `docs/DICTIONARY_GAPS.md`.
+
+Two corpora are evaluated by `python scripts/evaluate.py --corpus tests/data/eval_corpus.json --corpus tests/data/eval_corpus_realistic.json`:
+
+- `eval_corpus.json`: short gold sentences with expected lemmas and order; gates coverage, lemma recall and precision, order accuracy and latency.
+- `eval_corpus_realistic.json`: 42 original 2-4 sentence paragraphs in the registers people select on web pages (encyclopedic, local news, school notices, health, government, sports, weather, informal social media). It has no gold lemmas; it answers "how much of real text is fingerspelled". The figure to watch is `common_fingerspelled_word_rate`: spelled words that are not proper nouns (capitalized mid-sentence in the source text, or acronyms) over all non-proper words. Proper nouns are legitimately spelled and reported separately. `letters_per_lexical_sign` shows the visual cost of spelling: how many letter signs a reader sees per lexical sign.
+
+`tests/data/realistic_baseline.json` (translator at 4e9d492) and `tests/data/realistic_after.json` (with the semantic fallback code, function-word dropping and the 707 curated mappings) record the improvement: common-word spelling 0.2887 to 0.2148, letters per lexical sign 3.14 to 2.13. The vocabulary harvest (`tools/expand_vocabulary.py`) reads `tests/data/eval_corpus*.json`, so this corpus is a development set; keep an unseen paragraph set aside when judging new vocabulary work. The evaluation never calls an AI provider, so these figures are deterministic.

@@ -1,0 +1,427 @@
+{
+ "version": 1,
+ "language": "es-DO",
+ "description": "Original paragraphs of 2-4 sentences in the registers people select on Dominican web pages (encyclopedic, local news, school notices, health, government, sports, weather, informal social media). Written for this project, no third-party text. Not a gold corpus: no expected_lemmas; it measures how much of realistic text ends up fingerspelled. Each item has register and has_proper_nouns (true when a word is capitalized mid-sentence; checked by tests).",
+ "items": [
+  {
+   "id": "r001",
+   "text": "La isla de Santo Domingo es compartida por dos países. La República Dominicana ocupa la parte oriental y Haití la parte occidental. El clima es tropical y la isla está rodeada por el mar Caribe y el océano Atlántico.",
+   "register": "encyclopedic",
+   "has_proper_nouns": true,
+   "tags": [
+    "encyclopedic",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r002",
+   "text": "El río Yaque del Norte nace en la cordillera Central y recorre gran parte del Cibao antes de llegar al mar. Sus aguas son muy importantes para la agricultura de la región. Cada año, miles de familias dependen de este río para sembrar arroz y plátano.",
+   "register": "encyclopedic",
+   "has_proper_nouns": true,
+   "tags": [
+    "encyclopedic",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r003",
+   "text": "El pico Duarte es la montaña más alta de las Antillas. Se encuentra en la cordillera Central y muchos visitantes lo escalan durante varios días. En las zonas altas la temperatura baja mucho por la noche.",
+   "register": "encyclopedic",
+   "has_proper_nouns": true,
+   "tags": [
+    "encyclopedic",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r004",
+   "text": "La ciudad de Santo Domingo fue fundada a finales del siglo quince. Su zona colonial conserva calles de piedra, iglesias antiguas y casas de los primeros pobladores. Hoy es un lugar muy visitado por turistas y estudiantes.",
+   "register": "encyclopedic",
+   "has_proper_nouns": true,
+   "tags": [
+    "encyclopedic",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r005",
+   "text": "La independencia del país se proclamó en el año 1844 después de muchos años de lucha. Los patriotas soñaban con una nación libre y soberana. Cada febrero, las escuelas celebran esta fecha con desfiles y actos cívicos.",
+   "register": "encyclopedic",
+   "has_proper_nouns": false,
+   "tags": [
+    "encyclopedic",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r006",
+   "text": "El café se cultiva en las zonas montañosas del país. Los agricultores recogen los granos a mano cuando están maduros. Después los secan al sol y los venden en los mercados locales.",
+   "register": "encyclopedic",
+   "has_proper_nouns": false,
+   "tags": [
+    "encyclopedic",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r007",
+   "text": "El mamey, la guayaba y el mango son frutas muy comunes en el campo. Se consumen frescas o en jugos y dulces. Las familias suelen sembrar estos árboles en el patio de la casa.",
+   "register": "encyclopedic",
+   "has_proper_nouns": false,
+   "tags": [
+    "encyclopedic",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r008",
+   "text": "El lago Enriquillo es el más grande de las Antillas y está situado por debajo del nivel del mar. En sus orillas viven cocodrilos y flamencos. Muchos científicos estudian este lugar porque su nivel de agua cambia con los años.",
+   "register": "encyclopedic",
+   "has_proper_nouns": true,
+   "tags": [
+    "encyclopedic",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r009",
+   "text": "El merengue es un ritmo musical nacido en el país y se baila en pareja. Los instrumentos principales son el acordeón, la tambora y la güira. En 2016 fue reconocido como patrimonio cultural por la UNESCO.",
+   "register": "encyclopedic",
+   "has_proper_nouns": true,
+   "tags": [
+    "encyclopedic",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r010",
+   "text": "Las autoridades informaron que la carretera hacia Jarabacoa permanecerá cerrada por trabajos de reparación. Los conductores deberán utilizar rutas alternas durante la semana. Se recomienda salir con tiempo para evitar tapones.",
+   "register": "local_news",
+   "has_proper_nouns": true,
+   "tags": [
+    "local_news",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r011",
+   "text": "Un incendio afectó un almacén en el mercado de la ciudad durante la madrugada. Los bomberos lograron controlar el fuego en dos horas y no hubo heridos. Las causas del accidente serán investigadas por las autoridades.",
+   "register": "local_news",
+   "has_proper_nouns": false,
+   "tags": [
+    "local_news",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r012",
+   "text": "El ayuntamiento anunció un programa de recogida de basura en todos los barrios. Los vecinos deberán sacar los desechos a partir de las seis de la tarde. La medida busca mantener limpias las calles y reducir los focos de contaminación.",
+   "register": "local_news",
+   "has_proper_nouns": false,
+   "tags": [
+    "local_news",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r013",
+   "text": "Cientos de personas participaron en la jornada de limpieza de la playa de Boca Chica el domingo. Los voluntarios recogieron plásticos, botellas y latas. Los organizadores esperan repetir la actividad cada mes.",
+   "register": "local_news",
+   "has_proper_nouns": true,
+   "tags": [
+    "local_news",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r014",
+   "text": "El precio de los alimentos subió esta semana en los colmados y supermercados. Los comerciantes explican que el transporte y el combustible están más caros. Los consumidores piden medidas para proteger el bolsillo de las familias.",
+   "register": "local_news",
+   "has_proper_nouns": false,
+   "tags": [
+    "local_news",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r015",
+   "text": "Un nuevo hospital abrirá sus puertas en San Francisco de Macorís el próximo año. La obra tendrá más de cien camas y atenderá a pacientes de varias provincias. Los médicos esperan que se reduzcan las largas filas en las emergencias.",
+   "register": "local_news",
+   "has_proper_nouns": true,
+   "tags": [
+    "local_news",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r016",
+   "text": "Cortes de energía eléctrica afectaron varios sectores de Santiago por más de cinco horas. Los residentes salieron a la calle para protestar. La empresa distribuidora aseguró que el servicio se restablecerá en las próximas horas.",
+   "register": "local_news",
+   "has_proper_nouns": true,
+   "tags": [
+    "local_news",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r017",
+   "text": "Se informa a los padres y tutores que las clases comenzarán el lunes a las ocho de la mañana. Los estudiantes deben llegar con el uniforme completo y sus útiles escolares. La dirección agradece su colaboración.",
+   "register": "school_notice",
+   "has_proper_nouns": false,
+   "tags": [
+    "school_notice",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r018",
+   "text": "La biblioteca municipal estará abierta de lunes a viernes de nueve a cinco. Los usuarios pueden prestar hasta tres libros por quince días. Se ruega mantener silencio y cuidar el material.",
+   "register": "school_notice",
+   "has_proper_nouns": false,
+   "tags": [
+    "school_notice",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r019",
+   "text": "Aviso importante: la reunión de padres será el jueves en el salón de actos. Se tratarán temas como las calificaciones y el horario de los exámenes. Les pedimos puntualidad.",
+   "register": "school_notice",
+   "has_proper_nouns": false,
+   "tags": [
+    "school_notice",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r020",
+   "text": "El Ministerio de Educación publicó el calendario escolar de este año. Los estudiantes de octavo grado deberán presentar las pruebas nacionales en junio. Los maestros recomiendan estudiar un poco cada día.",
+   "register": "school_notice",
+   "has_proper_nouns": true,
+   "tags": [
+    "school_notice",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r021",
+   "text": "Para prevenir el dengue es importante eliminar el agua estancada en cubos, gomas y botellas. Use mosquiteros y repelente, sobre todo en las horas de la tarde. Si tiene fiebre alta y dolor de cabeza, acuda al centro de salud más cercano.",
+   "register": "health",
+   "has_proper_nouns": false,
+   "tags": [
+    "health",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r022",
+   "text": "Lavarse las manos con agua y jabón varias veces al día ayuda a evitar enfermedades. Es especialmente necesario antes de comer y después de usar el baño. Los niños deben aprender este hábito desde pequeños.",
+   "register": "health",
+   "has_proper_nouns": false,
+   "tags": [
+    "health",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r023",
+   "text": "Beber suficiente agua y comer frutas y verduras mejora la salud del corazón. Los médicos aconsejan caminar al menos treinta minutos cada día. Evite el exceso de sal y de azúcar en las comidas.",
+   "register": "health",
+   "has_proper_nouns": false,
+   "tags": [
+    "health",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r024",
+   "text": "La campaña de vacunación comenzará la próxima semana en todas las escuelas y clínicas rurales. Las madres deben llevar la tarjeta de sus hijos. La vacuna es gratuita y protege contra enfermedades graves.",
+   "register": "health",
+   "has_proper_nouns": false,
+   "tags": [
+    "health",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r025",
+   "text": "Si siente dolor en el pecho o dificultad para respirar, no espere y llame a la ambulancia. El tratamiento rápido puede salvar una vida. Mantenga la calma y siga las indicaciones del personal de emergencia.",
+   "register": "health",
+   "has_proper_nouns": false,
+   "tags": [
+    "health",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r026",
+   "text": "Para renovar la cédula debe presentarse en la oficina de la Junta Central Electoral con su documento anterior. El trámite toma pocos minutos y tiene un costo reducido. Se recomienda pedir una cita por internet.",
+   "register": "government",
+   "has_proper_nouns": true,
+   "tags": [
+    "government",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r027",
+   "text": "Los ciudadanos pueden pagar sus impuestos en línea desde cualquier lugar. Solo necesitan su número de identificación y una tarjeta bancaria. El comprobante se envía de inmediato al correo electrónico.",
+   "register": "government",
+   "has_proper_nouns": false,
+   "tags": [
+    "government",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r028",
+   "text": "La Dirección General de Pasaportes atiende de lunes a viernes. Los solicitantes deben llevar su acta de nacimiento y dos fotos recientes. El pasaporte se entrega en un plazo de diez días.",
+   "register": "government",
+   "has_proper_nouns": true,
+   "tags": [
+    "government",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r029",
+   "text": "El gobierno anunció un subsidio para las familias de bajos ingresos. Las personas beneficiadas recibirán una tarjeta para comprar alimentos. Las solicitudes se pueden hacer en la alcaldía de cada municipio.",
+   "register": "government",
+   "has_proper_nouns": false,
+   "tags": [
+    "government",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r030",
+   "text": "Las personas con discapacidad tienen derecho a un trato digno en todas las oficinas públicas. Los empleados deben ofrecer ayuda y respetar las filas preferenciales. Cualquier queja puede presentarse por escrito.",
+   "register": "government",
+   "has_proper_nouns": false,
+   "tags": [
+    "government",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r031",
+   "text": "El equipo de béisbol ganó el partido por tres carreras en la última entrada. El lanzador abridor trabajó seis entradas sin permitir ventajas. Los aficionados celebraron en las gradas hasta muy tarde.",
+   "register": "sports",
+   "has_proper_nouns": false,
+   "tags": [
+    "sports",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r032",
+   "text": "La selección dominicana de voleibol enfrentará a Brasil en la semifinal del torneo. Las jugadoras entrenaron toda la semana en el gimnasio. El entrenador confía en que el equipo pueda sorprender a su rival.",
+   "register": "sports",
+   "has_proper_nouns": true,
+   "tags": [
+    "sports",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r033",
+   "text": "Los Tigres del Licey y las Águilas Cibaeñas jugarán el domingo en el estadio Quisqueya. Se espera un lleno total en las tribunas. La entrada será gratis para los niños menores de diez años.",
+   "register": "sports",
+   "has_proper_nouns": true,
+   "tags": [
+    "sports",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r034",
+   "text": "Mi hijo juega baloncesto en el club del barrio desde hace dos años. Los sábados practica con sus amigos y el entrenador. Dice que quiere ser jugador profesional cuando sea grande.",
+   "register": "sports",
+   "has_proper_nouns": false,
+   "tags": [
+    "sports",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r035",
+   "text": "El Centro de Pronósticos informó que una onda tropical traerá lluvias en varias provincias. Se esperan chubascos aislados durante la tarde con ráfagas de viento. Los residentes cerca de los ríos deben estar atentos.",
+   "register": "weather",
+   "has_proper_nouns": true,
+   "tags": [
+    "weather",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r036",
+   "text": "Mañana habrá mucho calor y poca nubosidad en casi todo el país. La temperatura máxima podría llegar a treinta y cinco grados. Se aconseja tomar abundante agua y evitar el sol al mediodía.",
+   "register": "weather",
+   "has_proper_nouns": false,
+   "tags": [
+    "weather",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r037",
+   "text": "Debido a la tormenta, se mantiene la alerta en las provincias del sur. Los pescadores no deben salir al mar y las escuelas podrían suspender las clases. Las autoridades piden mantener el teléfono cargado y tener linternas listas.",
+   "register": "weather",
+   "has_proper_nouns": false,
+   "tags": [
+    "weather",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r038",
+   "text": "Qué vaina, hoy llovió un montón y se me mojó la ropa. Después tuve que coger guagua llena para llegar a la casa. Mañana sí me pongo un paraguas, tú verás.",
+   "register": "social",
+   "has_proper_nouns": false,
+   "tags": [
+    "social",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r039",
+   "text": "Mi hermano me dijo que el concho estaba lleno y que se fue en un motoconcho. Yo me quedé esperando en la parada como una hora. Al final llegué tarde al trabajo, qué pena.",
+   "register": "social",
+   "has_proper_nouns": false,
+   "tags": [
+    "social",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r040",
+   "text": "Vamos a la playa el sábado, si Dios quiere. Llevo la nevera con refrescos y tú traes el pollo frito. Va a estar chévere, no falte nadie.",
+   "register": "social",
+   "has_proper_nouns": true,
+   "tags": [
+    "social",
+    "proper_nouns"
+   ]
+  },
+  {
+   "id": "r041",
+   "text": "Ayer fui al colmado y compré pan, queso y un jugo de chinola. Mi mamá preparó un locrio de pollo para toda la familia. Quedó brutal, de verdad.",
+   "register": "social",
+   "has_proper_nouns": false,
+   "tags": [
+    "social",
+    "common_only"
+   ]
+  },
+  {
+   "id": "r042",
+   "text": "Este fin de semana voy pa Santiago a ver a mi abuela. Me dijo que está haciendo mucho frío por la loma. Dime si quieres que te traiga algo.",
+   "register": "social",
+   "has_proper_nouns": true,
+   "tags": [
+    "social",
+    "proper_nouns"
+   ]
+  }
+ ]
+}

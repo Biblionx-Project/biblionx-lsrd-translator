@@ -14,6 +14,7 @@ import check_metrics  # noqa: E402
 import evaluate as ev  # noqa: E402
 
 CORPUS_PATH = os.path.join(_common.ROOT, "tests", "data", "eval_corpus.json")
+REALISTIC_PATH = os.path.join(_common.ROOT, "tests", "data", "eval_corpus_realistic.json")
 
 
 def run_gate(metrics, *flags):
@@ -54,6 +55,34 @@ class HelperTests(unittest.TestCase):
         rec = ev.token_record("xyz", letters)
         self.assertEqual((rec["spelled"], rec["method"], rec["confidence"]), (True, "fingerspelling", 0.5))
         self.assertTrue(ev.token_record("vacio", [])["spelled"])
+
+
+class ProperNounTests(unittest.TestCase):
+    def test_mid_sentence_capitals_are_proper_nouns(self):
+        forms = ev.proper_noun_forms("La isla está junto a Haití y a Puerto Rico. Hoy llueve en el Caribe.")
+        self.assertEqual(forms, {"haiti", "puerto", "rico", "caribe"})
+
+    def test_sentence_initial_capital_alone_is_not_proper(self):
+        self.assertEqual(ev.proper_noun_forms("Hoy llueve. Mañana hará sol."), set())
+        self.assertEqual(ev.proper_noun_forms("¿Dónde está? Aquí está."), set())
+
+    def test_initial_capital_counts_when_also_seen_mid_sentence(self):
+        forms = ev.proper_noun_forms("Haití comparte la isla. La isla incluye a Haití.")
+        self.assertIn("haiti", forms)
+
+    def test_acronyms_are_proper_even_at_sentence_start(self):
+        self.assertEqual(ev.proper_noun_forms("UNESCO reconoció el merengue."), {"unesco"})
+
+    def test_is_proper_token_needs_every_word(self):
+        forms = {"puerto", "rico"}
+        self.assertTrue(ev.is_proper_token("puerto", forms))
+        self.assertTrue(ev.is_proper_token("puerto rico", forms))
+        self.assertFalse(ev.is_proper_token("puerto seguro", forms))
+        self.assertFalse(ev.is_proper_token("", forms))
+
+    def test_count_letters(self):
+        self.assertEqual(ev.count_letters([{"es_deletreo": True}] * 4 + [{"es_deletreo": False}]), 4)
+        self.assertEqual(ev.count_letters([]), 0)
 
 
 class ProvenanceTests(unittest.TestCase):
@@ -141,6 +170,119 @@ class MiniCorpusTests(unittest.TestCase):
         self.assertEqual(m["by_tag"]["t"]["fingerspelling_rate"], m["fingerspelling_rate"])
 
 
+class WordVersusLetterMetricsTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.nlp = ev.LSRDNlpEngine()
+        cls.tr = ev.LSRDTranslator()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tr.close()
+
+    def test_proper_and_common_split(self):
+        # qwzx: common word that cannot be signed; Zxqv: capitalized mid-sentence, a proper noun.
+        m = ev.evaluate([{"id": "a", "text": "Hola qwzx casa Zxqv.", "tags": ["t"]}], self.nlp, self.tr)
+        self.assertEqual(m["fingerspelled_tokens"], 2)
+        self.assertEqual(m["fingerspelled_proper_nouns"], 1)
+        self.assertEqual(m["fingerspelled_common_words"], 1)
+        self.assertEqual(m["fingerspelled_letters"], 8)
+        self.assertEqual(m["letters_per_lexical_sign"], round(8 / m["lexical_tokens"], 3))
+        self.assertEqual(m["fingerspelled_word_rate"], m["fingerspelling_rate"])
+        # Common words are every word that is not a proper noun.
+        self.assertEqual(m["common_fingerspelled_word_rate"], round(1 / (m["output_tokens"] - 1), 4))
+        self.assertEqual(m["proper_fingerspelled_word_rate"], 1.0)
+        self.assertEqual([w["word"] for w in m["top_fingerspelled_common"]], ["qwzx"])
+        self.assertEqual([w["word"] for w in m["top_fingerspelled_proper"]], ["zxqv"])
+        self.assertEqual(m["by_tag"]["t"]["fingerspelled_letters"], 8)
+        self.assertEqual(m["by_tag"]["t"]["fingerspelled_common_words"], 1)
+
+    def test_no_spelling_gives_zero_rates(self):
+        m = ev.evaluate([{"id": "a", "text": "Hola", "tags": ["t"]}], self.nlp, self.tr)
+        self.assertEqual((m["fingerspelled_letters"], m["letters_per_lexical_sign"],
+                          m["common_fingerspelled_word_rate"]), (0, 0.0, 0.0))
+
+
+class RealisticCorpusTests(unittest.TestCase):
+    REGISTERS = {"encyclopedic", "local_news", "school_notice", "health", "government",
+                 "sports", "weather", "social"}
+
+    @classmethod
+    def setUpClass(cls):
+        with open(REALISTIC_PATH, encoding="utf-8") as f:
+            cls.corpus = json.load(f)["items"]
+
+    def test_shape(self):
+        self.assertGreaterEqual(len(self.corpus), 40)
+        ids = [e["id"] for e in self.corpus]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertEqual({e["register"] for e in self.corpus}, self.REGISTERS)
+        for e in self.corpus:
+            self.assertIn(e["register"], e["tags"], e["id"])
+            self.assertIsInstance(e["has_proper_nouns"], bool, e["id"])
+            self.assertNotIn("expected_lemmas", e, "the realistic corpus is not a gold corpus")
+            sentences = [p for p in e["text"].replace("!", ".").replace("?", ".").split(".") if p.strip()]
+            self.assertTrue(2 <= len(sentences) <= 4, e["id"])
+
+    def test_has_proper_nouns_flag_matches_detector(self):
+        for e in self.corpus:
+            self.assertEqual(bool(ev.proper_noun_forms(e["text"])), e["has_proper_nouns"], e["id"])
+        flags = [e["has_proper_nouns"] for e in self.corpus]
+        self.assertTrue(any(flags) and not all(flags))
+
+
+class RealisticQualityTests(unittest.TestCase):
+    """Same limits as the 'Quality gate (realistic corpus)' step of the CI."""
+
+    @classmethod
+    def setUpClass(cls):
+        with open(REALISTIC_PATH, encoding="utf-8") as f:
+            cls.m = ev.evaluate(json.load(f)["items"])
+
+    def test_gate_limits(self):
+        self.assertGreaterEqual(self.m["lexical_coverage"], 0.76)
+        self.assertLessEqual(self.m["common_fingerspelled_word_rate"], 0.23)
+
+    def test_saved_runs_show_the_improvement(self):
+        data = os.path.join(_common.ROOT, "tests", "data")
+        with open(os.path.join(data, "realistic_baseline.json"), encoding="utf-8") as f:
+            before = json.load(f)
+        with open(os.path.join(data, "realistic_after.json"), encoding="utf-8") as f:
+            after = json.load(f)
+        for key in ("common_fingerspelled_word_rate", "letters_per_lexical_sign"):
+            self.assertLess(after[key], before[key], key)
+        self.assertGreater(after["lexical_coverage"], before["lexical_coverage"])
+        self.assertEqual(after["sentences"], before["sentences"])
+
+
+class MultiCorpusCliTests(unittest.TestCase):
+    def run_cli(self, *argv):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = os.path.join(tmp, "m.json")
+            old = sys.argv
+            sys.argv = ["evaluate.py", "--quiet", "--out", out, *argv]
+            try:
+                ev.main()
+            finally:
+                sys.argv = old
+            with open(out, encoding="utf-8") as f:
+                return json.load(f)
+
+    def test_single_corpus_output_is_a_plain_metrics_object(self):
+        m = self.run_cli("--corpus", REALISTIC_PATH)
+        self.assertNotIn("corpora", m)
+        self.assertGreaterEqual(m["sentences"], 40)
+
+    def test_several_corpora_are_reported_per_corpus(self):
+        m = self.run_cli("--corpus", CORPUS_PATH, "--corpus", REALISTIC_PATH)
+        self.assertEqual(list(m["corpora"]), ["eval_corpus", "eval_corpus_realistic"])
+        # The top level mirrors the first corpus so existing gates keep working.
+        self.assertEqual(m["sentences"], m["corpora"]["eval_corpus"]["sentences"])
+        self.assertEqual(m["gold_lemma_recall"], m["corpora"]["eval_corpus"]["gold_lemma_recall"])
+        self.assertGreater(m["corpora"]["eval_corpus_realistic"]["fingerspelled_letters"], 0)
+        self.assertEqual(m["corpora"]["eval_corpus_realistic"]["gold_entries"], 0)
+
+
 class CorpusMetricsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -215,6 +357,32 @@ class CheckMetricsTests(unittest.TestCase):
         self.assertIn("FAIL", out)
         self.assertEqual(run_gate(self.GOOD, "--min-order-accuracy", "1.0")[0], 0)
         self.assertEqual(run_gate(self.GOOD, "--max-p95-ms", "2")[0], 1)
+
+    def test_common_fingerspelling_gate(self):
+        good = {**self.GOOD, "common_fingerspelled_word_rate": 0.1}
+        self.assertEqual(run_gate(good, "--max-common-fingerspelling-rate", "0.12")[0], 0)
+        code, out = run_gate(good, "--max-common-fingerspelling-rate", "0.05")
+        self.assertEqual(code, 1)
+        self.assertIn("common_fingerspelling_rate", out)
+        # Requested but absent from the file: unreadable input, not a silent pass.
+        self.assertEqual(run_gate(self.GOOD, "--max-common-fingerspelling-rate", "0.12")[0], 2)
+
+    def test_corpus_selection_and_no_gold_corpus(self):
+        realistic = {"lexical_coverage": 0.9, "gold_entries": 0, "gold_lemmas_expected": 0,
+                     "gold_lemma_recall": 0.0, "gold_lemma_precision": 0.0, "gold_order_accuracy": 0.0,
+                     "common_fingerspelled_word_rate": 0.08, "latency_ms": {"p50": 1.0, "p95": 4.0}}
+        multi = {**self.GOOD, "corpora": {"main": self.GOOD, "realistic": realistic}}
+        # Default: the top level (first corpus), exactly as before.
+        self.assertEqual(run_gate(multi)[0], 0)
+        # A corpus with no gold lemmas is not failed on recall and does not print gold rows.
+        code, out = run_gate(multi, "--corpus", "realistic", "--max-common-fingerspelling-rate", "0.1")
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("gold_lemma_recall", out)
+        self.assertEqual(
+            run_gate(multi, "--corpus", "realistic", "--max-common-fingerspelling-rate", "0.05")[0], 1)
+        code, out = run_gate(multi, "--corpus", "missing")
+        self.assertEqual(code, 2)
+        self.assertIn("missing", out)
 
     def test_requested_gate_with_missing_metric_is_an_error(self):
         code, out = run_gate({"lexical_coverage": 0.9, "gold_lemma_recall": 0.97}, "--min-precision", "0.9")

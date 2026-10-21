@@ -2,7 +2,7 @@
 """Evaluate the LSRD translator against tests/data/eval_corpus.json.
 
 Run from the repository root:
-    python scripts/evaluate.py [--corpus PATH] [--out PATH] [--quiet]
+    python scripts/evaluate.py [--corpus PATH ...] [--out PATH] [--quiet]
 
 Prints JSON metrics (also written to --out). The evaluation never calls an AI
 provider: the BIBLIONX_LLM_* environment variables are ignored so results are
@@ -19,6 +19,14 @@ linguistic precision, coverage, response time):
 * Gold quality (entries with ``expected_lemmas``): lemma recall, lemma
   precision over content signs (extra unexpected signs lower it) and, for
   entries with ``expected_order``, sequence order accuracy.
+* Words versus letters: ``fingerspelled_word_rate`` (spelled WORDS over output
+  words; the same ratio as ``fingerspelling_rate``, named for what it counts),
+  ``fingerspelled_letters`` and ``letters_per_lexical_sign`` (how many letter
+  signs a reader sees for each lexical sign). The spelled words are split into
+  proper nouns (capitalized mid-sentence in the original text, see
+  ``proper_noun_forms``) and common words. Proper nouns are legitimately
+  spelled, so ``common_fingerspelled_word_rate`` (common spelled words over all
+  common words) is the figure that measures vocabulary and linking gaps.
 * ``by_tag``: the same figures split by corpus tag.
 * ``latency_ms``: p50/p95/max of one sentence end to end (NLP + translation).
 
@@ -27,12 +35,20 @@ Corpus entry fields: ``id``, ``text``, ``tags``; optional ``expected_lemmas``
 content signs that are acceptable and not counted against precision) and
 ``expected_order`` (lemmas whose relative order in the output is fixed by the
 LSRD rules of grammar.py: TIME first, NEGATION last).
+
+Several ``--corpus`` files may be given. A single corpus writes the plain
+metrics object. With several, the file holds the first corpus' metrics at the
+top level (so existing readers and gates keep working) plus a ``corpora``
+object keyed by file name without extension (``eval_corpus``,
+``eval_corpus_realistic``, ...) with the full metrics of each one;
+``check_metrics.py --corpus NAME`` gates one of them.
 """
 
 import argparse
 import json
 import math
 import os
+import re
 import sys
 import time
 from collections import Counter, defaultdict
@@ -46,10 +62,10 @@ for _var in ("BIBLIONX_LLM_PROVIDER", "BIBLIONX_LLM_MODEL", "BIBLIONX_LLM_MAX_CA
     os.environ.pop(_var, None)
 
 import grammar  # noqa: E402
-from nlp_engine import LSRDNlpEngine, TokenSequence  # noqa: E402
+from nlp_engine import LSRDNlpEngine, TokenSequence, normalize_word  # noqa: E402
 from translator import LSRDTranslator  # noqa: E402
 
-METRICS_VERSION = 2
+METRICS_VERSION = 3
 
 # Structural words that are real signs but carry no lexical content: they are
 # left out of the precision denominator so only content signs are judged.
@@ -58,6 +74,49 @@ FUNCTION_WORDS = frozenset({
     "me", "te", "se", "nos", "le", "lo", "la", "les", "mi", "mis", "tus", "su", "sus",
     "y", "o", "a", "e", "u", "en", "de", "con", "por", "para", "sin", "al", "del",
 }) | grammar.NEGATION_WORDS | grammar.QUESTION_WORDS
+
+
+_WORD_RE = re.compile(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]*")
+_SENTENCE_END = ".!?…\n"
+_OPENERS = " \t\"'“”«»([¿¡"
+
+
+def proper_noun_forms(text):
+    """Normalized forms of the words of ``text`` that look like proper nouns.
+
+    A word counts when it is capitalized in the middle of a sentence (names of
+    places, institutions, teams) or is an acronym in capitals. A capitalized
+    sentence-initial word counts only if the same word is also capitalized
+    elsewhere mid-sentence ("Haití es ... junto a Haití"), because an initial
+    capital alone says nothing. Forms are produced with ``normalize_word`` so
+    they compare equal to the tokens of the pipeline.
+    """
+    mid, initial = set(), set()
+    for m in _WORD_RE.finditer(text):
+        word = m.group(0)
+        if not word[0].isupper():
+            continue
+        before = text[:m.start()].rstrip(_OPENERS)
+        at_start = not before or before[-1] in _SENTENCE_END
+        form = normalize_word(word)
+        if len(word) > 1 and word.isupper():
+            mid.add(form)  # acronym: UNESCO, ONU
+        elif at_start:
+            initial.add(form)
+        else:
+            mid.add(form)
+    return mid | (initial & mid)
+
+
+def is_proper_token(token, proper_forms):
+    """True when every word of ``token`` (a merged phrase has several) is a proper-noun form."""
+    parts = token.split()
+    return bool(parts) and all(p in proper_forms for p in parts)
+
+
+def count_letters(items):
+    """Number of fingerspelled letter signs in the items produced for one token."""
+    return sum(1 for i in items if i.get("es_deletreo"))
 
 
 def percentile(values, pct):
@@ -145,6 +204,9 @@ class Group:
         self.order_ok = 0
         self.pairs_ok = 0
         self.pairs_total = 0
+        self.letters = 0
+        self.proper_words = 0
+        self.proper_spelled = 0
 
     def add(self, rec):
         self.sentences += 1
@@ -165,6 +227,9 @@ class Group:
             self.order_ok += int(ok)
             self.pairs_ok += p_ok
             self.pairs_total += p_total
+        self.letters += rec["letters"]
+        self.proper_words += rec["proper_words"]
+        self.proper_spelled += rec["proper_spelled"]
 
     def as_dict(self):
         out = {
@@ -175,6 +240,17 @@ class Group:
             "mean_sentence_fingerspelling_rate": round(sum(self.rates) / len(self.rates), 4) if self.rates else 0.0,
             "avg_confidence": round(self.conf_sum / self.conf_n, 4) if self.conf_n else 0.0,
         }
+        spelled = self.tokens - self.lexical
+        out.update({
+            "fingerspelled_word_rate": ratio(spelled, self.tokens),
+            "fingerspelled_letters": self.letters,
+            "letters_per_lexical_sign": ratio(self.letters, self.lexical, 3),
+            "proper_noun_words": self.proper_words,
+            "fingerspelled_proper_nouns": self.proper_spelled,
+            "fingerspelled_common_words": spelled - self.proper_spelled,
+            "common_fingerspelled_word_rate": ratio(spelled - self.proper_spelled,
+                                                    self.tokens - self.proper_words),
+        })
         if self.gold_entries:
             out["gold_entries"] = self.gold_entries
             out["gold_lemma_recall"] = ratio(self.recall_hit, self.recall_total)
@@ -205,6 +281,8 @@ def evaluate(corpus, nlp=None, translator=None):
     latencies = []
     sentence_rates = []
     spelled_sentences = 0
+    oov_common = Counter()
+    oov_proper = Counter()
 
     for entry in corpus:
         t0 = time.perf_counter()
@@ -212,8 +290,17 @@ def evaluate(corpus, nlp=None, translator=None):
         translator.translate_sequence(seq)
         latencies.append((time.perf_counter() - t0) * 1000.0)
 
-        records = [token_record(tok, items)
-                   for tok, items in zip(seq, translate_tokens(translator, seq))]
+        token_items = translate_tokens(translator, seq)
+        records = [token_record(tok, items) for tok, items in zip(seq, token_items)]
+        proper_forms = proper_noun_forms(entry["text"])
+        letters = proper_words = proper_spelled = 0
+        for r, items in zip(records, token_items):
+            r["proper"] = is_proper_token(r["token"], proper_forms)
+            proper_words += r["proper"]
+            if r["spelled"]:
+                letters += count_letters(items)
+                proper_spelled += r["proper"]
+                (oov_proper if r["proper"] else oov_common)[r["token"]] += 1
         total = len(records)
         spelled = sum(1 for r in records if r["spelled"])
         lexical = total - spelled
@@ -266,6 +353,7 @@ def evaluate(corpus, nlp=None, translator=None):
             "recall_total": len(expected), "recall_hit": hit,
             "content_signs": content_signs, "content_expected": content_expected,
             "order": order,
+            "letters": letters, "proper_words": proper_words, "proper_spelled": proper_spelled,
         }
         overall.add(rec)
         for tag in entry.get("tags", []):
@@ -284,6 +372,18 @@ def evaluate(corpus, nlp=None, translator=None):
         "unique_fingerspelled_words": len(oov),
         "top_fingerspelled": [{"word": w, "count": c} for w, c in oov.most_common(40)],
         "oov_words": [w for w, _ in sorted(oov.items(), key=lambda kv: (-kv[1], kv[0]))],
+        "fingerspelled_word_rate": ratio(total_tokens - overall.lexical, total_tokens),
+        "fingerspelled_letters": overall.letters,
+        "letters_per_lexical_sign": ratio(overall.letters, overall.lexical, 3),
+        "proper_noun_words": overall.proper_words,
+        "common_words": total_tokens - overall.proper_words,
+        "fingerspelled_proper_nouns": overall.proper_spelled,
+        "fingerspelled_common_words": (total_tokens - overall.lexical) - overall.proper_spelled,
+        "common_fingerspelled_word_rate": ratio((total_tokens - overall.lexical) - overall.proper_spelled,
+                                                total_tokens - overall.proper_words),
+        "proper_fingerspelled_word_rate": ratio(overall.proper_spelled, overall.proper_words),
+        "top_fingerspelled_common": [{"word": w, "count": c} for w, c in oov_common.most_common(40)],
+        "top_fingerspelled_proper": [{"word": w, "count": c} for w, c in oov_proper.most_common(40)],
         "fingerspelling_per_sentence": {
             "mean_rate": round(sum(r for _, r in sentence_rates) / len(sentence_rates), 4) if sentence_rates else 0.0,
             "p95_rate": round(percentile([r for _, r in sentence_rates], 95), 4),
@@ -323,17 +423,35 @@ def evaluate(corpus, nlp=None, translator=None):
     return metrics
 
 
+def corpus_name(path):
+    return os.path.splitext(os.path.basename(path))[0]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--corpus", default=os.path.join(ROOT, "tests", "data", "eval_corpus.json"))
+    ap.add_argument("--corpus", action="append", default=None,
+                    help="corpus JSON; repeat to evaluate several (default: tests/data/eval_corpus.json)")
     ap.add_argument("--out", default=None, help="write metrics JSON to this path")
     ap.add_argument("--quiet", action="store_true", help="do not print the JSON to stdout")
     args = ap.parse_args()
 
-    with open(args.corpus, encoding="utf-8") as f:
-        corpus = json.load(f)["items"]
+    paths = args.corpus or [os.path.join(ROOT, "tests", "data", "eval_corpus.json")]
+    names = [corpus_name(p) for p in paths]
+    if len(set(names)) != len(names):
+        ap.error("corpus files must have distinct names (without extension)")
 
-    metrics = evaluate(corpus)
+    nlp, translator = LSRDNlpEngine(), LSRDTranslator()
+    try:
+        results = {}
+        for name, path in zip(names, paths):
+            with open(path, encoding="utf-8") as f:
+                results[name] = evaluate(json.load(f)["items"], nlp, translator)
+    finally:
+        translator.close()
+
+    metrics = dict(results[names[0]])
+    if len(paths) > 1:
+        metrics["corpora"] = results
     text = json.dumps(metrics, ensure_ascii=False, indent=2)
     if not args.quiet:
         print(text)
