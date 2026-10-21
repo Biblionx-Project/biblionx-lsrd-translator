@@ -10,7 +10,9 @@
   ];
   var $ = function (id) { return document.getElementById(id); };
   var input = $('input'), statusEl = $('status'), result = $('result');
-  var state = { items: [], idx: 0, playing: false, timer: null, speed: 1 };
+  var STEP_MS = 1400;       // base time per lexical sign
+  var SPELL_FACTOR = 0.45;  // fingerspelled letters play faster than lexical signs
+  var state = { items: [], groups: [], gof: [], idx: 0, playing: false, timer: null, speed: 1 };
 
   /* ---------- theme ---------- */
   var root = document.documentElement;
@@ -95,35 +97,83 @@
     return typeof it.confidence === 'number' ? ' (' + Math.round(it.confidence * 100) + '%)' : '';
   }
 
+  /* ---------- grouping of fingerspelled letters ---------- */
+  // One group per lexical sign and one group per fingerspelled word. Uses the
+  // spelled_word / spelled_index fields when the API sends them and falls back
+  // to merging consecutive es_deletreo items when they are absent.
+  function upper(s) { return String(s).toLocaleUpperCase('es'); }
+  function groupItems(items) {
+    var groups = [], gof = [], cur = null, prev = -1;
+    items.forEach(function (it, i) {
+      if (!it.es_deletreo) {
+        groups.push({ start: i, end: i, spelled: false }); cur = null; prev = -1;
+        gof.push(groups.length - 1);
+        return;
+      }
+      var si = typeof it.spelled_index === 'number' ? it.spelled_index : null;
+      var sw = typeof it.spelled_word === 'string' && it.spelled_word ? it.spelled_word : '';
+      var fresh = !cur || (si !== null && si <= prev) || (sw && cur.word && sw !== cur.word);
+      if (fresh) { cur = { start: i, end: i, spelled: true, word: sw }; groups.push(cur); }
+      else { cur.end = i; if (!cur.word && sw) cur.word = sw; }
+      prev = si !== null ? si : prev + 1;
+      gof.push(groups.length - 1);
+    });
+    groups.forEach(function (g) {
+      if (!g.spelled) return;
+      var n = g.end - g.start + 1, chars = g.word ? Array.from(g.word) : [];
+      if (chars.length !== n) {
+        chars = items.slice(g.start, g.end + 1).map(function (it) { return it.letra || '?'; });
+      }
+      g.letters = chars.map(upper);
+      g.word = upper(g.word || g.letters.join(''));
+    });
+    state.groups = groups; state.gof = gof;
+  }
+  function groupLabel(g, items) { return g.spelled ? g.word : label(items[g.start]); }
+
   function render(data) {
     var items = data.secuencia_senas || [];
     state.items = items; state.idx = 0;
-    if (!items.length) { result.hidden = true; setStatus('No signs found for this text.', true); return; }
+    if (!items.length) {
+      state.groups = []; state.gof = [];
+      result.hidden = true; setStatus('No signs found for this text.', true); return;
+    }
+    groupItems(items);
+    var groups = state.groups;
     var seq = (data.nlp_analysis && data.nlp_analysis.secuencia_lsrd) || [];
     $('nlpSeq').textContent = seq.length ? seq.join(' · ') : '-';
     var tl = $('timeline'); tl.textContent = '';
-    items.forEach(function (it, i) {
+    groups.forEach(function (g, gi) {
       var li = document.createElement('li');
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'tl';
-      b.appendChild(document.createTextNode(label(it)));
-      var k = kind(it);
+      var name = groupLabel(g, items);
+      b.appendChild(document.createTextNode(name));
+      var k = kind(items[g.start]);
       if (BADGE[k]) {
         var s = document.createElement('span');
         s.className = 'badge ' + k; s.textContent = BADGE[k];
         b.appendChild(s);
       }
-      b.addEventListener('click', function () { stop(); show(i); });
+      var aria = 'Sign ' + (gi + 1) + ' of ' + groups.length + ': ' + name;
+      if (g.spelled) aria += ', fingerspelled word, ' + g.letters.length + ' letter' + (g.letters.length === 1 ? '' : 's');
+      else if (k === 'fuzzy') aria += ', approximate match';
+      else if (k === 'ai') aria += ', AI match';
+      b.setAttribute('aria-label', aria);
+      b.addEventListener('click', function () { stop(); show(g.start); });
       li.appendChild(b); tl.appendChild(li);
     });
     result.hidden = false;
-    setStatus(items.length + ' sign' + (items.length === 1 ? '' : 's') + ' found.');
+    var spelledN = groups.filter(function (g) { return g.spelled; }).length;
+    setStatus(groups.length + ' sign' + (groups.length === 1 ? '' : 's') + ' found' +
+      (spelledN ? ' (' + spelledN + ' fingerspelled word' + (spelledN === 1 ? '' : 's') + ')' : '') + '.');
     show(0);
   }
 
   function show(i) {
     var it = state.items[i]; if (!it) return;
     state.idx = i;
+    var gi = state.gof[i], g = state.groups[gi], pos = i - g.start;
     var img = $('stageImg'), fb = $('stageFallback');
     var src = it.image_available === false ? '' : (it.url_imagen || '');
     var desc = it.descripcion_sena || '';
@@ -135,13 +185,29 @@
       fb.hidden = false;
     }
     if (src) {
-      img.alt = 'Sign for ' + label(it);
+      img.alt = g.spelled ? 'Fingerspelled letter ' + label(it) + ' of ' + g.word : 'Sign for ' + label(it);
       fb.hidden = true; img.hidden = false;
       img.onerror = showCard;
       img.src = src;
     } else { showCard(); }
-    $('stageWord').textContent = label(it);
-    $('stagePos').textContent = (i + 1) + ' / ' + state.items.length;
+    var sw = $('stageWord'), note = $('stageNote');
+    sw.textContent = '';
+    if (g.spelled) {
+      g.letters.forEach(function (ch, j) {
+        var sp = document.createElement('span');
+        sp.className = 'sl' + (j === pos ? ' on' : ''); sp.textContent = ch;
+        sw.appendChild(sp);
+      });
+      sw.setAttribute('aria-hidden', 'true');
+      note.textContent = g.word + ' — fingerspelled (no sign in the official dictionary)';
+      note.hidden = false;
+    } else {
+      sw.textContent = label(it);
+      sw.removeAttribute('aria-hidden');
+      note.textContent = ''; note.hidden = true;
+    }
+    $('stagePos').textContent = (gi + 1) + ' / ' + state.groups.length +
+      (g.spelled ? ' · letter ' + (pos + 1) + ' of ' + g.letters.length : '');
     var k = kind(it), bd = $('stageBadge');
     bd.hidden = !BADGE[k]; bd.className = 'badge ' + k; bd.textContent = BADGE[k] || '';
     $('dDesc').textContent = desc || 'No description available.';
@@ -151,14 +217,22 @@
       (it.match_method ? it.match_method + confText(it) : 'Exact dictionary match');
     var cur = $('timeline').querySelectorAll('.tl');
     for (var j = 0; j < cur.length; j++) {
-      if (j === i) cur[j].setAttribute('aria-current', 'true'); else cur[j].removeAttribute('aria-current');
+      if (j === gi) cur[j].setAttribute('aria-current', 'true'); else cur[j].removeAttribute('aria-current');
     }
-    if (cur[i] && cur[i].scrollIntoView && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      cur[i].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    if (cur[gi] && cur[gi].scrollIntoView && !reducedMotion()) {
+      cur[gi].scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
   }
 
   /* ---------- player ---------- */
+  function reducedMotion() { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  // Time the item at index i stays on screen. Letters of a spelled word go faster
+  // (unless the user prefers reduced motion); the speed selector scales everything.
+  function stepMs(i) {
+    var it = state.items[i];
+    var f = it && it.es_deletreo && !reducedMotion() ? SPELL_FACTOR : 1;
+    return STEP_MS * f / state.speed;
+  }
   function setPlaying(p) {
     state.playing = p;
     var b = $('play');
@@ -171,25 +245,36 @@
     if (!state.playing) return;
     if (state.idx >= state.items.length - 1) { stop(); return; }
     show(state.idx + 1);
-    state.timer = setTimeout(tick, 1400 / state.speed);
+    state.timer = setTimeout(tick, stepMs(state.idx));
   }
   function play() {
     if (!state.items.length) return;
     if (state.idx >= state.items.length - 1) show(0);
     setPlaying(true);
-    state.timer = setTimeout(tick, 1400 / state.speed);
+    state.timer = setTimeout(tick, stepMs(state.idx));
+  }
+  // Previous/next move by sign or by whole fingerspelled word, not by letter.
+  function stepGroup(d) {
+    if (!state.items.length) return;
+    var gi = state.gof[state.idx] + d;
+    if (gi < 0 || gi >= state.groups.length) return;
+    show(state.groups[gi].start);
   }
   $('play').addEventListener('click', function () { if (state.playing) stop(); else play(); });
-  $('prev').addEventListener('click', function () { stop(); show(Math.max(0, state.idx - 1)); });
-  $('next').addEventListener('click', function () { stop(); show(Math.min(state.items.length - 1, state.idx + 1)); });
+  $('prev').addEventListener('click', function () { stop(); stepGroup(-1); });
+  $('next').addEventListener('click', function () { stop(); stepGroup(1); });
   $('speed').addEventListener('change', function (e) {
     state.speed = parseFloat(e.target.value) || 1;
-    if (state.playing) { clearTimeout(state.timer); state.timer = setTimeout(tick, 1400 / state.speed); }
+    if (state.playing) { clearTimeout(state.timer); state.timer = setTimeout(tick, stepMs(state.idx)); }
   });
   document.addEventListener('keydown', function (e) {
-    if (result.hidden || /^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)) return;
+    if (result.hidden || e.altKey || e.ctrlKey || e.metaKey || /^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)) return;
     if (e.key === 'ArrowRight') { $('next').click(); }
     else if (e.key === 'ArrowLeft') { $('prev').click(); }
+    else if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault(); stop();
+      show(e.key === 'Home' ? 0 : state.groups[state.groups.length - 1].start);
+    }
     else if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('play').click(); }
   });
   updateCount();

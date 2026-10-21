@@ -81,6 +81,10 @@ kbd{font:inherit;font-size:.78rem;padding:1px 6px;border:1px solid var(--border)
 .stage-meta{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:14px 2px 4px}
 .stage-word{font-size:clamp(1.3rem,4vw,1.9rem);font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere}
 .muted{color:var(--muted)}
+.stage-word .sl{display:inline-block;min-width:1.1em;margin:0 1px;padding:0 .1em;border-radius:8px;text-align:center;color:var(--muted)}
+.stage-word .sl.on{background:var(--accent);color:var(--accent-text)}
+.stage-note{margin:0 2px 4px;font-size:.88rem}
+.stage-note[hidden]{display:none}
 .controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin-top:12px}
 .speed{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted);margin-left:8px}
 select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);min-height:40px}

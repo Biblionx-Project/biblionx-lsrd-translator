@@ -58,6 +58,8 @@ header.bar{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 16px}
 .counter{position:absolute;top:10px;right:10px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:rgb(20 22 42/.7);color:#fff}
 .caption{text-align:center}
 .word{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0;overflow-wrap:anywhere}
+.word .sl{display:inline-block;min-width:1.1em;margin:0 1px;padding:0 .1em;border-radius:8px;color:var(--muted)}
+.word .sl.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
 .desc{margin:4px 0 0;color:var(--muted);font-size:13px;max-height:4.4em;overflow:auto}
 
 /* Progress */
