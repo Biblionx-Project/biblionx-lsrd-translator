@@ -6,10 +6,14 @@ Lookup chain for every token (first hit wins):
 
     exact palabra_norm  ->  sinonimos_mapeo  ->  curated synonyms
     (data/synonyms_extra.json)  ->  fuzzy ML match (char n-gram TF-IDF)
-    ->  optional LLM choice among fuzzy candidates  ->  A-Z fingerspelling
+    ->  optional semantic AI choice over the whole dictionary
+    ->  A-Z fingerspelling
 
 Each returned sign carries ``match_method`` and ``confidence`` (0-1) in
-addition to the original keys. Lookup tables are built once per database
+addition to the original keys. Every fingerspelled letter also carries
+``spelled_word`` (the original token), ``spelled_index`` (0-based position of
+the letter inside that word) and ``spelled_length`` (letters emitted for it) so
+UIs can group the letters of one word. Lookup tables are built once per database
 (shared, read-only); each translator owns one SQLite connection guarded by a
 lock, so an instance is safe to share across server threads.
 """
@@ -19,15 +23,14 @@ import sqlite3
 import threading
 
 from ml_matcher import FuzzyMatcher
-from llm_fallback import LLMFallback
+from llm_fallback import AI_CONFIDENCE_CAP, LLMFallback
 from nlp_engine import PROTECTED_WORDS, load_synonyms_extra, normalize_word
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(_HERE, "lsrd_dictionary.db")
 
 FUZZY_MIN_SCORE = 0.84
-LLM_MIN_SCORE = 0.55
-LLM_CANDIDATES = 8
+SEMANTIC_MIN_LEN = 3  # shorter tokens are never worth a model call
 
 # Fingerspelling alphabet letter mapping, extracted from the Dictionary (pages 21-28 / entries)
 DACTYL_LETTER_MAP = {
@@ -65,7 +68,7 @@ DACTYL_LETTER_MAP = {
 NUMBER_WORDS = {'2': 'dos', '10': 'diez', '20': 'veinte', '100': 'cien', '1000': 'mil'}
 
 CONFIDENCE = {'exact': 1.0, 'phrase': 0.95, 'morphology': 0.9, 'synonym': 0.9,
-              'curated_synonym': 0.85, 'ai': 0.7, 'fingerspelling': 0.5}
+              'curated_synonym': 0.85, 'ai': AI_CONFIDENCE_CAP, 'fingerspelling': 0.5}
 
 _SIGN_QUERY = """
     SELECT p.id, p.palabra_es, p.definicion_es, p.pagina, c.nombre as categoria,
@@ -107,10 +110,14 @@ class _Index:
         try:
             self.exact = {}      # palabra_norm (full) -> palabra_id
             self.prefix = {}     # first comma-separated part -> palabra_id
+            letter_ids = set(DACTYL_LETTER_MAP.values())
+            lemmas = set()       # sign lemmas offered to the semantic AI fallback
             for pid, norm in conn.execute("SELECT id, palabra_norm FROM palabras ORDER BY rowid"):
                 if not norm:
                     continue
                 norm = norm.strip()
+                if norm and pid not in letter_ids:
+                    lemmas.add(norm)
                 self.exact.setdefault(norm, pid)
                 if ',' in norm:
                     self.exact.setdefault(norm.rstrip(', '), pid)
@@ -121,6 +128,7 @@ class _Index:
                     if ',' in stripped:
                         self.exact.setdefault(stripped.rstrip(', '), pid)
                         self.prefix.setdefault(stripped.split(',')[0].strip(), pid)
+            self.lemmas = tuple(sorted(lemmas))
             self.synonym = {}
             try:
                 for pid, syn in conn.execute(
@@ -242,7 +250,7 @@ class LSRDTranslator:
         return self._tag(row, method, CONFIDENCE[method]) if row else None
 
     def _fuzzy_sign(self, word_norm, context):
-        """Fuzzy ML match, then optional LLM choice. Returns a tagged sign or None."""
+        """Fuzzy ML match. Returns a tagged sign or None."""
         if word_norm in PROTECTED_WORDS or len(word_norm) <= 3 or any(c.isdigit() for c in word_norm):
             return None
         fz = self._index.fuzzy
@@ -255,23 +263,39 @@ class LSRDTranslator:
                 item = self._tag(row, 'fuzzy', hit['score'])
                 item['matched_norm'] = hit['norm']
                 return item
-        llm = self.llm
-        if llm.enabled:
-            cands = [c for c in fz.candidates(word_norm, k=LLM_CANDIDATES)
-                     if c['score'] >= LLM_MIN_SCORE]
-            if cands:
-                chosen = llm.choose(word_norm, context or '', [c['norm'] for c in cands])
-                for c in cands:
-                    if c['norm'] == chosen:
-                        row = self._row(c['palabra_id'])
-                        if row:
-                            item = self._tag(row, 'ai', CONFIDENCE['ai'])
-                            item['matched_norm'] = c['norm']
-                            return item
         return None
 
+    def _semantic_sign(self, word_norm, context):
+        """Optional AI choice over the whole dictionary. Returns a tagged sign or None.
+
+        Runs only after exact/synonym/fuzzy missed and before fingerspelling.
+        The model sees every sign lemma and the sentence; its answer is
+        validated against the dictionary, so it can only pick an existing sign.
+        """
+        llm = self.llm
+        if not llm.enabled or not hasattr(llm, 'choose_semantic'):
+            return None
+        if (word_norm in PROTECTED_WORDS or len(word_norm) < SEMANTIC_MIN_LEN
+                or any(c.isdigit() for c in word_norm)):
+            return None
+        lemma = llm.choose_semantic(word_norm, context or '', self._index.lemmas)
+        if not lemma:
+            return None
+        pid = self._index.exact.get(lemma) or self._index.prefix.get(lemma)
+        row = self._row(pid) if pid else None
+        if not row:
+            return None
+        item = self._tag(row, 'ai', CONFIDENCE['ai'])
+        item['matched_norm'] = lemma
+        return item
+
     def get_fingerspelling_sequence(self, word):
-        """Generates a fingerspelling sequence for words not found in the dictionary."""
+        """Generates a fingerspelling sequence for words not found in the dictionary.
+
+        Each letter item carries ``spelled_word`` (the original token),
+        ``spelled_index`` (0-based position among the emitted letters) and
+        ``spelled_length`` (number of letters emitted for the word).
+        """
         sequence = []
         for char in word.lower():
             sign_id = DACTYL_LETTER_MAP.get(char)
@@ -283,7 +307,11 @@ class LSRDTranslator:
                 item['letra'] = char.upper()
                 item['match_method'] = 'fingerspelling'
                 item['confidence'] = CONFIDENCE['fingerspelling']
+                item['spelled_word'] = word
+                item['spelled_index'] = len(sequence)
                 sequence.append(item)
+        for item in sequence:
+            item['spelled_length'] = len(sequence)
         return sequence
 
     def translate_sequence(self, tokens_lsrd, context=None):
@@ -291,7 +319,7 @@ class LSRDTranslator:
 
         If ``tokens_lsrd`` is a nlp_engine.TokenSequence, its provenance
         ('phrase' / 'morphology') labels exact matches and its sentence
-        context is passed to the optional LLM fallback.
+        context is passed to the optional semantic AI fallback.
         """
         hints = getattr(tokens_lsrd, 'methods', None)
         if context is None:
@@ -307,7 +335,7 @@ class LSRDTranslator:
                         method = hints[i]
                     result_sequence.append(self._tag(row, method, CONFIDENCE[method]))
                     continue
-            fuzzy_item = self._fuzzy_sign(token, context)
+            fuzzy_item = self._fuzzy_sign(token, context) or self._semantic_sign(token, context)
             if fuzzy_item:
                 result_sequence.append(fuzzy_item)
             else:
