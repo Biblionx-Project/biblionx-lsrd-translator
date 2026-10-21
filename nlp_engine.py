@@ -34,10 +34,14 @@ LSRD_STOP_WORDS = {
     # instead of being fingerspelled letter by letter. Each one was checked
     # against the dictionary (palabras + sinonimos_mapeo + data/synonyms_extra.json):
     # none resolves to a sign. Words that DO have a sign are deliberately absent
-    # (mi, tu, te = TE "tea", me, nos, no, y, o, e, u, pero, ya, si, tambien, mas,
+    # (mi, tu, te = TE "tea", me, nos, no, pero, ya, si, tambien, mas,
     # muy, todo, otro): dropping them would delete real content.
     # Object clitics: LSRD marks the argument with direction/pointing, not a sign.
     'lo', 'le', 'les', 'os',
+    # One-letter function words. The dictionary has them only as letters of the
+    # fingerspelling alphabet (A, Y, O, E, U), not as words, so keeping them
+    # showed the letter sign for the preposition "a" or the conjunction "y".
+    'a', 'y', 'o', 'e', 'u',
     # Relative pronouns/possessives, same role as 'que', 'cual', 'quien' above.
     # 'cuales' and 'quienes' stay available as wh-words inside questions
     # (grammar.QUESTION_WORDS is checked first in remove_stopwords).
@@ -75,6 +79,16 @@ def normalize_word(word):
     nfkd_form = unicodedata.normalize('NFKD', word)
     only_ascii = "".join([c for c in nfkd_form if not unicodedata.combining(c)])
     return only_ascii
+
+
+def spelling_form(word):
+    """Lowercase, punctuation and accents removed, but ñ kept: it has its own
+    fingerspelling sign."""
+    word = re.sub(r'[^\w\s]', '', word.lower().strip())
+    return "".join(
+        ch if ch == 'ñ' else "".join(c for c in unicodedata.normalize('NFKD', ch)
+                                     if not unicodedata.combining(c))
+        for ch in word)
 
 
 def load_synonyms_extra(path=SYNONYMS_EXTRA_PATH):
@@ -138,10 +152,13 @@ class TokenSequence(list):
     'phrase') and ``context`` (the normalized sentence) when present.
     """
 
-    def __init__(self, tokens=(), methods=None, context=""):
+    def __init__(self, tokens=(), methods=None, context="", surfaces=None):
         super().__init__(tokens)
         self.methods = list(methods) if methods is not None else ["exact"] * len(self)
         self.context = context
+        # normalized token -> spelling form (lowercase, accents removed, ñ kept),
+        # so fingerspelling shows ESPAÑOLA rather than ESPANOLA.
+        self.surfaces = dict(surfaces or {})
 
 
 class LSRDNlpEngine:
@@ -217,6 +234,53 @@ class LSRDNlpEngine:
                     break
         return overrides
 
+    @staticmethod
+    def _name_groups(clause, sentence_initial):
+        """Proper-noun spans in a clause, as tuples of normalized words.
+
+        A word counts as a name when it is capitalized and is not the first
+        word of a sentence; consecutive capitalized words form one name
+        ("Puerto Rico", "La Española"). Names must not be resolved through
+        synonyms, morphology or fuzzy matching: "Mona" is not MONO and the
+        "Rico" in "Puerto Rico" is not RICO.
+        """
+        groups, current = [], []
+        for i, raw in enumerate(clause.split()):
+            word = raw.strip(".,;:!?¡¿\"'()[]")
+            is_name = bool(word) and word[0].isupper() and not (i == 0 and sentence_initial)
+            if is_name:
+                current.append(normalize_word(word))
+            elif current:
+                groups.append(tuple(current))
+                current = []
+        if current:
+            groups.append(tuple(current))
+        return [g for g in groups if all(g)]
+
+    @staticmethod
+    def _merge_names(tokens, groups):
+        """Replace each name span in ``tokens`` by one space-joined token."""
+        names = set()
+        out, i = [], 0
+        by_first = {}
+        for g in groups:
+            by_first.setdefault(g[0], []).append(g)
+        while i < len(tokens):
+            match = None
+            for g in sorted(by_first.get(tokens[i], []), key=len, reverse=True):
+                if tuple(tokens[i:i + len(g)]) == g:
+                    match = g
+                    break
+            if match:
+                name = " ".join(match)
+                out.append(name)
+                names.add(name)
+                i += len(match)
+            else:
+                out.append(tokens[i])
+                i += 1
+        return out, names
+
     def reorder_grammar_lsrd(self, tokens, is_question=False):
         return grammar.reorder(tokens, is_question)
 
@@ -229,18 +293,50 @@ class LSRDNlpEngine:
         ordered, methods = [], []
         lemma_methods = {}
 
+        offset = 0
+        surfaces = {}
         for clause, is_q in clauses:
+            # A clause starts a sentence when nothing but sentence punctuation
+            # precedes it; clauses after a comma do not.
+            pos = normalized_text.find(clause, offset)
+            if pos < 0:
+                pos = offset
+            before = normalized_text[:pos].rstrip(" ¿¡\"'(")
+            sentence_initial = not before or before[-1] in ".!?:;\n"
+            offset = pos + len(clause)
+
             toks = self.tokenize(clause)
             raw_tokens.extend(toks)
+            for w in clause.split():
+                norm = normalize_word(w)
+                if norm and 'ñ' in w.lower():
+                    surfaces.setdefault(norm, spelling_form(w))
+            toks, names = self._merge_names(toks, self._name_groups(clause, sentence_initial))
             toks = phrases.segment(toks)
             # Stored phrase norms may carry a trailing comma ("ser humano,").
-            toks = [t.strip(' ,') if (' ' in t or ',' in t) else t for t in toks]
-            toks = self.remove_stopwords(toks, keep_question_words=is_q)
+            toks = [t.strip(' ,') if ((' ' in t or ',' in t) and t not in names) else t for t in toks]
+            # A word written with ñ is never a stopword: "uña" normalizes to
+            # "una", which would otherwise be dropped as the article.
+            toks = [t for t in toks if t in names or t in surfaces
+                    or t in self.remove_stopwords([t], keep_question_words=is_q)]
             filtered_tokens.extend(toks)
 
             preterites = self._stressed_preterites(clause)
-            pairs = [(preterites[t], 'morphology') if t in preterites else self._lemmatize(t)
+            pairs = [(t, 'name') if t in names
+                     else (preterites[t], 'morphology') if t in preterites
+                     else self._lemmatize(t)
                      for t in toks]
+            # Carry ñ over to lemmas ("años" -> "año", not "ano"): suffix rules
+            # only change the ending, so ñ keeps its position in the stem.
+            for t, (lemma, _how) in zip(toks, pairs):
+                surf = surfaces.get(t)
+                if surf and lemma != t and lemma not in surfaces:
+                    chars = list(lemma)
+                    for i, ch in enumerate(surf):
+                        if ch == 'ñ' and i < len(chars) and chars[i] == 'n':
+                            chars[i] = 'ñ'
+                    if 'ñ' in chars:
+                        surfaces[lemma] = "".join(chars)
             # Conjugated copulas (estoy, soy, ...) lemmatize to ser/estar; drop
             # them like the auxiliaries above unless the dictionary has a sign.
             pairs = [p for p in pairs
@@ -259,7 +355,7 @@ class LSRDNlpEngine:
             "tokens_normalizados": raw_tokens,
             "tokens_filtrados": filtered_tokens,
             "tokens_lematizados": lemmas,
-            "secuencia_lsrd": TokenSequence(ordered, methods, normalized_text),
+            "secuencia_lsrd": TokenSequence(ordered, methods, normalized_text, surfaces),
             "normalized_text": normalized_text,
             "is_question": grammar.is_question_text(text),
             "lemmatization_methods": lemma_methods,

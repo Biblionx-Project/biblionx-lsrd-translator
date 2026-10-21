@@ -162,7 +162,9 @@ class ImagePresentTests(ServerCase):
 
     def test_present_image_gets_url(self):
         self.assertTrue(os.path.isfile(os.path.join(self.FIXTURES, "lsrd_0001.png")))
-        _, _, body = self.post_text("a")
+        # "a" alone is now a dropped preposition; a fingerspelled name starting
+        # with A still yields the letter sign lsrd_0001.
+        _, _, body = self.post_text("Ana")
         signs = [s for s in json.loads(body)["secuencia_senas"]
                  if str(s.get("ruta_imagen", "")).endswith("lsrd_0001.png")]
         self.assertTrue(signs, "expected the sign for 'A' (lsrd_0001)")

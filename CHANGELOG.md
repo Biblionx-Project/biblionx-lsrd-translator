@@ -73,6 +73,19 @@ Dictionary recovery, honest metrics, one version source and a CI that runs every
   a systematic error of the original extraction. `tools/recrop_sign_images.py` regenerates every image from the official
   PDF (pdfminer.six + pypdfium2) with a skin-tone QA check; `tests/test_image_quality.py` guards it and
   `docs/IMAGES.md` documents the process. Images remain outside git.
+- "año" was translated as ANO and "sonar" as SOÑAR: normalization drops ñ, so ñ words collided with other
+  headwords ("uña" was even dropped as the article "una"). Lookups now use the printed headword with ñ kept, and a
+  word written without ñ never matches a headword that has one. Fingerspelling keeps Ñ (ESPAÑOLA, not ESPANOLA).
+- Proper nouns were matched to common words ("Mona" -> MONO, "Puerto Rico" -> P-U-E-R-T-O + RICO). Capitalized
+  words that do not start a sentence are grouped as names: a name uses only its own dictionary entry (Santo
+  Domingo, Puerto Plata), is signed word by word when every word has a sign (Ministerio de Educación), and is
+  otherwise fingerspelled whole.
+- Numerals produced no signs at all. 1-10, 100 and 1000 use their number signs; other numbers (years) are signed
+  digit by digit (`match_method` `number`).
+- The preposition "a" and the conjunctions "y", "o", "e", "u" were shown as the letter signs A, Y, O, E, U (the
+  dictionary has them only as letters); they are now dropped like other function words. This also removes ~75
+  false "exact" matches from the realistic corpus, so its coverage gate is now 0.75 (measured 0.7562) and the
+  common-word fingerspelling gate 0.235 (measured 0.2303) with the same number of spelled common words.
 - Browser extension: a triple click (several `mouseup` events) created duplicate overlay hosts, leaving orphaned
   floating buttons on the page; host creation is now shared by concurrent callers.
 - Browser extension: the floating button label no longer wraps onto two lines.

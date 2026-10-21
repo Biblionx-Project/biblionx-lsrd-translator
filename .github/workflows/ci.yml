@@ -51,7 +51,7 @@ jobs:
       - name: Quality gate (realistic corpus)
         run: |
           python scripts/check_metrics.py /tmp/m.json --corpus eval_corpus_realistic \
-            --min-coverage 0.76 --max-common-fingerspelling-rate 0.23 --max-p95-ms 500
+            --min-coverage 0.75 --max-common-fingerspelling-rate 0.235 --max-p95-ms 500
 
       - uses: actions/setup-node@v4
         with:

@@ -1,12 +1,12 @@
 {
   "metrics_version": 3,
   "sentences": 42,
-  "output_tokens": 928,
-  "lexical_tokens": 724,
-  "lexical_coverage": 0.7802,
-  "fingerspelled_tokens": 204,
-  "fingerspelling_rate": 0.2198,
-  "unique_fingerspelled_words": 185,
+  "output_tokens": 845,
+  "lexical_tokens": 639,
+  "lexical_coverage": 0.7562,
+  "fingerspelled_tokens": 206,
+  "fingerspelling_rate": 0.2438,
+  "unique_fingerspelled_words": 186,
   "top_fingerspelled": [
     {
       "word": "poder",
@@ -26,6 +26,10 @@
     },
     {
       "word": "cordillera",
+      "count": 2
+    },
+    {
+      "word": "central",
       "count": 2
     },
     {
@@ -125,10 +129,6 @@
       "count": 1
     },
     {
-      "word": "1844",
-      "count": 1
-    },
-    {
       "word": "patriotas",
       "count": 1
     },
@@ -175,13 +175,13 @@
     "mantener",
     "actos",
     "antillas",
+    "central",
     "cordillera",
     "entrenador",
     "ninos",
     "nivel",
     "temperatura",
     "tropical",
-    "1844",
     "2016",
     "abridor",
     "acuda",
@@ -189,6 +189,7 @@
     "afecto",
     "aficionados",
     "agradece",
+    "aguilas cibaenas",
     "aislados",
     "alternas",
     "antiguas",
@@ -200,7 +201,6 @@
     "brasil",
     "brutal",
     "calificaciones",
-    "campana",
     "cargado",
     "caribe",
     "causas",
@@ -208,7 +208,6 @@
     "celebraron",
     "chevere",
     "chubascos",
-    "cibaenas",
     "cibao",
     "cientos",
     "ciudadanos",
@@ -232,9 +231,9 @@
     "discapacidad",
     "distribuidora",
     "documento",
-    "electoral",
     "electronico",
     "eliminar",
+    "empresa",
     "energia",
     "enriquillo",
     "entrenaron",
@@ -264,7 +263,7 @@
     "internet",
     "jarabacoa",
     "jornada",
-    "junta",
+    "junta central electoral",
     "lago",
     "lanzador",
     "libre",
@@ -285,6 +284,7 @@
     "ocupa",
     "onda",
     "pacientes",
+    "pasaportes",
     "patriotas",
     "permanecera",
     "permitir",
@@ -337,6 +337,7 @@
     "suelen",
     "suficiente",
     "suspender",
+    "tigres",
     "torneo",
     "total",
     "tramite",
@@ -356,15 +357,15 @@
     "voluntarios",
     "yaque"
   ],
-  "fingerspelled_word_rate": 0.2198,
-  "fingerspelled_letters": 1515,
-  "letters_per_lexical_sign": 2.093,
-  "proper_noun_words": 34,
-  "common_words": 894,
-  "fingerspelled_proper_nouns": 16,
-  "fingerspelled_common_words": 188,
-  "common_fingerspelled_word_rate": 0.2103,
-  "proper_fingerspelled_word_rate": 0.4706,
+  "fingerspelled_word_rate": 0.2438,
+  "fingerspelled_letters": 1563,
+  "letters_per_lexical_sign": 2.446,
+  "proper_noun_words": 33,
+  "common_words": 812,
+  "fingerspelled_proper_nouns": 19,
+  "fingerspelled_common_words": 187,
+  "common_fingerspelled_word_rate": 0.2303,
+  "proper_fingerspelled_word_rate": 0.5758,
   "top_fingerspelled_common": [
     {
       "word": "poder",
@@ -459,10 +460,6 @@
       "count": 1
     },
     {
-      "word": "1844",
-      "count": 1
-    },
-    {
       "word": "patriotas",
       "count": 1
     },
@@ -525,9 +522,17 @@
     {
       "word": "flamencos",
       "count": 1
+    },
+    {
+      "word": "porque",
+      "count": 1
     }
   ],
   "top_fingerspelled_proper": [
+    {
+      "word": "central",
+      "count": 2
+    },
     {
       "word": "antillas",
       "count": 2
@@ -565,11 +570,11 @@
       "count": 1
     },
     {
-      "word": "junta",
+      "word": "junta central electoral",
       "count": 1
     },
     {
-      "word": "electoral",
+      "word": "pasaportes",
       "count": 1
     },
     {
@@ -577,11 +582,15 @@
       "count": 1
     },
     {
+      "word": "tigres",
+      "count": 1
+    },
+    {
       "word": "licey",
       "count": 1
     },
     {
-      "word": "cibaenas",
+      "word": "aguilas cibaenas",
       "count": 1
     },
     {
@@ -590,62 +599,65 @@
     }
   ],
   "fingerspelling_per_sentence": {
-    "mean_rate": 0.2212,
-    "p95_rate": 0.3807,
-    "max_rate": 0.4286,
+    "mean_rate": 0.2443,
+    "p95_rate": 0.4,
+    "max_rate": 0.4737,
     "sentences_with_fingerspelling": 42,
     "sentences_fully_lexical": 0,
     "worst_sentences": [
       {
         "id": "r032",
-        "rate": 0.4286
+        "rate": 0.4737
       },
       {
-        "id": "r031",
+        "id": "r033",
+        "rate": 0.4118
+      },
+      {
+        "id": "r001",
         "rate": 0.4
       },
       {
         "id": "r027",
-        "rate": 0.381
+        "rate": 0.4
       },
       {
-        "id": "r005",
-        "rate": 0.375
-      },
-      {
-        "id": "r001",
-        "rate": 0.3478
+        "id": "r031",
+        "rate": 0.4
       }
     ]
   },
   "match_method_counts": {
-    "exact": 372,
-    "morphology": 240,
-    "fingerspelling": 204,
-    "curated_synonym": 95,
-    "phrase": 8,
+    "exact": 297,
+    "morphology": 237,
+    "fingerspelling": 206,
+    "curated_synonym": 91,
     "fuzzy": 8,
+    "phrase": 4,
+    "number": 1,
     "synonym": 1
   },
   "match_method_share": {
-    "exact": 0.4009,
-    "morphology": 0.2586,
-    "fingerspelling": 0.2198,
-    "curated_synonym": 0.1024,
-    "phrase": 0.0086,
-    "fuzzy": 0.0086,
-    "synonym": 0.0011
+    "exact": 0.3515,
+    "morphology": 0.2805,
+    "fingerspelling": 0.2438,
+    "curated_synonym": 0.1077,
+    "fuzzy": 0.0095,
+    "phrase": 0.0047,
+    "number": 0.0012,
+    "synonym": 0.0012
   },
   "avg_confidence_by_method": {
     "curated_synonym": 0.85,
     "exact": 1.0,
-    "fingerspelling": 0.5,
+    "fingerspelling": 0.501,
     "fuzzy": 0.9159,
     "morphology": 0.9,
+    "number": 1.0,
     "phrase": 0.95,
     "synonym": 0.9
   },
-  "avg_confidence": 0.8484,
+  "avg_confidence": 0.833,
   "gold_entries": 0,
   "gold_lemmas_expected": 0,
   "gold_lemma_recall": 0.0,
@@ -660,160 +672,160 @@
   "by_tag": {
     "common_only": {
       "sentences": 24,
-      "output_tokens": 528,
-      "lexical_coverage": 0.7879,
-      "fingerspelling_rate": 0.2121,
-      "mean_sentence_fingerspelling_rate": 0.2129,
-      "avg_confidence": 0.8547,
-      "fingerspelled_word_rate": 0.2121,
-      "fingerspelled_letters": 841,
-      "letters_per_lexical_sign": 2.022,
+      "output_tokens": 477,
+      "lexical_coverage": 0.7694,
+      "fingerspelling_rate": 0.2306,
+      "mean_sentence_fingerspelling_rate": 0.2295,
+      "avg_confidence": 0.8406,
+      "fingerspelled_word_rate": 0.2306,
+      "fingerspelled_letters": 834,
+      "letters_per_lexical_sign": 2.272,
       "proper_noun_words": 0,
       "fingerspelled_proper_nouns": 0,
-      "fingerspelled_common_words": 112,
-      "common_fingerspelled_word_rate": 0.2121
+      "fingerspelled_common_words": 110,
+      "common_fingerspelled_word_rate": 0.2306
     },
     "encyclopedic": {
       "sentences": 9,
-      "output_tokens": 208,
-      "lexical_coverage": 0.75,
-      "fingerspelling_rate": 0.25,
-      "mean_sentence_fingerspelling_rate": 0.2537,
-      "avg_confidence": 0.8356,
-      "fingerspelled_word_rate": 0.25,
-      "fingerspelled_letters": 351,
-      "letters_per_lexical_sign": 2.25,
+      "output_tokens": 188,
+      "lexical_coverage": 0.7181,
+      "fingerspelling_rate": 0.2819,
+      "mean_sentence_fingerspelling_rate": 0.2861,
+      "avg_confidence": 0.8154,
+      "fingerspelled_word_rate": 0.2819,
+      "fingerspelled_letters": 369,
+      "letters_per_lexical_sign": 2.733,
       "proper_noun_words": 16,
-      "fingerspelled_proper_nouns": 9,
-      "fingerspelled_common_words": 43,
-      "common_fingerspelled_word_rate": 0.224
+      "fingerspelled_proper_nouns": 11,
+      "fingerspelled_common_words": 42,
+      "common_fingerspelled_word_rate": 0.2442
     },
     "government": {
       "sentences": 5,
-      "output_tokens": 106,
-      "lexical_coverage": 0.7358,
-      "fingerspelling_rate": 0.2642,
-      "mean_sentence_fingerspelling_rate": 0.2671,
-      "avg_confidence": 0.8212,
-      "fingerspelled_word_rate": 0.2642,
-      "fingerspelled_letters": 229,
-      "letters_per_lexical_sign": 2.936,
-      "proper_noun_words": 5,
+      "output_tokens": 97,
+      "lexical_coverage": 0.7113,
+      "fingerspelling_rate": 0.2887,
+      "mean_sentence_fingerspelling_rate": 0.2892,
+      "avg_confidence": 0.8072,
+      "fingerspelled_word_rate": 0.2887,
+      "fingerspelled_letters": 246,
+      "letters_per_lexical_sign": 3.565,
+      "proper_noun_words": 3,
       "fingerspelled_proper_nouns": 2,
       "fingerspelled_common_words": 26,
-      "common_fingerspelled_word_rate": 0.2574
+      "common_fingerspelled_word_rate": 0.2766
     },
     "health": {
       "sentences": 5,
-      "output_tokens": 126,
-      "lexical_coverage": 0.8016,
-      "fingerspelling_rate": 0.1984,
-      "mean_sentence_fingerspelling_rate": 0.1988,
-      "avg_confidence": 0.8635,
-      "fingerspelled_word_rate": 0.1984,
-      "fingerspelled_letters": 179,
-      "letters_per_lexical_sign": 1.772,
+      "output_tokens": 111,
+      "lexical_coverage": 0.7838,
+      "fingerspelling_rate": 0.2162,
+      "mean_sentence_fingerspelling_rate": 0.2145,
+      "avg_confidence": 0.8495,
+      "fingerspelled_word_rate": 0.2162,
+      "fingerspelled_letters": 172,
+      "letters_per_lexical_sign": 1.977,
       "proper_noun_words": 0,
       "fingerspelled_proper_nouns": 0,
-      "fingerspelled_common_words": 25,
-      "common_fingerspelled_word_rate": 0.1984
+      "fingerspelled_common_words": 24,
+      "common_fingerspelled_word_rate": 0.2162
     },
     "local_news": {
       "sentences": 7,
-      "output_tokens": 151,
-      "lexical_coverage": 0.7748,
-      "fingerspelling_rate": 0.2252,
-      "mean_sentence_fingerspelling_rate": 0.2243,
-      "avg_confidence": 0.8378,
-      "fingerspelled_word_rate": 0.2252,
-      "fingerspelled_letters": 278,
-      "letters_per_lexical_sign": 2.376,
+      "output_tokens": 142,
+      "lexical_coverage": 0.7535,
+      "fingerspelling_rate": 0.2465,
+      "mean_sentence_fingerspelling_rate": 0.2448,
+      "avg_confidence": 0.8254,
+      "fingerspelled_word_rate": 0.2465,
+      "fingerspelled_letters": 285,
+      "letters_per_lexical_sign": 2.664,
       "proper_noun_words": 3,
       "fingerspelled_proper_nouns": 1,
-      "fingerspelled_common_words": 33,
-      "common_fingerspelled_word_rate": 0.223
+      "fingerspelled_common_words": 34,
+      "common_fingerspelled_word_rate": 0.2446
     },
     "proper_nouns": {
       "sentences": 18,
-      "output_tokens": 400,
-      "lexical_coverage": 0.77,
-      "fingerspelling_rate": 0.23,
-      "mean_sentence_fingerspelling_rate": 0.2323,
-      "avg_confidence": 0.8399,
-      "fingerspelled_word_rate": 0.23,
-      "fingerspelled_letters": 674,
-      "letters_per_lexical_sign": 2.188,
-      "proper_noun_words": 34,
-      "fingerspelled_proper_nouns": 16,
-      "fingerspelled_common_words": 76,
-      "common_fingerspelled_word_rate": 0.2077
+      "output_tokens": 368,
+      "lexical_coverage": 0.7391,
+      "fingerspelling_rate": 0.2609,
+      "mean_sentence_fingerspelling_rate": 0.2641,
+      "avg_confidence": 0.8232,
+      "fingerspelled_word_rate": 0.2609,
+      "fingerspelled_letters": 729,
+      "letters_per_lexical_sign": 2.68,
+      "proper_noun_words": 33,
+      "fingerspelled_proper_nouns": 19,
+      "fingerspelled_common_words": 77,
+      "common_fingerspelled_word_rate": 0.2299
     },
     "school_notice": {
       "sentences": 4,
-      "output_tokens": 81,
-      "lexical_coverage": 0.8025,
-      "fingerspelling_rate": 0.1975,
-      "mean_sentence_fingerspelling_rate": 0.2015,
-      "avg_confidence": 0.8599,
-      "fingerspelled_word_rate": 0.1975,
-      "fingerspelled_letters": 121,
-      "letters_per_lexical_sign": 1.862,
-      "proper_noun_words": 2,
-      "fingerspelled_proper_nouns": 0,
-      "fingerspelled_common_words": 16,
-      "common_fingerspelled_word_rate": 0.2025
-    },
-    "social": {
-      "sentences": 5,
-      "output_tokens": 103,
-      "lexical_coverage": 0.932,
-      "fingerspelling_rate": 0.068,
-      "mean_sentence_fingerspelling_rate": 0.0678,
-      "avg_confidence": 0.9257,
-      "fingerspelled_word_rate": 0.068,
-      "fingerspelled_letters": 39,
-      "letters_per_lexical_sign": 0.406,
-      "proper_noun_words": 2,
-      "fingerspelled_proper_nouns": 0,
-      "fingerspelled_common_words": 7,
-      "common_fingerspelled_word_rate": 0.0693
-    },
-    "sports": {
-      "sentences": 4,
-      "output_tokens": 80,
-      "lexical_coverage": 0.675,
-      "fingerspelling_rate": 0.325,
-      "mean_sentence_fingerspelling_rate": 0.3236,
-      "avg_confidence": 0.7975,
-      "fingerspelled_word_rate": 0.325,
-      "fingerspelled_letters": 193,
-      "letters_per_lexical_sign": 3.574,
-      "proper_noun_words": 4,
-      "fingerspelled_proper_nouns": 3,
-      "fingerspelled_common_words": 23,
-      "common_fingerspelled_word_rate": 0.3026
-    },
-    "weather": {
-      "sentences": 3,
       "output_tokens": 73,
       "lexical_coverage": 0.7808,
       "fingerspelling_rate": 0.2192,
-      "mean_sentence_fingerspelling_rate": 0.2234,
-      "avg_confidence": 0.8534,
+      "mean_sentence_fingerspelling_rate": 0.2254,
+      "avg_confidence": 0.8445,
       "fingerspelled_word_rate": 0.2192,
+      "fingerspelled_letters": 121,
+      "letters_per_lexical_sign": 2.123,
+      "proper_noun_words": 2,
+      "fingerspelled_proper_nouns": 0,
+      "fingerspelled_common_words": 16,
+      "common_fingerspelled_word_rate": 0.2254
+    },
+    "social": {
+      "sentences": 5,
+      "output_tokens": 93,
+      "lexical_coverage": 0.9247,
+      "fingerspelling_rate": 0.0753,
+      "mean_sentence_fingerspelling_rate": 0.0763,
+      "avg_confidence": 0.9177,
+      "fingerspelled_word_rate": 0.0753,
+      "fingerspelled_letters": 39,
+      "letters_per_lexical_sign": 0.453,
+      "proper_noun_words": 2,
+      "fingerspelled_proper_nouns": 0,
+      "fingerspelled_common_words": 7,
+      "common_fingerspelled_word_rate": 0.0769
+    },
+    "sports": {
+      "sentences": 4,
+      "output_tokens": 75,
+      "lexical_coverage": 0.64,
+      "fingerspelling_rate": 0.36,
+      "mean_sentence_fingerspelling_rate": 0.3608,
+      "avg_confidence": 0.78,
+      "fingerspelled_word_rate": 0.36,
+      "fingerspelled_letters": 206,
+      "letters_per_lexical_sign": 4.292,
+      "proper_noun_words": 5,
+      "fingerspelled_proper_nouns": 4,
+      "fingerspelled_common_words": 23,
+      "common_fingerspelled_word_rate": 0.3286
+    },
+    "weather": {
+      "sentences": 3,
+      "output_tokens": 66,
+      "lexical_coverage": 0.7576,
+      "fingerspelling_rate": 0.2424,
+      "mean_sentence_fingerspelling_rate": 0.2428,
+      "avg_confidence": 0.8379,
+      "fingerspelled_word_rate": 0.2424,
       "fingerspelled_letters": 125,
-      "letters_per_lexical_sign": 2.193,
+      "letters_per_lexical_sign": 2.5,
       "proper_noun_words": 2,
       "fingerspelled_proper_nouns": 1,
       "fingerspelled_common_words": 15,
-      "common_fingerspelled_word_rate": 0.2113
+      "common_fingerspelled_word_rate": 0.2344
     }
   },
   "latency_ms": {
-    "mean": 11.233,
-    "p50": 8.96,
-    "p95": 14.691,
-    "max": 85.755
+    "mean": 10.702,
+    "p50": 8.436,
+    "p95": 15.26,
+    "max": 84.389
   },
-  "avg_ms_per_sentence": 11.233
+  "avg_ms_per_sentence": 10.702
 }

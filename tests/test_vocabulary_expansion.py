@@ -26,7 +26,9 @@ ADDED_STOP_WORDS = {
     "ante", "hacia", "segun", "desde", "hasta", "aunque", "pues", "sino",
 }
 # Words that carry a sign (or content) and must therefore NEVER be dropped.
-MUST_STAY = {"mi", "tu", "te", "me", "nos", "no", "y", "o", "pero", "ya", "si", "tambien",
+# "y", "o", "a", "e", "u" are dropped: the dictionary has them only as letters of
+# the fingerspelling alphabet, not as words (see test_names_numbers_enye.py).
+MUST_STAY = {"mi", "tu", "te", "me", "nos", "no", "pero", "ya", "si", "tambien",
              "mas", "muy", "ni", "entre", "nunca", "nada", "todo", "otro"}
 # Meaning shifts and proper nouns that must not be linked to an existing sign.
 NEVER_MAPPED = {"poder", "publico", "publica", "ocupar", "ocupa", "excepto", "america",

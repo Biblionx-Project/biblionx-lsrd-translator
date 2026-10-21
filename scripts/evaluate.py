@@ -164,11 +164,14 @@ def translate_tokens(translator, sequence):
     token's own method hint ('phrase' / 'morphology') and the sentence
     context, so the match_method matches what translate_sequence(sequence)
     produces on the whole sentence. (Passing a bare ``[token]`` list drops the
-    hint and every resolved token would be reported as 'exact'.)
+    hint and every resolved token would be reported as 'exact'.) Name tokens
+    keep their 'name' hint the same way.
     """
     methods = getattr(sequence, "methods", None) or ["exact"] * len(sequence)
     context = getattr(sequence, "context", "")
-    return [translator.translate_sequence(TokenSequence([tok], [methods[i]], context))
+    # Spelling forms keep ñ, so "año" is not scored as ANO.
+    surfaces = getattr(sequence, "surfaces", None) or {}
+    return [translator.translate_sequence(TokenSequence([tok], [methods[i]], context, surfaces))
             for i, tok in enumerate(sequence)]
 
 
