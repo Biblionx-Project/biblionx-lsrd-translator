@@ -29,10 +29,34 @@ LSRD_STOP_WORDS = {
     'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
     'de', 'del', 'al', 'en', 'para', 'por', 'con', 'sin', 'sobre',
     'que', 'cual', 'quien', 'donde', 'como', 'cuando', 'este', 'esta',
-    'estos', 'estas', 'ese', 'esa', 'esos', 'esas', 'aquel', 'aquella', 'se'
+    'estos', 'estas', 'ese', 'esa', 'esos', 'esas', 'aquel', 'aquella', 'se',
+    # --- Function words with NO sign of their own, dropped like the ones above
+    # instead of being fingerspelled letter by letter. Each one was checked
+    # against the dictionary (palabras + sinonimos_mapeo + data/synonyms_extra.json):
+    # none resolves to a sign. Words that DO have a sign are deliberately absent
+    # (mi, tu, te = TE "tea", me, nos, no, y, o, e, u, pero, ya, si, tambien, mas,
+    # muy, todo, otro): dropping them would delete real content.
+    # Object clitics: LSRD marks the argument with direction/pointing, not a sign.
+    'lo', 'le', 'les', 'os',
+    # Relative pronouns/possessives, same role as 'que', 'cual', 'quien' above.
+    # 'cuales' and 'quienes' stay available as wh-words inside questions
+    # (grammar.QUESTION_WORDS is checked first in remove_stopwords).
+    'cuales', 'quienes', 'cuyo', 'cuya', 'cuyos', 'cuyas',
+    # Prepositions with no sign whose relation is carried by the signing space
+    # or the context. Not added on purpose: 'entre' (also entrar, "entre por la
+    # puerta"), 'bajo' (also adjective), 'tras', 'mediante', 'hasta manana'
+    # (own entries or phrases) and 'contra', 'mientras' (they carry meaning).
+    'ante', 'hacia', 'segun', 'desde', 'hasta',
+    # Concessive/contrastive connectors and fillers with no sign. 'ni' is NOT
+    # dropped: removing a negation would flip the meaning ("ni Juan vino").
+    'aunque', 'pues', 'sino',
 }
 
-AUXILIARY_VERBS = {'es', 'son', 'ser', 'esta', 'estan', 'estar', 'fue', 'fueron', 'era', 'eran'}
+# Auxiliaries dropped from the gloss unless the dictionary has the word itself.
+# 'haber' is the perfect-tense/existential auxiliary (he, has, ha, hemos, han,
+# habia, hay, hubo): morphology maps all of them to 'haber', which has no sign.
+AUXILIARY_VERBS = {'es', 'son', 'ser', 'esta', 'estan', 'estar', 'fue', 'fueron', 'era', 'eran',
+                   'haber'}
 
 # Words whose morphological or fuzzy resolution is known to be wrong
 # (e.g. "senas" -> "seno"). They are kept as-is and end up fingerspelled
