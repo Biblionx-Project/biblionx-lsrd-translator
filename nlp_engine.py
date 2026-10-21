@@ -97,6 +97,16 @@ class Resources:
     def __init__(self, db_path):
         self.db_path = db_path
         self.known = morphology.build_known(db_path)
+        # Curated synonyms (word -> target norm). Kept apart from ``known`` so the
+        # base lemmatizer behaves exactly as before; _lemmatize consults them
+        # to stop wrong neighbours ("duele" -> "dolar") and to reach curated
+        # lemmas ("gusta" -> "gustar").
+        extra = os.path.join(os.path.dirname(db_path), "data", "synonyms_extra.json")
+        self.curated = {}
+        for entry in load_synonyms_extra(extra):
+            self.curated.setdefault(normalize_word(entry["word"]),
+                                    normalize_word(entry.get("target_norm") or ""))
+        self.known_plus = self.known | set(self.curated)
         self.phrases = PhraseMatcher.from_db(db_path)
 
 
@@ -164,7 +174,17 @@ class LSRDNlpEngine:
             return token, 'phrase'
         if token in PROTECTED_WORDS:
             return token, 'exact'
-        lemma, how = morphology.lemmatize(token, self.resources.known)
+        res = self.resources
+        lemma, how = morphology.lemmatize(token, res.known)
+        target = res.curated.get(token)
+        if target is not None and lemma != token and lemma != target:
+            # An interpreter-curated mapping beats a morphological guess that
+            # lands on a different sign.
+            return token, 'exact'
+        if lemma == token and token not in res.known and token not in res.curated:
+            lemma2, _ = morphology.lemmatize(token, res.known_plus)
+            if lemma2 != token and lemma2 in res.curated:
+                return lemma2, 'morphology'
         if lemma == token or how in ('exact', 'none'):
             return lemma, 'exact'
         return lemma, 'morphology'

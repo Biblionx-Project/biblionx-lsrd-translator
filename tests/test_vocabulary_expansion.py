@@ -233,5 +233,28 @@ class ExpandVocabularyToolTests(unittest.TestCase):
         self.assertGreater(report["stats"]["distinct_words_harvested"], 1000)
 
 
+class CuratedWordsAreKnownTests(unittest.TestCase):
+    """Curated synonyms must be visible to the lemmatizer (regression)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.nlp = LSRDNlpEngine()
+        cls.translator = LSRDTranslator()
+
+    def signs(self, text):
+        seq = self.nlp.process(text)["secuencia_lsrd"]
+        return [i["palabra_es"] for i in self.translator.translate_sequence(seq)]
+
+    def test_duele_is_dolor_not_dolar(self):
+        self.assertIn("DOLOR", self.signs("Me duele la cabeza"))
+        self.assertNotIn("DÓLAR", self.signs("Me duele la cabeza"))
+
+    def test_gusta_resolves_through_gustar(self):
+        self.assertIn("ME GUSTA", self.signs("Les gusta el juego"))
+
+    def test_real_dollar_still_resolves(self):
+        self.assertIn("DÓLAR", self.signs("Los dólares"))
+
+
 if __name__ == "__main__":
     unittest.main()

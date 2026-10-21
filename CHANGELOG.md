@@ -59,12 +59,15 @@ Dictionary recovery, honest metrics, one version source and a CI that runs every
   `haber` is treated as an auxiliary. Words that own a sign (mi, te, me, nos, ni, no) are kept.
 - The web player and the browser extension show one timeline chip per fingerspelled word (current letter highlighted,
   per-word progress, caption) instead of one slot per letter.
-- Realistic text, before to after this work (42 paragraphs): lexical coverage 0.7015 to 0.7759, fingerspelled words
-  280 to 208, fingerspelled letters 2,067 to 1,534, letters per lexical sign 3.14 to 2.13, common-word fingerspelling
-  rate 0.2887 to 0.2148. The corpus was visible to the vocabulary harvest, so it is a development set; on 12 unseen
+- Realistic text, before to after this work (42 paragraphs): lexical coverage 0.7015 to 0.7802, fingerspelled words
+  280 to 204, fingerspelled letters 2,067 to 1,515, letters per lexical sign 3.14 to 2.09, common-word fingerspelling
+  rate 0.2887 to 0.2103. The corpus was visible to the vocabulary harvest, so it is a development set; on 12 unseen
   paragraphs the common-word rate went from 0.2996 to 0.2536. Gold corpus: fingerspelling rate 0.0930 to 0.0787.
 
 ### Fixed
+- Curated synonyms now steer the lemmatizer: "duele" no longer becomes DÓLAR (it maps to DOLOR) and "gusta" reaches
+  ME GUSTA through "gustar". Ten curated mappings with a meaning shift were removed (ciudadano, empleado, sujeto, mismo,
+  recepcion, interes, fruto and their forms).
 - The image test was silently skipped in CI because `extracted_images/` is not tracked.
 - About half of the local sign images (1,228 of 2,458) were crops of dictionary text instead of the sign illustration,
   a systematic error of the original extraction. `tools/recrop_sign_images.py` regenerates every image from the official
