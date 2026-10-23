@@ -47,7 +47,16 @@ if ROOT_DIR not in sys.path:
 from nlp_engine import LSRDNlpEngine  # noqa: E402
 from translator import LSRDTranslator  # noqa: E402
 
-VERSION = "1.2.0"
+def _read_version():
+    """Single version source: the repo-root VERSION file."""
+    try:
+        with open(os.path.join(os.path.dirname(BASE_DIR), "VERSION"), encoding="utf-8") as fh:
+            return fh.read().strip() or "0.0.0"
+    except OSError:
+        return "0.0.0"
+
+
+VERSION = _read_version()
 HOST = os.environ.get("BIBLIONX_HOST", "127.0.0.1")
 
 

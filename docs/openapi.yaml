@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Biblionx LSRD Translation API
-  version: 2.1.0
+  version: 2.2.0
   summary: Spanish (Dominican Republic) text to Dominican Sign Language (LSRD) translation.
   description: |
     Translates Spanish text into an ordered sequence of LSRD signs. Each sign

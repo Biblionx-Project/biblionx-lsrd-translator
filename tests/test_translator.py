@@ -86,6 +86,31 @@ class TranslatorChainTests(unittest.TestCase):
         finally:
             tr.close()
 
+    def test_fingerspelling_groups_letters_of_one_word(self):
+        out = self.tr.translate_sequence(["xyzqwk", "qwxz"])
+        first, second = out[:6], out[6:]
+        self.assertEqual(len(first), 6)
+        self.assertEqual(len(second), 4)
+        for group, word in ((first, "xyzqwk"), (second, "qwxz")):
+            self.assertEqual([s["spelled_word"] for s in group], [word] * len(word))
+            self.assertEqual([s["spelled_index"] for s in group], list(range(len(word))))
+            self.assertEqual([s["spelled_length"] for s in group], [len(word)] * len(word))
+        # existing keys are untouched
+        for s in out:
+            for key in ("id", "palabra_es", "es_deletreo", "letra", "match_method", "confidence"):
+                self.assertIn(key, s)
+
+    def test_spelled_fields_count_only_emitted_letters(self):
+        out = self.tr.translate_sequence(["xy9zq"])
+        self.assertEqual([s["letra"] for s in out], ["X", "Y", "Z", "Q"])
+        self.assertEqual([s["spelled_index"] for s in out], [0, 1, 2, 3])
+        self.assertEqual({s["spelled_length"] for s in out}, {4})
+        self.assertEqual({s["spelled_word"] for s in out}, {"xy9zq"})
+
+    def test_signs_have_no_spelled_fields(self):
+        out = self.tr.translate_sequence(["casa"])
+        self.assertNotIn("spelled_word", out[0])
+
 
 if __name__ == "__main__":
     unittest.main()

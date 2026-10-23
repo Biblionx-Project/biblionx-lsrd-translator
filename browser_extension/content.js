@@ -8,8 +8,9 @@
   window.__biblionxLoaded = true;
 
   const BASE_STEP_MS = 1500;
+  // Fingerspelled letters stay on screen for a fraction of a lexical sign.
+  const SPELL_FACTOR = 0.45;
   const SPEEDS = { min: 0.5, max: 2, step: 0.25 };
-  const EXACT_METHODS = ["exact", "direct", "dictionary", "synonym", "lemma"];
   const ICONS = {
     hand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12V6a1.5 1.5 0 0 1 3 0v5m0-6.5a1.5 1.5 0 0 1 3 0V11m0-5a1.5 1.5 0 0 1 3 0v6m0-3a1.5 1.5 0 0 1 3 0v5a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.5-2.7L4 15.5a1.6 1.6 0 0 1 2.4-2L7 14"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
@@ -22,7 +23,7 @@
 
   let host = null, root = null, shadow = null, cssText = null;
   let fab = null, scrim = null, dialog = null, lastFocus = null;
-  let seq = [], idx = 0, playing = false, timer = null, elapsed = 0, speed = 1, lastText = "";
+  let seq = [], groups = [], gof = [], idx = 0, playing = false, timer = null, elapsed = 0, speed = 1, lastText = "";
   let apiBase = "http://127.0.0.1:8000";
 
   const clamp = (v) => Math.min(SPEEDS.max, Math.max(SPEEDS.min, v));
@@ -38,8 +39,17 @@
     } catch (e) { /* keep defaults */ }
   }
 
-  async function ensureHost() {
-    if (host && host.isConnected) return;
+  // Concurrent callers (a triple click fires several mouseup events) share one
+  // creation promise; otherwise each would append its own host while the first
+  // one is still awaiting styles.css, leaving orphaned floating buttons behind.
+  let hostPending = null;
+  function ensureHost() {
+    if (host && host.isConnected) return Promise.resolve();
+    if (!hostPending) hostPending = createHost().finally(() => { hostPending = null; });
+    return hostPending;
+  }
+
+  async function createHost() {
     if (cssText === null) {
       try { cssText = await (await fetch(chrome.runtime.getURL("styles.css"))).text(); } catch (e) { cssText = ""; }
     }
@@ -229,8 +239,12 @@
     if (!seq.length) return;
     const tag = (e.composedPath()[0] || {}).tagName;
     if (e.key === " " && tag !== "BUTTON" && tag !== "INPUT") { e.preventDefault(); togglePlay(); }
-    else if (e.key === "ArrowRight" && tag !== "INPUT") { e.preventDefault(); go(idx + 1); }
-    else if (e.key === "ArrowLeft" && tag !== "INPUT") { e.preventDefault(); go(idx - 1); }
+    else if (e.key === "ArrowRight" && tag !== "INPUT") { e.preventDefault(); goGroup(1); }
+    else if (e.key === "ArrowLeft" && tag !== "INPUT") { e.preventDefault(); goGroup(-1); }
+    else if ((e.key === "Home" || e.key === "End") && tag !== "INPUT") {
+      e.preventDefault();
+      go(e.key === "Home" ? 0 : groups[groups.length - 1].start);
+    }
   }
 
   function trapFocus(e) {
@@ -279,20 +293,73 @@
       return;
     }
     seq = list; idx = 0; elapsed = 0;
+    groupSeq();
     renderPlayer();
     start();
   }
 
   /* ---------- Player ---------- */
+  const imageCache = new Map();
+  function loadImage(url) {
+    if (!imageCache.has(url)) {
+      const p = chrome.runtime.sendMessage({ type: "biblionx:image", url }).then((res) => {
+        if (res && res.ok && res.dataUrl) return res.dataUrl;
+        throw new Error((res && res.error) || "image unavailable");
+      });
+      p.catch(() => imageCache.delete(url));
+      imageCache.set(url, p);
+    }
+    return imageCache.get(url);
+  }
+
   function imgUrl(u) {
     if (!u) return "";
     try { return new URL(u, apiBase + "/").href; } catch (e) { return ""; }
   }
   const chipLabel = (s) => (s.es_deletreo ? (s.letra || s.palabra_es || "?") : (s.palabra_es || "?"));
-  function isFuzzy(s) {
-    const m = String(s.match_method || "").toLowerCase();
-    if (!m) return false;
-    return !EXACT_METHODS.includes(m);
+  const upper = (t) => String(t).toLocaleUpperCase("es");
+
+  // One group per lexical sign and one per fingerspelled word. Uses the
+  // spelled_word / spelled_index fields when the API sends them; otherwise
+  // consecutive es_deletreo items are merged into one word.
+  function groupSeq() {
+    groups = []; gof = [];
+    let cur = null, prev = -1;
+    seq.forEach((s, i) => {
+      if (!s.es_deletreo) {
+        groups.push({ start: i, end: i, spelled: false });
+        cur = null; prev = -1; gof.push(groups.length - 1);
+        return;
+      }
+      const si = typeof s.spelled_index === "number" ? s.spelled_index : null;
+      const sw = typeof s.spelled_word === "string" && s.spelled_word ? s.spelled_word : "";
+      const fresh = !cur || (si !== null && si <= prev) || (sw && cur.word && sw !== cur.word);
+      if (fresh) { cur = { start: i, end: i, spelled: true, word: sw }; groups.push(cur); }
+      else { cur.end = i; if (!cur.word && sw) cur.word = sw; }
+      prev = si !== null ? si : prev + 1;
+      gof.push(groups.length - 1);
+    });
+    groups.forEach((g) => {
+      if (!g.spelled) return;
+      const n = g.end - g.start + 1;
+      let chars = g.word ? Array.from(g.word) : [];
+      if (chars.length !== n) chars = seq.slice(g.start, g.end + 1).map((s) => s.letra || "?");
+      g.letters = chars.map(upper);
+      g.word = upper(g.word || g.letters.join(""));
+    });
+  }
+  const groupName = (g) => (g.spelled ? g.word : chipLabel(seq[g.start]));
+  // Time (in speed-scaled ms) the item at index i stays on screen.
+  const stepMs = (i) => BASE_STEP_MS * (seq[i] && seq[i].es_deletreo && !reduced() ? SPELL_FACTOR : 1);
+  // Badge only the non-deterministic matches. Morphology, phrases and dictionary
+  // synonyms are exact lookups of a known form, so they get no badge.
+  const MATCH_BADGES = {
+    fuzzy: { chip: "approx", label: "Approximate match" },
+    ai: { chip: "AI", label: "AI match" },
+    curated_synonym: { chip: "syn", label: "Synonym" },
+  };
+  function matchBadge(s) {
+    return MATCH_BADGES[String(s.match_method || "").toLowerCase()] || null;
   }
 
   function renderPlayer() {
@@ -310,21 +377,25 @@
       </div>
       <div class="timeline" id="bx-timeline" role="list" aria-label="Sign timeline"></div>`;
     const q = (id) => body().querySelector(id);
-    q("#bx-prev").addEventListener("click", () => go(idx - 1));
-    q("#bx-next").addEventListener("click", () => go(idx + 1));
+    q("#bx-prev").addEventListener("click", () => goGroup(-1));
+    q("#bx-next").addEventListener("click", () => goGroup(1));
     q("#bx-play").addEventListener("click", togglePlay);
     q("#bx-speed").addEventListener("input", (e) => { speed = clamp(Number(e.target.value)); q("#bx-speed-out").textContent = `${speed}x`; });
     q("#bx-speed").addEventListener("change", () => { try { store().set({ speed }); } catch (e) { /* noop */ } });
     const tl = q("#bx-timeline");
-    seq.forEach((s, i) => {
+    groups.forEach((g, gi) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "chip" + (s.es_deletreo ? " spell" : "");
+      b.className = "chip" + (g.spelled ? " spell" : "");
       b.setAttribute("role", "listitem");
-      const tag = s.es_deletreo ? '<span class="tag">spelled</span>' : isFuzzy(s) ? '<span class="tag ai">AI</span>' : "";
-      b.innerHTML = `${esc(chipLabel(s))}${tag}`;
-      b.setAttribute("aria-label", `Sign ${i + 1} of ${seq.length}: ${chipLabel(s)}${s.es_deletreo ? ", fingerspelled" : ""}`);
-      b.addEventListener("click", () => go(i));
+      const mb = g.spelled ? null : matchBadge(seq[g.start]);
+      const tag = g.spelled ? '<span class="tag">spelled</span>' : mb ? `<span class="tag ai">${esc(mb.chip)}</span>` : "";
+      b.innerHTML = `${esc(groupName(g))}${tag}`;
+      const extra = g.spelled
+        ? `, fingerspelled word, ${g.letters.length} letter${g.letters.length === 1 ? "" : "s"}`
+        : mb ? `, ${mb.label.toLowerCase()}` : "";
+      b.setAttribute("aria-label", `Sign ${gi + 1} of ${groups.length}: ${groupName(g)}${extra}`);
+      b.addEventListener("click", () => go(g.start));
       tl.appendChild(b);
     });
     showSign();
@@ -341,39 +412,60 @@
   function showSign() {
     if (!scrim || !seq[idx] || !body().querySelector("#bx-stage")) return;
     const s = seq[idx], q = (id) => body().querySelector(id);
+    const gi = gof[idx], g = groups[gi], pos = idx - g.start;
     const stage = q("#bx-stage");
     const badges = [];
     if (s.es_deletreo) badges.push('<span class="badge spell">Fingerspelled</span>');
-    else if (isFuzzy(s)) {
+    else if (matchBadge(s)) {
       const c = typeof s.confidence === "number" ? ` ${Math.round(s.confidence * 100)}%` : "";
-      badges.push(`<span class="badge ai">AI match${c}</span>`);
+      badges.push(`<span class="badge ai">${esc(matchBadge(s).label)}${c}</span>`);
     }
+    const counter = `${gi + 1} / ${groups.length}` + (g.spelled ? ` · letter ${pos + 1} of ${g.letters.length}` : "");
     const missing = s.image_available === false || !s.url_imagen;
     const url = missing ? "" : imgUrl(s.url_imagen);
     const letter = (chipLabel(s) || "?").charAt(0).toUpperCase();
-    stage.innerHTML = (url ? `<img src="${esc(url)}" alt="">` : textCard(s, letter))
-      + `<div class="badges">${badges.join("")}</div><div class="counter">${idx + 1} / ${seq.length}</div>`;
+    stage.innerHTML = (url ? `<img alt="">` : textCard(s, letter))
+      + `<div class="badges">${badges.join("")}</div><div class="counter">${esc(counter)}</div>`;
     const img = stage.querySelector("img");
     if (img) {
-      img.alt = `LSRD sign for ${chipLabel(s)}`;
-      img.addEventListener("error", () => {
+      img.alt = g.spelled ? `LSRD fingerspelling: letter ${chipLabel(s)} of ${g.word}` : `LSRD sign for ${chipLabel(s)}`;
+      const fallback = () => {
+        if (!img.isConnected) return;
         const t = document.createElement("div");
         t.innerHTML = textCard(s, letter);
         img.replaceWith(t.firstChild);
-      });
+      };
+      img.addEventListener("error", fallback);
+      // Images come through the service worker: on HTTPS pages a direct
+      // http://127.0.0.1 <img> is blocked as mixed content.
+      loadImage(url).then((data) => { if (img.isConnected) img.src = data; }, fallback);
     }
-    q("#bx-word").textContent = s.es_deletreo ? `${s.letra || ""} (letter)` : (s.palabra_es || "");
-    q("#bx-desc").textContent = s.descripcion_sena || "";
+    const word = q("#bx-word");
+    if (g.spelled) {
+      // Whole word under the hand-shape image, current letter highlighted.
+      word.setAttribute("aria-label", `${g.word}, fingerspelled`);
+      word.innerHTML = g.letters
+        .map((ch, j) => `<span class="sl${j === pos ? " on" : ""}" aria-hidden="true">${esc(ch)}</span>`).join("");
+      q("#bx-desc").textContent = `${g.word} — fingerspelled (no sign in the official dictionary)`;
+    } else {
+      word.removeAttribute("aria-label");
+      word.textContent = s.palabra_es || "";
+      q("#bx-desc").textContent = s.descripcion_sena || "";
+    }
     body().querySelectorAll(".chip").forEach((c, i) => {
-      if (i === idx) {
+      if (i === gi) {
         c.setAttribute("aria-current", "true");
         c.scrollIntoView({ inline: "center", block: "nearest", behavior: reduced() ? "auto" : "smooth" });
       } else c.removeAttribute("aria-current");
     });
-    q("#bx-prev").disabled = idx === 0;
-    q("#bx-next").disabled = idx === seq.length - 1;
+    q("#bx-prev").disabled = gi === 0;
+    q("#bx-next").disabled = gi === groups.length - 1;
     const live = scrim.querySelector("#bx-live");
-    if (live && !playing) live.textContent = `${chipLabel(s)}, sign ${idx + 1} of ${seq.length}`;
+    if (live && !playing) {
+      live.textContent = g.spelled
+        ? `${g.word}, fingerspelled, letter ${chipLabel(s)}, ${pos + 1} of ${g.letters.length}, sign ${gi + 1} of ${groups.length}`
+        : `${chipLabel(s)}, sign ${gi + 1} of ${groups.length}`;
+    }
     updateBar();
   }
 
@@ -381,7 +473,10 @@
     if (!scrim || !body()) return;
     const bar = body().querySelector("#bx-bar");
     if (!bar) return;
-    const pct = Math.min(100, ((idx + Math.min(1, elapsed / BASE_STEP_MS)) / seq.length) * 100);
+    // Weighted by step duration so a long spelled word does not distort progress.
+    let total = 0, before = 0;
+    for (let i = 0; i < seq.length; i++) { const d = stepMs(i); total += d; if (i < idx) before += d; }
+    const pct = Math.min(100, ((before + Math.min(elapsed, stepMs(idx))) / total) * 100);
     bar.style.width = `${pct}%`;
     bar.parentElement.setAttribute("aria-valuenow", String(Math.round(pct)));
   }
@@ -390,6 +485,12 @@
     if (i < 0 || i >= seq.length) return;
     idx = i; elapsed = 0;
     showSign();
+  }
+
+  // Previous/next move by sign or by whole fingerspelled word, not by letter.
+  function goGroup(d) {
+    const gi = gof[idx] + d;
+    if (gi >= 0 && gi < groups.length) go(groups[gi].start);
   }
 
   function setPlayBtn() {
@@ -401,7 +502,7 @@
 
   function start() {
     if (timer) clearInterval(timer);
-    if (idx >= seq.length - 1 && elapsed >= BASE_STEP_MS) { idx = 0; elapsed = 0; showSign(); }
+    if (idx >= seq.length - 1 && elapsed >= stepMs(idx)) { idx = 0; elapsed = 0; showSign(); }
     playing = true;
     setPlayBtn();
     let last = performance.now();
@@ -409,9 +510,9 @@
       const now = performance.now();
       elapsed += (now - last) * speed;
       last = now;
-      if (elapsed >= BASE_STEP_MS) {
+      if (elapsed >= stepMs(idx)) {
         if (idx < seq.length - 1) { idx++; elapsed = 0; showSign(); }
-        else { elapsed = BASE_STEP_MS; updateBar(); stop(); return; }
+        else { elapsed = stepMs(idx); updateBar(); stop(); return; }
       }
       updateBar();
     }, 40);

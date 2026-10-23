@@ -6,10 +6,14 @@ Lookup chain for every token (first hit wins):
 
     exact palabra_norm  ->  sinonimos_mapeo  ->  curated synonyms
     (data/synonyms_extra.json)  ->  fuzzy ML match (char n-gram TF-IDF)
-    ->  optional LLM choice among fuzzy candidates  ->  A-Z fingerspelling
+    ->  optional semantic AI choice over the whole dictionary
+    ->  A-Z fingerspelling
 
 Each returned sign carries ``match_method`` and ``confidence`` (0-1) in
-addition to the original keys. Lookup tables are built once per database
+addition to the original keys. Every fingerspelled letter also carries
+``spelled_word`` (the original token), ``spelled_index`` (0-based position of
+the letter inside that word) and ``spelled_length`` (letters emitted for it) so
+UIs can group the letters of one word. Lookup tables are built once per database
 (shared, read-only); each translator owns one SQLite connection guarded by a
 lock, so an instance is safe to share across server threads.
 """
@@ -19,15 +23,14 @@ import sqlite3
 import threading
 
 from ml_matcher import FuzzyMatcher
-from llm_fallback import LLMFallback
-from nlp_engine import PROTECTED_WORDS, load_synonyms_extra, normalize_word
+from llm_fallback import AI_CONFIDENCE_CAP, LLMFallback
+from nlp_engine import PROTECTED_WORDS, load_synonyms_extra, normalize_word, spelling_form
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(_HERE, "lsrd_dictionary.db")
 
 FUZZY_MIN_SCORE = 0.84
-LLM_MIN_SCORE = 0.55
-LLM_CANDIDATES = 8
+SEMANTIC_MIN_LEN = 3  # shorter tokens are never worth a model call
 
 # Fingerspelling alphabet letter mapping, extracted from the Dictionary (pages 21-28 / entries)
 DACTYL_LETTER_MAP = {
@@ -64,8 +67,16 @@ DACTYL_LETTER_MAP = {
 # digits have no sign and are skipped (the alphabet has no numerals).
 NUMBER_WORDS = {'2': 'dos', '10': 'diez', '20': 'veinte', '100': 'cien', '1000': 'mil'}
 
-CONFIDENCE = {'exact': 1.0, 'phrase': 0.95, 'morphology': 0.9, 'synonym': 0.9,
-              'curated_synonym': 0.85, 'ai': 0.7, 'fingerspelling': 0.5}
+# Spanish numerals for the number signs the dictionary has (1-10, 100, 1000).
+NUMERAL_NORMS = {'1': 'uno', '2': 'dos', '3': 'tres', '4': 'cuatro', '5': 'cinco', '6': 'seis',
+                 '7': 'siete', '8': 'ocho', '9': 'nueve', '10': 'diez', '100': 'cien', '1000': 'mil'}
+DIGIT_WORDS = {'0': 'cero', '1': 'uno', '2': 'dos', '3': 'tres', '4': 'cuatro', '5': 'cinco',
+               '6': 'seis', '7': 'siete', '8': 'ocho', '9': 'nueve'}
+# Leading articles that belong to a place name but are not spelled ("La Española").
+NAME_ARTICLES = {'el', 'la', 'los', 'las'}
+
+CONFIDENCE = {'exact': 1.0, 'number': 1.0, 'phrase': 0.95, 'morphology': 0.9, 'synonym': 0.9,
+              'curated_synonym': 0.85, 'ai': AI_CONFIDENCE_CAP, 'fingerspelling': 0.5}
 
 _SIGN_QUERY = """
     SELECT p.id, p.palabra_es, p.definicion_es, p.pagina, c.nombre as categoria,
@@ -107,10 +118,27 @@ class _Index:
         try:
             self.exact = {}      # palabra_norm (full) -> palabra_id
             self.prefix = {}     # first comma-separated part -> palabra_id
-            for pid, norm in conn.execute("SELECT id, palabra_norm FROM palabras ORDER BY rowid"):
+            letter_ids = set(DACTYL_LETTER_MAP.values())
+            lemmas = set()       # sign lemmas offered to the semantic AI fallback
+            # Lookups by the printed headword with ñ kept. palabra_norm drops ñ,
+            # so AÑO and ANO, SOÑAR and "sonar", UÑA and "una" collide there.
+            self.enye = {}       # spelling form of palabra_es (ñ kept) -> palabra_id
+            self.has_enye = set()
+            for pid, norm, es in conn.execute(
+                    "SELECT id, palabra_norm, palabra_es FROM palabras ORDER BY rowid"):
+                if es:
+                    if 'ñ' in es.lower():
+                        self.has_enye.add(pid)
+                    head = es.split(',')[0].split('(')[0]
+                    for key in (spelling_form(es), spelling_form(head)):
+                        key = " ".join(key.split())
+                        if key and pid not in letter_ids:
+                            self.enye.setdefault(key, pid)
                 if not norm:
                     continue
                 norm = norm.strip()
+                if norm and pid not in letter_ids:
+                    lemmas.add(norm)
                 self.exact.setdefault(norm, pid)
                 if ',' in norm:
                     self.exact.setdefault(norm.rstrip(', '), pid)
@@ -121,6 +149,7 @@ class _Index:
                     if ',' in stripped:
                         self.exact.setdefault(stripped.rstrip(', '), pid)
                         self.prefix.setdefault(stripped.split(',')[0].strip(), pid)
+            self.lemmas = tuple(sorted(lemmas))
             self.synonym = {}
             try:
                 for pid, syn in conn.execute(
@@ -242,7 +271,7 @@ class LSRDTranslator:
         return self._tag(row, method, CONFIDENCE[method]) if row else None
 
     def _fuzzy_sign(self, word_norm, context):
-        """Fuzzy ML match, then optional LLM choice. Returns a tagged sign or None."""
+        """Fuzzy ML match. Returns a tagged sign or None."""
         if word_norm in PROTECTED_WORDS or len(word_norm) <= 3 or any(c.isdigit() for c in word_norm):
             return None
         fz = self._index.fuzzy
@@ -255,23 +284,93 @@ class LSRDTranslator:
                 item = self._tag(row, 'fuzzy', hit['score'])
                 item['matched_norm'] = hit['norm']
                 return item
-        llm = self.llm
-        if llm.enabled:
-            cands = [c for c in fz.candidates(word_norm, k=LLM_CANDIDATES)
-                     if c['score'] >= LLM_MIN_SCORE]
-            if cands:
-                chosen = llm.choose(word_norm, context or '', [c['norm'] for c in cands])
-                for c in cands:
-                    if c['norm'] == chosen:
-                        row = self._row(c['palabra_id'])
-                        if row:
-                            item = self._tag(row, 'ai', CONFIDENCE['ai'])
-                            item['matched_norm'] = c['norm']
-                            return item
         return None
 
+    def _semantic_sign(self, word_norm, context):
+        """Optional AI choice over the whole dictionary. Returns a tagged sign or None.
+
+        Runs only after exact/synonym/fuzzy missed and before fingerspelling.
+        The model sees every sign lemma and the sentence; its answer is
+        validated against the dictionary, so it can only pick an existing sign.
+        """
+        llm = self.llm
+        if not llm.enabled or not hasattr(llm, 'choose_semantic'):
+            return None
+        if (word_norm in PROTECTED_WORDS or len(word_norm) < SEMANTIC_MIN_LEN
+                or any(c.isdigit() for c in word_norm)):
+            return None
+        lemma = llm.choose_semantic(word_norm, context or '', self._index.lemmas)
+        if not lemma:
+            return None
+        pid = self._index.exact.get(lemma) or self._index.prefix.get(lemma)
+        row = self._row(pid) if pid else None
+        if not row:
+            return None
+        item = self._tag(row, 'ai', CONFIDENCE['ai'])
+        item['matched_norm'] = lemma
+        return item
+
+    def _name_signs(self, name, surfaces=None):
+        """Signs for a proper noun.
+
+        Only the dictionary's own entry counts ("santo domingo", "puerto
+        plata"); synonyms, morphology, fuzzy and AI matching are skipped so a
+        name never turns into an unrelated common word ("Mona" -> MONO). Names
+        without an entry are fingerspelled, which is standard LSRD practice.
+        """
+        idx = self._index
+        pid = idx.exact.get(name) or (idx.prefix.get(name) if ' ' not in name else None)
+        if not pid and ' ' not in name:
+            pid = idx.synonym.get(name)
+        row = self._row(pid) if pid else None
+        if row:
+            return [self._tag(row, 'exact', CONFIDENCE['exact'])]
+        words = name.split()
+        if len(words) > 1:
+            # A multi-word name whose every word has its own dictionary sign
+            # ("Ministerio de Educación") is signed word by word. If any word
+            # lacks one, the name is one entity and is spelled whole, so
+            # "Puerto Rico" never yields RICO.
+            ids = [idx.exact.get(w) or idx.prefix.get(w) for w in words if w not in NAME_ARTICLES]
+            if ids and all(ids):
+                return [self._tag(self._row(i), 'exact', CONFIDENCE['exact']) for i in ids]
+            if words[0] in NAME_ARTICLES:
+                words = words[1:]
+        surfaces = surfaces or {}
+        return self.get_fingerspelling_sequence(" ".join(surfaces.get(w, w) for w in words))
+
+    def _number_signs(self, digits):
+        """Signs for a numeral: the dictionary's number sign when there is one
+        (1-10, 100, 1000), otherwise one sign per digit, as years and long
+        numbers are signed. Zero has no entry and is fingerspelled."""
+        idx = self._index
+        value = str(int(digits)) if digits.strip('0') else '0'
+        whole = NUMERAL_NORMS.get(value)
+        pid = (idx.exact.get(whole) or idx.prefix.get(whole)) if whole else None
+        if pid and self._row(pid):
+            item = self._tag(self._row(pid), 'number', CONFIDENCE['number'])
+            item['number_value'] = value
+            return [item]
+        out = []
+        for d in value:
+            norm = NUMERAL_NORMS.get(d)
+            pid = (idx.exact.get(norm) or idx.prefix.get(norm)) if norm else None
+            row = self._row(pid) if pid else None
+            if row:
+                item = self._tag(row, 'number', CONFIDENCE['number'])
+                item['number_value'] = value
+                out.append(item)
+            else:
+                out.extend(self.get_fingerspelling_sequence(DIGIT_WORDS[d]))
+        return out
+
     def get_fingerspelling_sequence(self, word):
-        """Generates a fingerspelling sequence for words not found in the dictionary."""
+        """Generates a fingerspelling sequence for words not found in the dictionary.
+
+        Each letter item carries ``spelled_word`` (the original token),
+        ``spelled_index`` (0-based position among the emitted letters) and
+        ``spelled_length`` (number of letters emitted for the word).
+        """
         sequence = []
         for char in word.lower():
             sign_id = DACTYL_LETTER_MAP.get(char)
@@ -283,7 +382,11 @@ class LSRDTranslator:
                 item['letra'] = char.upper()
                 item['match_method'] = 'fingerspelling'
                 item['confidence'] = CONFIDENCE['fingerspelling']
+                item['spelled_word'] = word
+                item['spelled_index'] = len(sequence)
                 sequence.append(item)
+        for item in sequence:
+            item['spelled_length'] = len(sequence)
         return sequence
 
     def translate_sequence(self, tokens_lsrd, context=None):
@@ -291,15 +394,34 @@ class LSRDTranslator:
 
         If ``tokens_lsrd`` is a nlp_engine.TokenSequence, its provenance
         ('phrase' / 'morphology') labels exact matches and its sentence
-        context is passed to the optional LLM fallback.
+        context is passed to the optional semantic AI fallback.
         """
         hints = getattr(tokens_lsrd, 'methods', None)
+        surfaces = getattr(tokens_lsrd, 'surfaces', None) or {}
+        # ñ checks need the original spelling, which only a TokenSequence from
+        # the NLP engine carries; plain token lists keep the legacy behaviour.
+        enye_aware = hasattr(tokens_lsrd, 'surfaces')
         if context is None:
             context = getattr(tokens_lsrd, 'context', None)
         result_sequence = []
 
         for i, token in enumerate(tokens_lsrd):
+            surface = surfaces.get(token, token)
+            enye_pid = self._index.enye.get(surface) if 'ñ' in surface else None
+            if enye_pid and self._row(enye_pid):
+                method = hints[i] if hints and i < len(hints) and hints[i] in ('phrase', 'morphology') else 'exact'
+                result_sequence.append(self._tag(self._row(enye_pid), method, CONFIDENCE[method]))
+                continue
+            if hints and i < len(hints) and hints[i] == 'name':
+                result_sequence.extend(self._name_signs(token, surfaces))
+                continue
+            if token.isdigit():
+                result_sequence.extend(self._number_signs(token))
+                continue
             pid, method = self._lookup_id(token)
+            if pid and enye_aware and (('ñ' in surface) != (pid in self._index.has_enye)):
+                # "año" must not become ANO, nor "sonar" SOÑAR.
+                pid = None
             if pid:
                 row = self._row(pid)
                 if row:
@@ -307,10 +429,15 @@ class LSRDTranslator:
                         method = hints[i]
                     result_sequence.append(self._tag(row, method, CONFIDENCE[method]))
                     continue
-            fuzzy_item = self._fuzzy_sign(token, context)
+            fuzzy_item = None if 'ñ' in surface else (
+                self._fuzzy_sign(token, context) or self._semantic_sign(token, context))
+            if enye_aware and fuzzy_item and fuzzy_item.get('id') in self._index.has_enye:
+                # Approximate matches ignore ñ too ("sonar" ~ SOÑAR); a word
+                # written without ñ never maps to a headword that has one.
+                fuzzy_item = None
             if fuzzy_item:
                 result_sequence.append(fuzzy_item)
             else:
-                result_sequence.extend(self.get_fingerspelling_sequence(token))
+                result_sequence.extend(self.get_fingerspelling_sequence(surfaces.get(token, token)))
 
         return result_sequence
