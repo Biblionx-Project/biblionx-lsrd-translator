@@ -38,6 +38,8 @@ LSRD_STOP_WORDS = {
     # muy, todo, otro): dropping them would delete real content.
     # Object clitics: LSRD marks the argument with direction/pointing, not a sign.
     'lo', 'le', 'les', 'os',
+    # Preposition with no sign; it used to fuzzy-match NOSOTROS, TRAS.
+    'tras',
     # One-letter function words. The dictionary has them only as letters of the
     # fingerspelling alphabet (A, Y, O, E, U), not as words, so keeping them
     # showed the letter sign for the preposition "a" or the conjunction "y".
@@ -66,6 +68,11 @@ AUXILIARY_VERBS = {'es', 'son', 'ser', 'esta', 'estan', 'estar', 'fue', 'fueron'
 # (e.g. "senas" -> "seno"). They are kept as-is and end up fingerspelled
 # unless the dictionary has them literally.
 PROTECTED_WORDS = {'senas', 'sena'}
+
+# Clitic pronouns that are always followed by a verb ("se burla", "te
+# abrazo", "le pregunta"). 'lo', 'la', 'los', 'las' are left out because
+# they are also articles.
+CLITIC_PRONOUNS = {'me', 'te', 'se', 'nos', 'os', 'le', 'les'}
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(_HERE, "lsrd_dictionary.db")
@@ -121,7 +128,20 @@ class Resources:
             self.curated.setdefault(normalize_word(entry["word"]),
                                     normalize_word(entry.get("target_norm") or ""))
         self.known_plus = self.known | set(self.curated)
+        # Pronominal verbs (ABURRIRSE, BAÑAR, SE): preferred after a clitic.
+        self.reflexive = morphology.build_reflexive(db_path)
         self.phrases = PhraseMatcher.from_db(db_path)
+        # Every proper prefix of a phrase key, to prune inflected-phrase search.
+        # Phrase words join ``known`` when lemmatizing inside a phrase, so that
+        # "cruzo" reaches the CRUZAR of CRUZAR LAS PIERNAS.
+        self.phrase_prefixes = set()
+        phrase_words = set()
+        for key in self.phrases.phrases:
+            words = key.split()
+            phrase_words.update(words)
+            for n in range(1, len(words)):
+                self.phrase_prefixes.add(" ".join(words[:n]))
+        self.known_phrase = self.known | phrase_words
 
 
 _resources = {}
@@ -185,18 +205,24 @@ class LSRDNlpEngine:
     def lemmatize_tokens(self, tokens):
         return [self._lemmatize(t)[0] for t in tokens]
 
-    def _lemmatize(self, token):
-        """Return (lemma, method); method is 'exact', 'phrase' or 'morphology'."""
+    def _lemmatize(self, token, verb_context=False):
+        """Return (lemma, method); method is 'exact', 'phrase' or 'morphology'.
+
+        ``verb_context``: the clitic pronoun the token follows (see
+        CLITIC_PRONOUNS), or False; morphology then prefers a verb reading.
+        """
         if ' ' in token or ',' in token:
             return token, 'phrase'
         if token in PROTECTED_WORDS:
             return token, 'exact'
         res = self.resources
-        lemma, how = morphology.lemmatize(token, res.known)
+        lemma, how = morphology.lemmatize(token, res.known, verb_context=verb_context,
+                                          reflexive=res.reflexive)
         target = res.curated.get(token)
-        if target is not None and lemma != token and lemma != target:
+        if target is not None and lemma != token and lemma != target                 and not (verb_context and (lemma in res.reflexive or lemma.endswith('rse'))):
             # An interpreter-curated mapping beats a morphological guess that
-            # lands on a different sign.
+            # lands on a different sign, except a pronominal verb read after
+            # a clitic ("me visto" is VESTIR, SE even though visto -> ver).
             return token, 'exact'
         if lemma == token and token not in res.known and token not in res.curated:
             lemma2, _ = morphology.lemmatize(token, res.known_plus)
@@ -206,33 +232,131 @@ class LSRDNlpEngine:
             return lemma, 'exact'
         return lemma, 'morphology'
 
-    def _stressed_preterites(self, clause):
+    def _stressed_preterites(self, clause, verb_ctx=()):
         """Map normalized forms to infinitives for words whose written accent
         marks a preterite verb ("trabajó", "trabajé", "comió").
 
         Accent stripping turns "trabajó" into "trabajo", which is also a noun
         in the dictionary, so the accent is the only cue that it's a verb.
+        The same holds for -iar verbs ("cambió", "premió" are not the nouns
+        CAMBIO, PREMIO), pronominal headwords ("se sentó" -> SENTARSE),
+        irregular forms ("rió" -> reír) and the stressed imperfect -ía
+        ("medía" is medir, not MEDIA).
         Only infinitives that exist in the dictionary are returned.
         """
         known = self.resources.known
         overrides = {}
         for word in clause.lower().split():
             word = word.strip(".,;:!?¡¿\"'()")
-            if len(word) < 4 or word[-1] not in 'óé':
-                continue
             base = normalize_word(word)
-            stem = base[:-1]
-            if word.endswith('ió'):
-                candidates = [stem[:-1] + 'er', stem[:-1] + 'ir']
-            elif word.endswith('ó'):
-                candidates = [stem + 'ar']
-            else:  # -é (1st person preterite of -ar verbs)
-                candidates = [stem + 'ar']
+            if len(word) < 3 or base == word:
+                continue
+            if word[-1] in 'óé':
+                stem = base[:-1]
+                if word.endswith('ió'):
+                    candidates = [stem[:-1] + 'er', stem[:-1] + 'ir', stem + 'ar']
+                else:  # -ó, -é: 3rd/1st person preterite of -ar verbs
+                    candidates = [stem + 'ar']
+            elif word.endswith(('ía', 'ías', 'ían')) and len(base.rsplit('ia', 1)[0]) >= 3:
+                stem = base.rsplit('ia', 1)[0]
+                candidates = [stem + 'er', stem + 'ir']
+            else:
+                continue
             for inf in candidates:
+                # se levantó -> levantarse; me senté -> sentarse (person agrees)
+                if verb_ctx.get(base) == ('me' if word[-1] == 'é' else 'se')                         and inf + 'se' in known:
+                    overrides[base] = inf + 'se'
+                    break
                 if inf in known:
                     overrides[base] = inf
                     break
+                if inf + 'se' in known:
+                    overrides[base] = inf + 'se'
+                    break
+            else:
+                irregular = morphology.IRREGULAR_VERB_MAP.get(base)
+                if irregular and word[-1] in 'óé' and irregular in known:
+                    overrides[base] = irregular
         return overrides
+
+    @staticmethod
+    def _verb_contexts(clause):
+        """Map each normalized word that directly follows a clitic pronoun to
+        that clitic ("se burla" -> {'burla': 'se'}). Accented "sé" (I know)
+        and "té" (tea) are not clitics."""
+        words = [w.strip(".,;:!?¡¿\"'()[]").lower() for w in clause.split()]
+        ctx = {}
+        for prev, cur in zip(words, words[1:]):
+            if prev in CLITIC_PRONOUNS and cur:
+                ctx.setdefault(normalize_word(cur), prev)
+        return ctx
+
+    def _phrase_variants(self, token):
+        """Base forms under which an inflected token can match a phrase key:
+        the token, its singular ("armas" -> "arma"), its lemma and, for verbs,
+        the infinitive and its pronominal form ("lavo" -> lavar, lavarse)."""
+        res = self.resources
+        out = [token]
+        if ' ' in token or token in AUXILIARY_VERBS or token in morphology.IRREGULAR_VERB_MAP \
+                and morphology.IRREGULAR_VERB_MAP[token] in ('ser', 'estar', 'haber', 'ir'):
+            return out
+        cands = morphology._plural_candidates(token)
+        lemma = morphology.lemmatize(token, res.known_phrase)[0]
+        cands.append(lemma)
+        if lemma.endswith(('ar', 'er', 'ir')):
+            cands.append(lemma + 'se')
+        for c in cands:
+            if c not in out:
+                out.append(c)
+        return out
+
+    def _segment_phrases(self, toks, names):
+        """Phrase segmentation that also matches inflected multi-word entries
+        ("armas de fuego" -> ARMA DE FUEGO, "cruzó las piernas" -> CRUZAR LAS
+        PIERNAS). An exact match at a position always wins; inflected variants
+        are tried only where no exact phrase starts."""
+        res = self.resources
+        pm = res.phrases
+        if len(toks) < 2:
+            return list(toks)
+        variants = [(t,) if t in names else self._phrase_variants(t) for t in toks]
+        out, i, n = [], 0, len(toks)
+        max_len = min(pm.max_len, 4)
+
+        def search(start, prefix, depth):
+            """Longest phrase key from ``start`` built from token variants."""
+            best = None
+            if start + depth >= n or depth >= max_len:
+                return None
+            for v in variants[start + depth]:
+                key = v if not prefix else prefix + " " + v
+                if depth >= 1 and key in pm.phrases:
+                    best = (depth + 1, pm.phrases[key]) if best is None or depth + 1 > best[0] else best
+                if key in res.phrase_prefixes:
+                    deeper = search(start, key, depth + 1)
+                    if deeper and (best is None or deeper[0] > best[0]):
+                        best = deeper
+            return best
+
+        while i < n:
+            size = 0
+            for s in range(min(max_len, n - i), 1, -1):
+                hit = pm.phrases.get(" ".join(toks[i:i + s]))
+                if hit is not None:
+                    out.append(hit)
+                    size = s
+                    break
+            if not size:
+                found = search(i, "", 0)
+                if found:
+                    size, hit = found
+                    out.append(hit)
+            if size:
+                i += size
+            else:
+                out.append(toks[i])
+                i += 1
+        return out
 
     @staticmethod
     def _name_groups(clause, sentence_initial):
@@ -312,7 +436,7 @@ class LSRDNlpEngine:
                 if norm and 'ñ' in w.lower():
                     surfaces.setdefault(norm, spelling_form(w))
             toks, names = self._merge_names(toks, self._name_groups(clause, sentence_initial))
-            toks = phrases.segment(toks)
+            toks = self._segment_phrases(toks, names)
             # Stored phrase norms may carry a trailing comma ("ser humano,").
             toks = [t.strip(' ,') if ((' ' in t or ',' in t) and t not in names) else t for t in toks]
             # A word written with ñ is never a stopword: "uña" normalizes to
@@ -321,10 +445,11 @@ class LSRDNlpEngine:
                     or t in self.remove_stopwords([t], keep_question_words=is_q)]
             filtered_tokens.extend(toks)
 
-            preterites = self._stressed_preterites(clause)
+            verb_ctx = self._verb_contexts(clause)
+            preterites = self._stressed_preterites(clause, verb_ctx)
             pairs = [(t, 'name') if t in names
                      else (preterites[t], 'morphology') if t in preterites
-                     else self._lemmatize(t)
+                     else self._lemmatize(t, verb_context=verb_ctx.get(t, False))
                      for t in toks]
             # Carry ñ over to lemmas ("años" -> "año", not "ano"): suffix rules
             # only change the ending, so ñ keeps its position in the stem.

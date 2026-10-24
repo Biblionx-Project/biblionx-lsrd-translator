@@ -41,17 +41,17 @@ jobs:
       - name: Quality gate
         run: |
           python scripts/check_metrics.py /tmp/m.json \
-            --min-coverage 0.88 --min-recall 0.95 --min-precision 0.93 \
-            --max-fingerspelling-rate 0.12 --min-order-accuracy 1.0 --max-p95-ms 500
+            --min-coverage 0.90 --min-recall 0.97 --min-precision 0.95 \
+            --max-fingerspelling-rate 0.10 --min-order-accuracy 1.0 --max-p95-ms 500
 
-      # Realistic web paragraphs (no gold lemmas). Measured after the vocabulary
-      # expansion: coverage 0.7802, common-word fingerspelling 0.2103. Proper
+      # Realistic web paragraphs (no gold lemmas). Measured in 2.3.0:
+      # coverage 0.7763, common-word fingerspelling 0.2094. Proper
       # nouns are legitimately spelled, so only common words are gated; the
       # limits sit slightly above/below the measured values.
       - name: Quality gate (realistic corpus)
         run: |
           python scripts/check_metrics.py /tmp/m.json --corpus eval_corpus_realistic \
-            --min-coverage 0.75 --max-common-fingerspelling-rate 0.235 --max-p95-ms 500
+            --min-coverage 0.77 --max-common-fingerspelling-rate 0.215 --max-p95-ms 500
 
       - uses: actions/setup-node@v4
         with:

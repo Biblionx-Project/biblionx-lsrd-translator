@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Biblionx - Dominican Sign Language (LSRD) Translator",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Translate selected text into Dominican Sign Language (LSRD) with an accessible visual player.",
   "permissions": [
     "storage",

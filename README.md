@@ -4,7 +4,7 @@ Biblionx translates Spanish text, including Dominican Spanish, into **Dominican 
 
 > The translation input is Spanish (Dominican Republic) and the output is LSRD. Documentation, code and comments are in English; dictionary data and sign descriptions stay in Spanish because they are primary-source data from the official LSRD dictionary.
 
-Current version: **2.2.0** (single source: the `VERSION` file, checked by `scripts/check_version.py`).
+Current version: **2.3.0** (single source: the `VERSION` file, checked by `scripts/check_version.py`).
 
 ## What is in this repository
 
@@ -12,7 +12,7 @@ The repository root is the single source of truth for the engine; `backend_api/`
 
 | Path | Description |
 | :--- | :--- |
-| `lsrd_dictionary.db` | SQLite database: 2,458 lemmas, categories, movement descriptions, image paths. Read-only data. |
+| `lsrd_dictionary.db` | SQLite database: 2,419 lemmas, categories, movement descriptions, image paths. Read-only data. |
 | `main.py` | Interactive console translator. |
 | `nlp_engine.py` | Text pipeline: normalization, phrases, morphology, grammar. |
 | `translator.py` | Lookup chain from tokens to signs, with provenance and confidence. |
@@ -32,7 +32,7 @@ The repository root is the single source of truth for the engine; `backend_api/`
 
 ### Sign images are not distributed
 
-The 2,458 sign PNGs (`extracted_images/`) were extraction artifacts used to build `lsrd_dictionary.db`. They are **not stored in the git repository** and the folder is gitignored. To show images, keep them on local disk (default `<repo root>/extracted_images`) or point the server at another folder with `BIBLIONX_IMAGES_DIR`. When an image file is missing, translation still works: each sign gets `"image_available": false` and no `url_imagen`, and the web playground and browser extension show a text card with the word and its Spanish movement description instead of a broken image.
+The 2,419 sign PNGs (`extracted_images/`) were extraction artifacts used to build `lsrd_dictionary.db`. They are **not stored in the git repository** and the folder is gitignored. To show images, keep them on local disk (default `<repo root>/extracted_images`) or point the server at another folder with `BIBLIONX_IMAGES_DIR`. When an image file is missing, translation still works: each sign gets `"image_available": false` and no `url_imagen`, and the web playground and browser extension show a text card with the word and its Spanish movement description instead of a broken image.
 
 ## Translation pipeline
 
@@ -154,15 +154,18 @@ python scripts/load_test.py                      # load test against a running s
 
 ### Metrics (134 evaluation sentences)
 
-| Metric | Baseline | Current |
+| Metric | Baseline | Current (2.3.0) |
 | :--- | :--- | :--- |
-| Lexical coverage | 0.689 | 0.880 |
-| Fingerspelled tokens | 151 | 57 |
-| Unique fingerspelled words | 117 | 52 |
+| Lexical coverage | 0.689 | 0.915 |
+| Fingerspelled tokens | 151 | 38 |
+| Unique fingerspelled words | 117 | 35 |
 | Gold lemma recall | 0.797 | 0.975 |
-| Avg ms per sentence | 19.6 | 2.2 |
+| Gold lemma precision | not measured | 0.957 |
+| Avg ms per sentence | 19.6 | 1.8 |
 
-Source: `tests/data/baseline_metrics.json` and `tests/data/after_metrics.json`. The evaluation corpus does not exercise the AI fallback.
+Realistic web paragraphs (42, no gold lemmas): lexical coverage 0.702 to 0.780, common-word fingerspelling 0.289 to 0.206.
+
+Source: `tests/data/baseline_metrics.json` and `tests/data/after_metrics_v23.json` (realistic: `tests/data/realistic_baseline.json` and `tests/data/realistic_v23.json`). The evaluation corpus does not exercise the AI fallback.
 
 ---
 

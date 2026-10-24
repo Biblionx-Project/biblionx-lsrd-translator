@@ -8,11 +8,19 @@ A lemma different from the input is only returned when it is present in the
 irregular-verb map. This prevents inventing words that have no sign.
 
 Public API:
-    lemmatize(word_norm, known) -> (lemma, method)
+    lemmatize(word_norm, known, verb_context=False, reflexive=None)
+                                -> (lemma, method)
     build_known(db_path)        -> set of reachable dictionary norms
+    build_reflexive(db_path)    -> set of norms of pronominal verbs
+                                   ('aburrirse', or 'banar' for 'banar, se')
 
 method is one of: 'exact', 'irregular', 'regular_verb', 'plural', 'gender',
-'diminutive', 'enclitic', 'none'.
+'diminutive', 'derivation', 'enclitic', 'none'.
+
+``verb_context`` means the word follows a clitic pronoun (me, te, se, nos,
+os, le, les), so it can only be a verb: "se burla" is BURLARSE, not the noun
+BURLA. ``reflexive`` lets that context prefer the pronominal headword when
+the clitic agrees in person with the verb ending.
 """
 
 import re
@@ -149,7 +157,22 @@ _EXTRA_FORMS = {
     'caer': 'caigo cayo cayeron cayendo caido caiga',
     'leer': 'leyo leyeron leyendo leido',
     'creer': 'creyo creyeron creyendo creido',
+    # reir: 'rio' is listed so that a verb context ("se rio") reaches it; the
+    # bare word still gives the noun RIO because exact matches come first.
+    'reir': 'rio rie ries rien reimos rei reiste rieron riendo reido ria rias rian reia reian',
+    'freir': 'frie fries frien frito',
 }
+
+# Irregular verbs whose prefixed compounds conjugate the same way
+# (detener -> detuvo, posponer -> pospuso, bendecir -> bendigo,
+# envolver -> envuelto, describir -> descrito, satisfacer -> satisfizo).
+# A compound is only returned when it is a known dictionary norm.
+_COMPOUND_BASES = frozenset((
+    'tener', 'poner', 'venir', 'hacer', 'decir', 'traer', 'volver', 'escribir',
+    'abrir', 'reir', 'seguir', 'pedir', 'sentir', 'conocer', 'caer',
+    'leer', 'salir', 'ver', 'contar', 'cerrar', 'pensar', 'entender', 'romper',
+    'resolver',
+))
 
 # Imperative forms that only apply when a clitic pronoun follows
 # (dime -> decir, ponlo -> poner); plain 'di'/'ve' stay as in the base map.
@@ -192,6 +215,49 @@ _IR = ('o es e imos is en i iste io isteis ieron ia ias iamos iais ian '
 _SUFFIXES = (
     [(s, 'ar') for s in _AR] + [(s, 'er') for s in _ER] + [(s, 'ir') for s in _IR]
 )
+# Present-subjunctive endings. A form that is indicative in one conjugation
+# and subjunctive in another ("creen": creer / crear) is read as indicative.
+_SUBJUNCTIVE = {
+    'ar': frozenset('e es emos eis en'.split()),
+    'er': frozenset('a as amos ais an'.split()),
+    'ir': frozenset('a as amos ais an'.split()),
+}
+# Last tie-break between conjugations: "vendo" -> vender, "creo" -> creer.
+_ENDING_RANK = {'er': 0, 'ir': 1, 'ar': 2}
+_REFLEXIVE_CLITICS = ('se', 'me', 'te', 'nos', 'os')
+
+# Grammatical person of each finite ending, so a clitic only selects the
+# pronominal verb when it agrees with the verb: "me levanto" (1s + 1s) is
+# LEVANTARSE but "me parece" (1s + 3s) is parecer with a dative "me".
+# Endings not listed (gerund, participle, infinitive) agree with any clitic.
+_PERSON_TABLE = {
+    'ar': {'o': '1s 3s', 'as': '2s', 'a': '3s', 'amos': '1p', 'ais': '2p', 'an': '3p',
+           'e': '1s 3s', 'aste': '2s', 'asteis': '2p', 'aron': '3p', 'aba': '1s 3s',
+           'abas': '2s', 'abamos': '1p', 'abais': '2p', 'aban': '3p', 'es': '2s',
+           'emos': '1p', 'eis': '2p', 'en': '3p', 'aramos': '1p', 'ad': '2p'},
+    'er': {'o': '1s', 'es': '2s', 'e': '3s', 'emos': '1p', 'eis': '2p', 'en': '3p',
+           'i': '1s', 'iste': '2s', 'io': '3s', 'imos': '1p', 'isteis': '2p', 'ieron': '3p',
+           'ia': '1s 3s', 'ias': '2s', 'iamos': '1p', 'iais': '2p', 'ian': '3p',
+           'a': '1s 3s', 'as': '2s', 'amos': '1p', 'ais': '2p', 'an': '3p', 'yo': '3s',
+           'yeron': '3p', 'ieran': '3p', 'ieras': '2s', 'ieramos': '1p', 'iera': '1s 3s',
+           'is': '2p', 'id': '2p'},
+}
+_PERSON_TABLE['ir'] = _PERSON_TABLE['er']
+_FUT_PERSON = {'e': '1s', 'as': '2s', 'a': '3s', 'emos': '1p', 'eis': '2p', 'an': '3p',
+               'ia': '1s 3s', 'ias': '2s', 'iamos': '1p', 'iais': '2p', 'ian': '3p'}
+# 'se' also goes with usted/ustedes (3rd-person verb forms); le/les are never
+# reflexive.
+_CLITIC_PERSON = {'me': {'1s'}, 'te': {'2s'}, 'se': {'3s', '3p'}, 'nos': {'1p'},
+                  'os': {'2p'}, 'le': set(), 'les': set()}
+
+
+def _agrees(persons, clitic):
+    """True when the clitic can be reflexive with a verb of ``persons``
+    (a space-separated string, None for non-finite forms). An unknown
+    clitic (None) agrees with everything."""
+    if clitic is None or persons is None:
+        return clitic not in ('le', 'les')
+    return bool(_CLITIC_PERSON.get(clitic, set()) & set(persons.split()))
 # Future / conditional: infinitive + ending (word = inf + ending).
 _FUT_COND = 'e as a emos eis an ia ias iamos iais ian'.split()
 _PRONOUNS = sorted(('me', 'te', 'se', 'lo', 'la', 'le', 'nos', 'os', 'los', 'las', 'les'),
@@ -203,50 +269,150 @@ def _strip_accents(text):
     return ''.join(c for c in nfkd if not unicodedata.combining(c))
 
 
-def _stem_variants(stem):
-    """Undo common stem alternations and spelling changes of verb stems."""
+def _stem_variants(stem, ending):
+    """Undo the stem alternations and spelling changes of a verb stem.
+
+    Alternations are tied to the conjugation they occur in: ie -> e and
+    ue -> o in all three, ue -> u only in -ar (jugar), i -> e and u -> o only
+    in -ir (pide, durmio). Applying them everywhere turned nouns into verbs
+    ("burra" -> borrar, "patio" -> patear).
+    """
     vowel = [stem]
-    for pat, rep in (('ie', 'e'), ('ue', 'o'), ('ue', 'u')):
+    pats = [('ie', 'e'), ('ue', 'o')]
+    if ending == 'ar':
+        pats.append(('ue', 'u'))
+    for pat, rep in pats:
         i = stem.rfind(pat)
         if i != -1:
             vowel.append(stem[:i] + rep + stem[i + len(pat):])
-    for pat, rep in (('i', 'e'), ('u', 'o')):
-        i = stem.rfind(pat)
-        if i != -1 and i >= len(stem) - 3:
-            vowel.append(stem[:i] + rep + stem[i + 1:])
+    if ending == 'ir':
+        for pat, rep in (('i', 'e'), ('u', 'o')):
+            i = stem.rfind(pat)
+            # Not inside the diphthongs ie/ue handled above ("riendo" is not
+            # a form of rendir).
+            if i != -1 and i >= len(stem) - 3 and stem[i + 1:i + 2] != 'e':
+                vowel.append(stem[:i] + rep + stem[i + 1:])
+    if ending == 'er' and stem.startswith('hue'):
+        vowel.append('o' + stem[3:])  # oler: huele
     out = []
     for v in vowel:
         out.append(v)
-        if v.endswith('zc'):
-            out.append(v[:-2] + 'c')
-        elif v.endswith('qu'):
-            out.append(v[:-2] + 'c')
-        elif v.endswith('gu'):
-            out.append(v[:-2] + 'g')
-        elif v.endswith('c'):
-            out.append(v[:-1] + 'z')
+        if ending == 'ar':
+            if v.endswith('qu'):
+                out.append(v[:-2] + 'c')   # busque -> buscar
+            elif v.endswith('gu'):
+                out.append(v[:-2] + 'g')   # llegue -> llegar
+            elif v.endswith('c'):
+                out.append(v[:-1] + 'z')   # empece -> empezar
+        elif v.endswith('zc'):
+            out.append(v[:-2] + 'c')       # conozca -> conocer
         elif v.endswith('j'):
-            out.append(v[:-1] + 'g')
+            out.append(v[:-1] + 'g')       # cojo -> coger, elijo -> elegir
+        elif v.endswith('z'):
+            out.append(v[:-1] + 'c')       # venzo -> vencer
+        elif ending == 'ir' and v.endswith('uy'):
+            out.append(v[:-1])             # construye -> construir
+        elif ending == 'ir' and v.endswith('g'):
+            out.append(v + 'u')            # distingo -> distinguir
     return out
 
 
-def _verb_lemma(word, known):
-    """Return (infinitive, 'irregular'|'regular_verb') or None."""
+# Without a clitic, a pronominal-only headword is not reached from these bare
+# person endings: "mudo", "muda" (mute), "relajo" (Dominican: fuss) are far
+# more often adjectives or nouns than "(me) mudo", "(se) muda".
+_BARE_SE_BLOCKED = frozenset(('o', 'a', 'as', 'e', 'es'))
+
+
+def _regular_candidates(word, known):
+    """Yield (infinitive, subjunctive, via_se, suffix_len, variant, ending)
+    for every regular-paradigm reading of ``word`` that the dictionary knows.
+
+    ``via_se`` marks a pronominal headword reached by adding -se
+    ("aburro" -> "aburrirse" when the dictionary only has ABURRIRSE).
+    """
+    for suf, ending in _SUFFIXES:
+        if word.endswith(suf) and len(word) - len(suf) >= 2:
+            stem = word[:-len(suf)]
+            subj = suf in _SUBJUNCTIVE[ending]
+            for vi, var in enumerate(_stem_variants(stem, ending)):
+                cand = var + ending
+                if cand == word:
+                    continue
+                if cand in known:
+                    yield cand, subj, False, len(suf), vi, ending
+                if cand + 'se' in known:
+                    yield cand + 'se', subj, True, len(suf), vi, ending
+
+
+def _best_regular(word, known, reflexive=None, clitic=None):
+    """Best regular reading and its sort key.
+
+    Indicative before subjunctive, then (only when ``reflexive`` is given,
+    i.e. after a clitic that agrees with the ending) pronominal headwords,
+    then the direct infinitive before the -se fallback, longer suffix, fewer
+    stem changes.
+    """
+    best, best_key = None, None
+    for cand, subj, via_se, slen, vi, ending in _regular_candidates(word, known):
+        suf = word[len(word) - slen:]
+        refl_ok = reflexive is not None and _agrees(_PERSON_TABLE[ending].get(suf), clitic)
+        if via_se and not refl_ok and suf in _BARE_SE_BLOCKED:
+            continue
+        refl = 0 if refl_ok and (via_se or cand in reflexive) else 1
+        key = (subj, refl, via_se, -slen, vi, _ENDING_RANK[ending])
+        if best_key is None or key < best_key:
+            best, best_key = cand, key
+    return best, best_key
+
+
+def _compound_lemma(word, known):
+    """Prefixed compound of an irregular verb: detuvo -> detener,
+    pospondra -> posponer, satisfizo -> satisfacer (old f- stem of hacer)."""
+    for i in range(1, len(word) - 2):
+        prefix, rest = word[:i], word[i:]
+        base = IRREGULAR_VERB_MAP.get(rest)
+        if base in _COMPOUND_BASES and prefix + base in known:
+            return prefix + base
+        if rest[0] == 'f' and IRREGULAR_VERB_MAP.get('h' + rest[1:]) == 'hacer' \
+                and prefix + 'facer' in known:
+            return prefix + 'facer'
+    return None
+
+
+def _verb_lemma(word, known, verb_context=False, reflexive=None):
+    """Return (infinitive, 'irregular'|'regular_verb') or None.
+
+    ``verb_context`` is False, True (after some clitic) or the clitic itself.
+    """
+    clitic = verb_context if isinstance(verb_context, str) else None
+    if verb_context and word not in _FORCE_IRREGULAR:
+        # After a clitic, a pronominal headword read with an indicative
+        # ending beats the irregular map ("se viste" is VESTIR, SE, not ver).
+        cand, key = _best_regular(word, known, reflexive if reflexive is not None else set(),
+                                  clitic)
+        if cand and not key[0] and key[1] == 0:
+            return cand, 'regular_verb'
     if word in IRREGULAR_VERB_MAP:
         return IRREGULAR_VERB_MAP[word], 'irregular'
     # Future / conditional: infinitive + ending.
     for end in _FUT_COND:
         if word.endswith(end) and len(word) - len(end) >= 4:
             inf = word[:-len(end)]
-            if inf in known and inf.endswith(('ar', 'er', 'ir')):
-                return inf, 'regular_verb'
-    for suf, ending in _SUFFIXES:
-        if word.endswith(suf) and len(word) - len(suf) >= 2:
-            stem = word[:-len(suf)]
-            for var in _stem_variants(stem):
-                cand = var + ending
-                if cand in known and cand != word:
-                    return cand, 'regular_verb'
+            if inf.endswith(('ar', 'er', 'ir')):
+                if verb_context and inf + 'se' in known and _agrees(_FUT_PERSON[end], clitic):
+                    return inf + 'se', 'regular_verb'   # se levantara -> levantarse
+                if inf in known:
+                    return inf, 'regular_verb'
+                if inf + 'se' in known:
+                    return inf + 'se', 'regular_verb'
+    cand, _key = _best_regular(word, known,
+                               (reflexive if reflexive is not None else set()) if verb_context else None,
+                               clitic)
+    if cand:
+        return cand, 'regular_verb'
+    comp = _compound_lemma(word, known)
+    if comp:
+        return comp, 'irregular'
     return None
 
 
@@ -262,18 +428,34 @@ def _plural_candidates(word):
 
 
 def _gender_candidates(word):
-    """Feminine -> base: abogada -> abogado, doctora -> doctor, jefa -> jefe."""
+    """Feminine -> base: abogada -> abogado, doctora -> doctor, jefa -> jefe,
+    actriz -> actor, alcaldesa -> alcalde, poetisa -> poeta."""
+    out = []
     if len(word) > 3 and word.endswith('a'):
-        return [word[:-1] + 'o', word[:-1], word[:-1] + 'e']
-    return []
+        out += [word[:-1] + 'o', word[:-1], word[:-1] + 'e']
+    if len(word) > 5 and word.endswith('triz'):
+        out.append(word[:-4] + 'tor')
+    if len(word) > 6 and word.endswith('esa'):
+        out += [word[:-2], word[:-3]]    # alcaldesa -> alcalde, baronesa -> baron
+    if len(word) > 6 and word.endswith('isa'):
+        out.append(word[:-3] + 'a')      # poetisa -> poeta
+    return out
 
 
 def _diminutive_candidates(word):
     out = []
     for suf in ('ecito', 'ecita', 'cito', 'cita', 'ito', 'ita', 'ico', 'ica', 'illo', 'illa'):
-        if word.endswith(suf) and len(word) - len(suf) >= 2:
+        # -ico/-ica on a two-letter stem is an adjective ending (unica), not
+        # a diminutive.
+        min_stem = 3 if suf in ('ico', 'ica') else 2
+        if word.endswith(suf) and len(word) - len(suf) >= min_stem:
             stem = word[:-len(suf)]
-            out += [stem + 'o', stem + 'a', stem + 'e', stem]
+            # A feminine diminutive points to the feminine noun first
+            # (hijita -> hija, not hijo).
+            if suf.endswith('a'):
+                out += [stem + 'a', stem + 'o', stem + 'e', stem]
+            else:
+                out += [stem + 'o', stem + 'a', stem + 'e', stem]
             if stem.endswith('qu'):
                 out += [stem[:-2] + 'co', stem[:-2] + 'ca']
             if stem.endswith('gu'):
@@ -281,8 +463,49 @@ def _diminutive_candidates(word):
     return out
 
 
-def _enclitic(word, known):
-    """Strip up to two trailing clitic pronouns and lemmatize the verb."""
+def _participle_adjective(word, known):
+    """Feminine participle -> masculine adjective headword (acabada ->
+    acabado), checked before the verb rule turns it into the infinitive."""
+    if len(word) > 5 and word.endswith(('ada', 'ida')):
+        masc = word[:-1] + 'o'
+        if masc in known:
+            return masc
+    return None
+
+
+def _derivation(word, known):
+    """-mente adverbs and -isimo superlatives -> adjective headword
+    (generosamente -> generoso, peligrosisimo -> peligroso)."""
+    if len(word) > 8 and word.endswith('mente') and word[-6] != 'o':
+        base = word[:-5]
+        if base in known:
+            return base
+        if base.endswith('a') and base[:-1] + 'o' in known:
+            return base[:-1] + 'o'
+        return None
+    for suf in ('isimos', 'isimas', 'isimo', 'isima'):
+        if word.endswith(suf) and len(word) - len(suf) >= 3:
+            stem = word[:-len(suf)]
+            cands = [stem + 'o', stem + 'e', stem]
+            if stem.endswith('qu'):
+                cands.append(stem[:-2] + 'co')     # riquisimo -> rico
+            elif stem.endswith('gu'):
+                cands.append(stem[:-2] + 'go')     # larguisimo -> largo
+            elif stem.endswith('bil'):
+                cands.append(stem[:-3] + 'ble')    # amabilisimo -> amable
+            elif stem.endswith('c'):
+                cands.append(stem[:-1] + 'z')      # felicisimo -> feliz
+            for c in cands:
+                if c in known:
+                    return c
+            return None
+    return None
+
+
+def _enclitic(word, known, reflexive=None):
+    """Strip up to two trailing clitic pronouns and lemmatize the verb.
+    A reflexive clitic prefers the pronominal headword (levantandose ->
+    levantarse when both LEVANTAR and LEVANTARSE exist)."""
     rest = word
     for _ in range(2):
         for pr in _PRONOUNS:
@@ -291,21 +514,36 @@ def _enclitic(word, known):
                 break
         else:
             return None
-        if rest in known and rest.endswith(('ar', 'er', 'ir')):
-            return rest
+        refl = pr in _REFLEXIVE_CLITICS
+        if rest.endswith(('ar', 'er', 'ir')):
+            if refl and rest + 'se' in known:
+                return rest + 'se'
+            if rest in known:
+                return rest
         if rest in _ENCLITIC_IMPERATIVE:
             return _ENCLITIC_IMPERATIVE[rest]
-        res = _verb_lemma(rest, known)
+        res = _verb_lemma(rest, known, verb_context=refl, reflexive=reflexive)
         if res:
             return res[0]
     return None
 
 
-def lemmatize(word_norm, known):
-    """Return (lemma, method) for an accent-stripped lowercase word."""
+def lemmatize(word_norm, known, verb_context=False, reflexive=None):
+    """Return (lemma, method) for an accent-stripped lowercase word.
+
+    ``verb_context``: the word follows a clitic pronoun, so a verb reading
+    beats a homographic noun ("se burla", "te abrazo"). Pass the clitic
+    itself ('se', 'me', ...) so that only an agreeing one selects the
+    pronominal verb; True means "some clitic".
+    ``reflexive``: norms of pronominal verbs, preferred in that context.
+    """
     w = _strip_accents(word_norm.lower().strip())
     if not w:
         return word_norm, 'none'
+    if verb_context and len(w) > 2:
+        res = _verb_lemma(w, known, verb_context=verb_context, reflexive=reflexive)
+        if res:
+            return res
     irregular = IRREGULAR_VERB_MAP.get(w)
     if w in known and not (irregular and w in _FORCE_IRREGULAR):
         return w, 'exact'
@@ -315,17 +553,27 @@ def lemmatize(word_norm, known):
         return _APOCOPE[w], 'irregular'
     if len(w) <= 2:
         return w, 'none'
+    if w.endswith(('ar', 'er', 'ir')) and w + 'se' in known:
+        return w + 'se', 'regular_verb'   # deprimir -> deprimirse
 
     plurals = _plural_candidates(w)
     for p in plurals:
         if p in known:
             return p, 'plural'
 
+    bases = [w] + plurals
+    for base in bases:
+        adj = _participle_adjective(base, known)
+        if adj:
+            return adj, 'gender'
+    der = _derivation(w, known)
+    if der:
+        return der, 'derivation'
+
     res = _verb_lemma(w, known)
     if res:
         return res
 
-    bases = [w] + plurals
     for base in bases:
         for g in _gender_candidates(base):
             if g in known:
@@ -335,7 +583,14 @@ def lemmatize(word_norm, known):
             if d in known:
                 return d, 'diminutive'
 
-    lemma = _enclitic(w, known)
+    # Dominican -ao for -ado ("quemao" -> "quemado", "cansao" -> "cansado").
+    if len(w) > 4 and w.endswith(('ao', 'aos')):
+        full = w[:-2] + 'ado' if w.endswith('ao') else w[:-3] + 'ados'
+        lemma, how = lemmatize(full, known)
+        if how != 'none':
+            return lemma, 'derivation'
+
+    lemma = _enclitic(w, known, reflexive)
     if lemma:
         return lemma, 'enclitic'
     return w, 'none'
@@ -373,6 +628,27 @@ def build_known(db_path):
     finally:
         conn.close()
     return known
+
+
+def build_reflexive(db_path):
+    """Norms of pronominal verb headwords: 'aburrirse', or 'banar' for an
+    entry stored as 'banar, se'. Used to prefer them after a clitic."""
+    out = set()
+    conn = sqlite3.connect('file:' + db_path.replace('\\', '/') + '?mode=ro', uri=True)
+    try:
+        for (norm,) in conn.execute('SELECT palabra_norm FROM palabras'):
+            if not norm:
+                continue
+            text = re.sub(r'\([^)]*\)', ' ', _strip_accents(norm.lower()))
+            parts = [' '.join(p.split()) for p in text.split(',')]
+            head = parts[0]
+            if not head or ' ' in head:
+                continue
+            if head.endswith(('arse', 'erse', 'irse')) or 'se' in parts[1:]:
+                out.add(head)
+    finally:
+        conn.close()
+    return out
 
 
 if __name__ == '__main__':
@@ -430,9 +706,12 @@ if __name__ == '__main__':
     assert L('xyzzy') == ('xyzzy', 'none')
     assert L('casas')[0] == 'casa'
     assert L('Comió') == ('comer', 'regular_verb')
+    assert L('cansadamente') == ('cansado', 'derivation')
+    assert L('cansao') == ('cansado', 'derivation')
+    assert L('describio') == ('describio', 'none')
     db = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lsrd_dictionary.db')
     if os.path.exists(db):
         kn = build_known(db)
         assert 'abogado' in kn and len(kn) > 1500
-        print('known size:', len(kn))
+        print('known size:', len(kn), 'reflexive:', len(build_reflexive(db)))
     print('morphology self-test OK')

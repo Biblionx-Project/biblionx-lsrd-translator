@@ -68,11 +68,16 @@ def _split_variants(norm):
         keys.add(clean)
     parts = [normalize(p) for p in str(norm).split(",")]
     parts = [p for p in parts if p]
-    keys.update(parts)
+    gender_pair = (len(parts) == 2 and len(parts[1]) <= 4
+                   and " " not in parts[0] and " " not in parts[1])
+    # A gender suffix ('da', 'ra', 'tras') is not a word of its own: indexing it
+    # made "tras" fuzzy-match NOSOTROS, TRAS. Only real alternatives
+    # ('abajo, debajo') become separate keys.
+    keys.update(parts[:1] if gender_pair else parts)
     if len(parts) == 2 and parts[0]:
         first, second = parts
-        # Gender pair: 'abogado, da' -> 'abogada'; 'doctor, ra' -> 'doctora'
-        if len(second) <= 3 and " " not in first and " " not in second:
+        # Gender pair: 'abogado, da' -> 'abogada'; 'nosotros, tras' -> 'nosotras'
+        if gender_pair:
             variants = {first[:-len(second)] + second}
             if second[0] == first[-1]:
                 variants.add(first + second[1:])

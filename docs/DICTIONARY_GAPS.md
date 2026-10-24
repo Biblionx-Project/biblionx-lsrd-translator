@@ -11,9 +11,9 @@ Lengua de Señas Dominicana* (first edition, 437-page PDF). It is not an estimat
    categories are Poppins Light at 6 pt, definitions are SemiBold and movement descriptions are
    Regular at 9 pt. It then compares the parsed entries with `palabras` (lowercase, accents
    removed). The PDF yields 2,423 entries, and 18 of them were missing from the database.
-   Another 42 headwords are already in the database as several rows each. The original
-   extraction split them by printed line, for example `PERAVIA` + `(BANÍ)`. Those rows were
-   left as they are because existing ids must not change.
+   Another 42 headwords were in the database as several rows each (the original extraction
+   split them by printed line, for example `PERAVIA` + `(BANÍ)`). Version 2.3.0 merged them, see
+   the completeness report below.
 2. The 18 missing entries were inserted with `--apply` (ids `lsrd_2459` to `lsrd_2476`). Their
    illustrations were cropped from the PDF into the local, untracked `extracted_images/` folder.
    No existing row, id or category changed. Re-running the tool inserts nothing.
@@ -124,15 +124,95 @@ expresses through grammar, not with a lexical sign. Others, such as NIÑO, PODER
 NOCHE, are good candidates to collect from interpreters, because a second edition of the
 dictionary or field recordings could add them.
 
-## Known data issues left unchanged
+## Dictionary completeness report (version 2.3.0)
 
-- 42 headwords are stored as several rows, one per printed line or parenthesis (for example
-  `BATERÍA` + `(INSTRUMENTO`, and the province names on pages 430-436). Merging them would
-  change existing ids.
-- 256 rows from the original extraction have no movement description. They include entries
-  that share one description with the next headword (only the last one received it, for
-  example DIBUJAR / DIBUJO), alphabet letters and part of the regional-signs section.
-  `tests/test_dictionary_recovery.py` checks that this number does not grow.
+Version 2.3.0 audited every printed entry of the PDF against `lsrd_dictionary.db` and fixed the
+fields the original extraction got wrong. Only the PDF was used as a source: no sign and no
+description was invented, and the Spanish dictionary text is kept exactly as printed. The
+letter ids used by fingerspelling did not change.
+
+### Entries in the PDF versus the database
+
+| Measure | Before (2.2.0) | After (2.3.0) |
+|---|---|---|
+| Entry lines parsed from the PDF by `tools/recover_dictionary_entries.py` | 2,423 | 2,423 |
+| Distinct entries in the PDF (a headword printed on several lines counts once) | 2,419 | 2,419 |
+| Rows in `palabras` | 2,476 | 2,419 |
+| Rows with an image file on disk | all | all (45 re-cropped) |
+| Rows without a movement description | 256 | 0 |
+| Rows without a definition | 63 | 43 |
+| Rows in `Sin Categoría` | 148 | 37 |
+| Headwords split across several rows | 45 | 0 |
+| Rows flagged `requiere_revision` | 63 | 48 |
+
+The parser still lists 8 "missing" lines. They are fragments of 4 entries that the PDF prints over
+two lines (MASTURBACIÓN FEMENINA, MASTURBACIÓN MASCULINA, FRANCISCO DEL ROSARIO SÁNCHEZ and
+MARIA TRINIDAD SANCHEZ (NAGUA)); each is one merged row in the database (`lsrd_2321`,
+`lsrd_2323`, `lsrd_2361`, `lsrd_2425`). So every printed entry is present exactly once.
+
+What changed (`tools/apply_dictionary_fixes.py`, data in `data/dictionary_fixes.json`): 578 field
+updates, 45 merges of split headwords (26 of them the province entries on pages 430-436), 6
+deleted letter-divider rows and 45 re-cropped images. The PDF has 437 pages; `palabras.pagina` goes
+up to 436, the last page with entries.
+
+### Rows complete and flags left
+
+- 2,371 of 2,419 rows (98.0 %) have a category, a definition, a movement description and an image,
+  and no review flag.
+- The 48 flagged rows are fields the PDF never prints, mostly the 34 province entries (43 rows have
+  no definition and 5 more are flagged for another reason). They stay flagged instead of receiving
+  invented text. Second signs of a headword keep the printed caption ("SEÑA NUMERO DOS", or
+  "SEÑA NÚMERO DOS" on pp. 39, 41, 43 and 58) as their definition because that is what is printed; 20 definitions copied from a neighbour were dropped, and APLAUDIR is
+  flagged instead of borrowing the definition of APLAUSO.
+- 37 rows stay in `Sin Categoría` because the PDF prints no category for them.
+
+### Reachability from natural Spanish
+
+The A-Z reach audits (`dict_reach`, one per alphabet range) generated inflections, feminine and
+plural forms, conjugations, reflexive forms and Dominican variants for each headword and ran them
+through the translator. A form is reachable when it resolves to the sign of its own entry. The
+"reachable before" column is the audit on 2.2.0. The "reachable after" column re-runs the 685 forms
+that failed on 2.3.0 (synonym merge plus the generic morphology rules); forms that already passed
+were checked for regressions with a before/after diff of the lemmatizer, not re-counted.
+
+| Range | Forms tested | Unreachable before | Fixed in 2.3.0 | Still unreachable | Reachable before | Reachable after |
+|---|---|---|---|---|---|---|
+| A-C | 2,375 | 189 | 117 | 72 | 0.920 | 0.970 |
+| D-F | 1,336 | 91 | 41 | 50 | 0.932 | 0.963 |
+| G-L | 1,260 | 86 | 66 | 20 | 0.932 | 0.984 |
+| M-O | 797 | 66 | 36 | 30 | 0.917 | 0.962 |
+| P-R | 1,595 | 135 | 100 | 35 | 0.915 | 0.978 |
+| S-Z | 1,310 | 118 | 38 | 80 | 0.910 | 0.939 |
+| Total | 8,673 | 685 | 398 | 287 | 0.921 | 0.967 |
+
+The 287 forms still unreachable are mostly verb and noun pairs that need sentence context (ABORTAR
+and ABORTO, CUENTA), words with a tilde on the n, stopwords the engine drops, and headwords with a
+qualifier in parentheses. Words that have no entry in the PDF were handled separately: 1,247
+single-word synonyms were added to `data/synonyms_extra.json` (now 2,221 entries, all
+`curated-pending-review`) and 106 multi-word proposals wait in `data/synonyms_phrases_pending.json`
+until a database owner adds them to `sinonimos_mapeo`. 177 proposals were rejected for conflicts,
+a tilde mismatch, meaning shifts or inflections of another headword, and the final review
+dropped 50 more homographs (for example super, evacuar, índice, grano, ingreso).
+
+### Effect on the evaluation
+
+| Corpus | Measure | 2.2.0 | 2.3.0 |
+|---|---|---|---|
+| Gold (134 sentences) | lexical coverage | 0.9146 | 0.9169 |
+| Gold | lemma recall | 0.9747 | 0.9747 |
+| Gold | lemma precision | 0.9655 | 0.9569 |
+| Realistic (42 paragraphs) | lexical coverage | 0.7562 | 0.7763 |
+| Realistic | common-word fingerspelling | 0.2303 | 0.2094 |
+
+## Known data issues left
+
+- 43 rows have no definition and 5 more rows are flagged for review (48 in total): the PDF prints
+  nothing for those fields. They need an interpreter or a second edition of the dictionary.
+- 37 rows have no category for the same reason.
+- `tools/recover_dictionary_entries.py` reports the 8 line fragments above as missing. They are
+  already merged rows, so do not apply them.
+- The database ids are no longer contiguous (`lsrd_0001` to `lsrd_2476` with gaps where split
+  headwords were merged). Letter ids and all other ids that remain were kept.
 
 ## Re-running
 

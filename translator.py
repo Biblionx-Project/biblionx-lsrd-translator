@@ -320,7 +320,10 @@ class LSRDTranslator:
         """
         idx = self._index
         pid = idx.exact.get(name) or (idx.prefix.get(name) if ' ' not in name else None)
-        if not pid and ' ' not in name:
+        if not pid:
+            # sinonimos_mapeo holds names printed inside a headword, e.g. the
+            # province "PUERTO PLATA (SAN FELIPE DE PUERTO PLATA)" is reached
+            # from "puerto plata". Curated synonyms are never used for names.
             pid = idx.synonym.get(name)
         row = self._row(pid) if pid else None
         if row:

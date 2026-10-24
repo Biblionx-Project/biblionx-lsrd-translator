@@ -4,6 +4,58 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] - 2026-10-23
+
+Dictionary completion: every entry of the official PDF is in the database with its own headword, category, definition and movement description, and many more forms and Dominican words reach their sign.
+
+### Changed
+- `lsrd_dictionary.db` was audited against the PDF (`tools/apply_dictionary_fixes.py`, `data/dictionary_fixes.json`):
+  578 field updates, 45 split headwords merged into one row (26 are the province entries on pages 430-436), 6 letter
+  divider rows deleted and 45 sign images re-cropped. Rows went from 2,476 to 2,419; letter ids are unchanged.
+  Rows without a movement description 256 to 0, without a definition 63 to 43, `Sin Categoría` 148 to 37, split
+  headwords 45 to 0. The 48 rows flagged `requiere_revision` are fields the PDF never prints (mostly the 34 provinces).
+- Generic morphology rules (`b3ac4db`): reflexive-only verbs (ABURRIRSE) from their conjugations, vowel changes only for
+  verbs that have them, irregular -uir, oler, reír and tener/poner/decir/hacer compounds, feminine and diminutive forms,
+  -mente, -ísimo and Dominican -ao, accent-aware verb forms and plural or conjugated phrases. Of 685 forms the A-Z reach
+  audits found unreachable, 398 now reach their sign (79 before).
+- CI gates tightened to just below the 2.3.0 values (precision gate raised, none loosened), see Metrics.
+
+### Added
+- 1,247 single-word synonyms in `data/synonyms_extra.json` (now 2,221 entries), all `curated-pending-review`, merged with
+  `tools/merge_synonym_proposals.py` (conflict rules covered by `tests/test_synonym_merge.py`). The final review dropped 50
+  more as homographs or meaning shifts (`REVIEW_REJECTED`: e.g. super, evacuar, índice, pacífico, grano, ingreso). 106 multi-word proposals
+  wait in `data/synonyms_phrases_pending.json` until they are added to `sinonimos_mapeo`. The five Spanish review sheets in
+  `docs/validation/` were regenerated.
+- Dictionary completeness report and reachability rate per alphabet range in `docs/DICTIONARY_GAPS.md`.
+- Saved evaluation runs `tests/data/after_metrics_v23.json` and `tests/data/realistic_v23.json`.
+
+### Metrics
+Same corpora, `python scripts/evaluate.py` (saved v2.2.0 runs: `tests/data/after_metrics.json`, `tests/data/realistic_after.json`).
+
+| Corpus | Measure | 2.2.0 | 2.3.0 | CI gate (was) |
+|---|---|---|---|---|
+| Gold, 134 sentences | lexical coverage | 0.9146 | 0.9169 | >= 0.90 (0.88) |
+| | fingerspelling rate | 0.0854 | 0.0831 | <= 0.10 (0.12) |
+| | gold lemma recall | 0.9747 | 0.9747 | >= 0.97 (0.95) |
+| | gold lemma precision | 0.9655 | 0.9569 | >= 0.95 (0.93) |
+| | order accuracy | 1.0 | 1.0 | >= 1.0 |
+| | avg ms per sentence | 1.65 | 1.76 | p95 <= 500 |
+| Realistic, 42 paragraphs | lexical coverage | 0.7562 | 0.7763 | >= 0.77 (0.75) |
+| | common-word fingerspelling | 0.2303 | 0.2094 | <= 0.215 (0.235) |
+| | letters per lexical sign | 2.446 | 2.194 | |
+| | fingerspelled words | 206 | 189 | |
+
+Gold precision is 0.0086 below the saved 2.2.0 run. The extra content signs are "vivo" (2), "comer", "comimos" and "habichuela"
+(1 each); recall is unchanged.
+
+### Fixed
+- Fuzzy matching indexed the gender suffix of headwords ('da', 'ra', 'tras') as words, so the preposition
+  "tras" became NOSOTROS, TRAS. Suffixes now only produce the feminine form ('nosotras'); "tras" is a stopword.
+- Multi-word proper nouns now also use `sinonimos_mapeo` (names printed inside a headword), so "Puerto Plata" and
+  "Santiago de los Caballeros" reach their province sign; curated synonyms are still never used for names.
+- `test_ids_are_contiguous` allows exactly the gaps recorded in the `id_map` of `data/dictionary_fixes.json`.
+- Second-sign captions stay as printed: pages 39, 41, 43 and 58 print "SEÑA NÚMERO DOS", the rest "SEÑA NUMERO DOS".
+
 ## [2.2.0] - 2026-10-20
 
 Dictionary recovery, honest metrics, one version source and a CI that runs every test.
