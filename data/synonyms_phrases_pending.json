@@ -1,0 +1,854 @@
+{
+ "version": 1,
+ "usage": "Multi-word synonyms. synonyms_extra.json cannot hold them (the phrase matcher reads sinonimos_mapeo only). A dictionary owner reviews them and adds approved ones with an add_synonym op in data/dictionary_fixes.json.",
+ "entries": [
+  {
+   "word": "arco iris",
+   "target_norm": "arcoiris",
+   "palabra_id": "lsrd_0193",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "two-word spelling [high confidence]"
+  },
+  {
+   "word": "goma de borrar",
+   "target_norm": "borrador",
+   "palabra_id": "lsrd_0344",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "eraser [medium confidence]"
+  },
+  {
+   "word": "goma de mascar",
+   "target_norm": "chicle",
+   "palabra_id": "lsrd_0492",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "chewing gum (Dominican) [medium confidence]"
+  },
+  {
+   "word": "hacer caca",
+   "target_norm": "defecar",
+   "palabra_id": "lsrd_0691",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "common everyday phrase (hacer + caca) [high confidence]"
+  },
+  {
+   "word": "diez y nueve",
+   "target_norm": "diecinueve",
+   "palabra_id": "lsrd_0750",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "old spelling of diecinueve [medium confidence]"
+  },
+  {
+   "word": "diez y ocho",
+   "target_norm": "dieciocho",
+   "palabra_id": "lsrd_0751",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "old spelling of dieciocho [medium confidence]"
+  },
+  {
+   "word": "diez y seis",
+   "target_norm": "dieciseis",
+   "palabra_id": "lsrd_0752",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "old spelling of dieciseis (3 tokens) [medium confidence]"
+  },
+  {
+   "word": "diez y siete",
+   "target_norm": "diecisiete",
+   "palabra_id": "lsrd_0753",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "old spelling of diecisiete [medium confidence]"
+  },
+  {
+   "word": "doble v",
+   "target_norm": "doble u",
+   "palabra_id": "lsrd_0786",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "name of letter w [medium confidence]"
+  },
+  {
+   "word": "doble ve",
+   "target_norm": "doble u",
+   "palabra_id": "lsrd_0786",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "Latin American name of letter w [medium confidence]"
+  },
+  {
+   "word": "paso a desnivel",
+   "target_norm": "elevado (calle)",
+   "palabra_id": "lsrd_0826",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "Dominican flyover/underpass [medium confidence]"
+  },
+  {
+   "word": "paso elevado",
+   "target_norm": "elevado (calle)",
+   "palabra_id": "lsrd_0826",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "flyover (elevado calle) [high confidence]"
+  },
+  {
+   "word": "toma de corriente",
+   "target_norm": "enchufe",
+   "palabra_id": "lsrd_0847",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "enchufe [medium confidence]"
+  },
+  {
+   "word": "en ese caso",
+   "target_norm": "entonces",
+   "palabra_id": "lsrd_0868",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "entonces [medium confidence]"
+  },
+  {
+   "word": "por lo tanto",
+   "target_norm": "entonces",
+   "palabra_id": "lsrd_0868",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "entonces [medium confidence]"
+  },
+  {
+   "word": "carne de gallina",
+   "target_norm": "erizarse",
+   "palabra_id": "lsrd_0889",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "erizarse (phrase) [medium confidence]"
+  },
+  {
+   "word": "piel de gallina",
+   "target_norm": "erizarse",
+   "palabra_id": "lsrd_0889",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "erizarse (phrase) [high confidence]"
+  },
+  {
+   "word": "terapia fisica",
+   "target_norm": "fisioterapia",
+   "palabra_id": "lsrd_0998",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "fisioterapia (phrase) [high confidence]"
+  },
+  {
+   "word": "hot dog",
+   "target_norm": "hotdog",
+   "palabra_id": "lsrd_1144",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "spelled with space (multi-word) [high confidence]"
+  },
+  {
+   "word": "perro caliente",
+   "target_norm": "hotdog",
+   "palabra_id": "lsrd_1144",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [high confidence]"
+  },
+  {
+   "word": "dedo indice",
+   "target_norm": "indice (dedo)",
+   "palabra_id": "lsrd_1179",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [high confidence]"
+  },
+  {
+   "word": "mal educado",
+   "target_norm": "malcriado",
+   "palabra_id": "lsrd_1338",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "two-word spelling [high confidence]"
+  },
+  {
+   "word": "por medio de",
+   "target_norm": "mediante",
+   "palabra_id": "lsrd_1381",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "by means of; multi-word synonym [medium confidence]"
+  },
+  {
+   "word": "medio ambiente",
+   "target_norm": "medioambiente",
+   "palabra_id": "lsrd_1386",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "two-word spelling is the usual written form; multi-word synonym [high confidence]"
+  },
+  {
+   "word": "medio dia",
+   "target_norm": "mediodia",
+   "palabra_id": "lsrd_1387",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "two-word spelling; multi-word synonym [high confidence]"
+  },
+  {
+   "word": "hacer falta",
+   "target_norm": "necesitar",
+   "palabra_id": "lsrd_1490",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase for need [medium confidence]"
+  },
+  {
+   "word": "intervencion quirurgica",
+   "target_norm": "operacion",
+   "palabra_id": "lsrd_1560",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "surgery [high confidence]"
+  },
+  {
+   "word": "punto de vista",
+   "target_norm": "opinion",
+   "palabra_id": "lsrd_1561",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "opinion [medium confidence]"
+  },
+  {
+   "word": "hacer pipi",
+   "target_norm": "orinar",
+   "palabra_id": "lsrd_1571",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase for urinate [medium confidence]"
+  },
+  {
+   "word": "platillo volador",
+   "target_norm": "ovni",
+   "palabra_id": "lsrd_1580",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "UFO [medium confidence]"
+  },
+  {
+   "word": "ropa de dormir",
+   "target_norm": "pijama",
+   "palabra_id": "lsrd_1694",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase for pajamas [high confidence]"
+  },
+  {
+   "word": "ping pong",
+   "target_norm": "pimpon",
+   "palabra_id": "lsrd_1700",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "table tennis (phrase) [high confidence]"
+  },
+  {
+   "word": "tenis de mesa",
+   "target_norm": "pimpon",
+   "palabra_id": "lsrd_1700",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "computadora portatil",
+   "target_norm": "portatil",
+   "palabra_id": "lsrd_1743",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "ordenador portatil",
+   "target_norm": "portatil",
+   "palabra_id": "lsrd_1743",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "Spain phrase [high confidence]"
+  },
+  {
+   "word": "dedo gordo",
+   "target_norm": "pulgar",
+   "palabra_id": "lsrd_1797",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase thumb (also toe) [medium confidence]"
+  },
+  {
+   "word": "sala de cirugia",
+   "target_norm": "quirofano",
+   "palabra_id": "lsrd_1811",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [medium confidence]"
+  },
+  {
+   "word": "sala de operaciones",
+   "target_norm": "quirofano",
+   "palabra_id": "lsrd_1811",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "capaz que",
+   "target_norm": "quizas",
+   "palabra_id": "lsrd_1814",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "DR phrase [medium confidence]"
+  },
+  {
+   "word": "asi asi",
+   "target_norm": "regular",
+   "palabra_id": "lsrd_1847",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase for so-so [high confidence]"
+  },
+  {
+   "word": "mas o menos",
+   "target_norm": "regular",
+   "palabra_id": "lsrd_1847",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "darse por vencido",
+   "target_norm": "rendirse",
+   "palabra_id": "lsrd_1861",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "volver atras",
+   "target_norm": "retroceder",
+   "palabra_id": "lsrd_1884",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [medium confidence]"
+  },
+  {
+   "word": "secador de pelo",
+   "target_norm": "secador (blower)",
+   "palabra_id": "lsrd_1934",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word: needs sinonimos_mapeo [medium confidence]"
+  },
+  {
+   "word": "pantalon corto",
+   "target_norm": "shorts",
+   "palabra_id": "lsrd_1968",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word: needs sinonimos_mapeo [medium confidence]"
+  },
+  {
+   "word": "ciencias sociales",
+   "target_norm": "sociales",
+   "palabra_id": "lsrd_1985",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "school subject; multi-word needs sinonimos_mapeo [medium confidence]"
+  },
+  {
+   "word": "tarjeta de visita",
+   "target_norm": "tarjeta (de presentacion)",
+   "palabra_id": "lsrd_2054",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word: needs sinonimos_mapeo [medium confidence]"
+  },
+  {
+   "word": "bote de basura",
+   "target_norm": "zafacon",
+   "palabra_id": "lsrd_2248",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word: needs sinonimos_mapeo [high confidence]"
+  },
+  {
+   "word": "partida de nacimiento",
+   "target_norm": "acta de nacimiento",
+   "palabra_id": "lsrd_2270",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "document name variant [medium confidence]"
+  },
+  {
+   "word": "aire acondicionado",
+   "target_norm": "aire aconndicionado",
+   "palabra_id": "lsrd_2271",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "correct spelling; the headword is printed \"AIRE ACONNDICIONADO\" [high confidence]"
+  },
+  {
+   "word": "que aproveche",
+   "target_norm": "buen provecho",
+   "palabra_id": "lsrd_2281",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "formula [medium confidence]"
+  },
+  {
+   "word": "buen dia",
+   "target_norm": "buenos dias",
+   "palabra_id": "lsrd_2284",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "singular greeting used in the DR [high confidence]"
+  },
+  {
+   "word": "cepillo dental",
+   "target_norm": "cepillo de dientes",
+   "palabra_id": "lsrd_2290",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "toothbrush [high confidence]"
+  },
+  {
+   "word": "mando a distancia",
+   "target_norm": "control remoto",
+   "palabra_id": "lsrd_2296",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "remote control (Spain) [medium confidence]"
+  },
+  {
+   "word": "dia festivo",
+   "target_norm": "dia feriado",
+   "palabra_id": "lsrd_2299",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "dia feriado [medium confidence]"
+  },
+  {
+   "word": "dos caras",
+   "target_norm": "doble cara",
+   "palabra_id": "lsrd_2300",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "doble cara [medium confidence]"
+  },
+  {
+   "word": "ensalada de papas",
+   "target_norm": "ensalada de papa",
+   "palabra_id": "lsrd_2301",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "plural inside phrase [high confidence]"
+  },
+  {
+   "word": "fuego artificial",
+   "target_norm": "fuegos artificiales",
+   "palabra_id": "lsrd_2302",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "singular of phrase [high confidence]"
+  },
+  {
+   "word": "fuegos pirotecnicos",
+   "target_norm": "fuegos artificiales",
+   "palabra_id": "lsrd_2302",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "fuegos artificiales [medium confidence]"
+  },
+  {
+   "word": "hacer click",
+   "target_norm": "hacer clic",
+   "palabra_id": "lsrd_2306",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word; click (English spelling) is fingerspelled today [high confidence]"
+  },
+  {
+   "word": "reproductor de cd",
+   "target_norm": "lector de cd",
+   "palabra_id": "lsrd_2313",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [high confidence]"
+  },
+  {
+   "word": "carnet de conducir",
+   "target_norm": "licencia de conducir",
+   "palabra_id": "lsrd_2315",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [medium confidence]"
+  },
+  {
+   "word": "licencia de manejar",
+   "target_norm": "licencia de conducir",
+   "palabra_id": "lsrd_2315",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [high confidence]"
+  },
+  {
+   "word": "permiso de conducir",
+   "target_norm": "licencia de conducir",
+   "palabra_id": "lsrd_2315",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [high confidence]"
+  },
+  {
+   "word": "lo lamento",
+   "target_norm": "lo siento",
+   "palabra_id": "lsrd_2316",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [high confidence]"
+  },
+  {
+   "word": "maquinilla de afeitar",
+   "target_norm": "maquina de afeitar",
+   "palabra_id": "lsrd_2317",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "razor [high confidence]"
+  },
+  {
+   "word": "maquina de costura",
+   "target_norm": "maquina de coser",
+   "palabra_id": "lsrd_2318",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "sewing machine [high confidence]"
+  },
+  {
+   "word": "maquina de vending",
+   "target_norm": "maquina expendedora",
+   "palabra_id": "lsrd_2319",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "vending machine [medium confidence]"
+  },
+  {
+   "word": "me agrada",
+   "target_norm": "me gusta",
+   "palabra_id": "lsrd_2324",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "I like it [high confidence]"
+  },
+  {
+   "word": "me encanta",
+   "target_norm": "me gusta",
+   "palabra_id": "lsrd_2324",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "I love it [high confidence]"
+  },
+  {
+   "word": "me fascina",
+   "target_norm": "me gusta",
+   "palabra_id": "lsrd_2324",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "I like it a lot [medium confidence]"
+  },
+  {
+   "word": "es un placer",
+   "target_norm": "mucho gusto",
+   "palabra_id": "lsrd_2329",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "greeting formula [high confidence]"
+  },
+  {
+   "word": "gusto en conocerte",
+   "target_norm": "mucho gusto",
+   "palabra_id": "lsrd_2329",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "greeting formula; multi-word synonym [high confidence]"
+  },
+  {
+   "word": "no hay cuartos",
+   "target_norm": "no hay dinero",
+   "palabra_id": "lsrd_2330",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "Dominican cuartos = money; multi-word synonym [medium confidence]"
+  },
+  {
+   "word": "no hay plata",
+   "target_norm": "no hay dinero",
+   "palabra_id": "lsrd_2330",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "Dominican/Latin American for money; multi-word synonym [high confidence]"
+  },
+  {
+   "word": "sin dinero",
+   "target_norm": "no hay dinero",
+   "palabra_id": "lsrd_2330",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "sans money; multi-word synonym [medium confidence]"
+  },
+  {
+   "word": "da igual",
+   "target_norm": "no importa",
+   "palabra_id": "lsrd_2331",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "formula; multi-word synonym [high confidence]"
+  },
+  {
+   "word": "es igual",
+   "target_norm": "no importa",
+   "palabra_id": "lsrd_2331",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "formula; multi-word synonym [medium confidence]"
+  },
+  {
+   "word": "no pasa nada",
+   "target_norm": "no importa",
+   "palabra_id": "lsrd_2331",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "formula; multi-word synonym [high confidence]"
+  },
+  {
+   "word": "no me agrada",
+   "target_norm": "no me gusta",
+   "palabra_id": "lsrd_2332",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "dislike [high confidence]"
+  },
+  {
+   "word": "de nuevo",
+   "target_norm": "otra vez",
+   "palabra_id": "lsrd_2334",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase; NUEVO is a headword so needs phrase-level mapping; multi-word synonym [medium confidence]"
+  },
+  {
+   "word": "dedito de queso",
+   "target_norm": "palito de queso",
+   "palabra_id": "lsrd_2335",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "DR cheese sticks (phrase) [high confidence]"
+  },
+  {
+   "word": "deditos de queso",
+   "target_norm": "palito de queso",
+   "palabra_id": "lsrd_2335",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "DR cheese sticks plural (phrase) [high confidence]"
+  },
+  {
+   "word": "pop corn",
+   "target_norm": "palomita de maiz",
+   "palabra_id": "lsrd_2336",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "spelling variant [medium confidence]"
+  },
+  {
+   "word": "rositas de maiz",
+   "target_norm": "palomita de maiz",
+   "palabra_id": "lsrd_2336",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "DR for popcorn (phrase) [high confidence]"
+  },
+  {
+   "word": "cabello liso",
+   "target_norm": "pelo lacio",
+   "palabra_id": "lsrd_2337",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "pelo liso",
+   "target_norm": "pelo lacio",
+   "palabra_id": "lsrd_2337",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "cabello rizado",
+   "target_norm": "pelo rizo",
+   "palabra_id": "lsrd_2338",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "pelo crespo",
+   "target_norm": "pelo rizo",
+   "palabra_id": "lsrd_2338",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [medium confidence]"
+  },
+  {
+   "word": "pelo rizado",
+   "target_norm": "pelo rizo",
+   "palabra_id": "lsrd_2338",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "presion sanguinea",
+   "target_norm": "presion arterial",
+   "palabra_id": "lsrd_2346",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [medium confidence]"
+  },
+  {
+   "word": "tension arterial",
+   "target_norm": "presion arterial",
+   "palabra_id": "lsrd_2346",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "phrase [high confidence]"
+  },
+  {
+   "word": "sancochos de habichuelas",
+   "target_norm": "sancocho de habichuelas",
+   "palabra_id": "lsrd_2348",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "plural phrase [medium confidence]"
+  },
+  {
+   "word": "seres humanos",
+   "target_norm": "ser humano",
+   "palabra_id": "lsrd_2350",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "irregular plural phrase [high confidence]"
+  },
+  {
+   "word": "tabla de planchado",
+   "target_norm": "tabla de planchar",
+   "palabra_id": "lsrd_2351",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [medium confidence]"
+  },
+  {
+   "word": "tablas de planchar",
+   "target_norm": "tabla de planchar",
+   "palabra_id": "lsrd_2351",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "plural phrase [high confidence]"
+  },
+  {
+   "word": "a lo mejor",
+   "target_norm": "tal vez",
+   "palabra_id": "lsrd_2352",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word: needs sinonimos_mapeo [high confidence]"
+  },
+  {
+   "word": "tiendas de ropa",
+   "target_norm": "tienda de ropa",
+   "palabra_id": "lsrd_2353",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "plural phrase [high confidence]"
+  },
+  {
+   "word": "toalla higienica",
+   "target_norm": "toalla sanitaria",
+   "palabra_id": "lsrd_2354",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [high confidence]"
+  },
+  {
+   "word": "toallas sanitarias",
+   "target_norm": "toalla sanitaria",
+   "palabra_id": "lsrd_2354",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "plural phrase [high confidence]"
+  },
+  {
+   "word": "placer en conocerte",
+   "target_norm": "un placer conocerte",
+   "palabra_id": "lsrd_2355",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [medium confidence]"
+  },
+  {
+   "word": "un placer conocerle",
+   "target_norm": "un placer conocerte",
+   "palabra_id": "lsrd_2355",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [medium confidence]"
+  },
+  {
+   "word": "un placer conocerlo",
+   "target_norm": "un placer conocerte",
+   "palabra_id": "lsrd_2355",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [medium confidence]"
+  },
+  {
+   "word": "zona libre",
+   "target_norm": "zona franca",
+   "palabra_id": "lsrd_2357",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "multi-word [medium confidence]"
+  },
+  {
+   "word": "zonas francas",
+   "target_norm": "zona franca",
+   "palabra_id": "lsrd_2357",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "plural phrase [high confidence]"
+  },
+  {
+   "word": "testigos de jehova",
+   "target_norm": "testigo de jehova",
+   "palabra_id": "lsrd_2367",
+   "source": "curated-pending-review",
+   "relation": "synonym",
+   "note": "plural phrase [high confidence]"
+  }
+ ]
+}
