@@ -1,0 +1,811 @@
+{
+  "metrics_version": 3,
+  "sentences": 42,
+  "output_tokens": 845,
+  "lexical_tokens": 659,
+  "lexical_coverage": 0.7799,
+  "fingerspelled_tokens": 186,
+  "fingerspelling_rate": 0.2201,
+  "unique_fingerspelled_words": 166,
+  "top_fingerspelled": [
+    {
+      "word": "poder",
+      "count": 8
+    },
+    {
+      "word": "mantener",
+      "count": 3
+    },
+    {
+      "word": "hacer",
+      "count": 3
+    },
+    {
+      "word": "tropical",
+      "count": 2
+    },
+    {
+      "word": "cordillera",
+      "count": 2
+    },
+    {
+      "word": "central",
+      "count": 2
+    },
+    {
+      "word": "antillas",
+      "count": 2
+    },
+    {
+      "word": "temperatura",
+      "count": 2
+    },
+    {
+      "word": "actos",
+      "count": 2
+    },
+    {
+      "word": "nivel",
+      "count": 2
+    },
+    {
+      "word": "ninos",
+      "count": 2
+    },
+    {
+      "word": "entrenador",
+      "count": 2
+    },
+    {
+      "word": "compartida",
+      "count": 1
+    },
+    {
+      "word": "ocupa",
+      "count": 1
+    },
+    {
+      "word": "haiti",
+      "count": 1
+    },
+    {
+      "word": "clima",
+      "count": 1
+    },
+    {
+      "word": "rodeada",
+      "count": 1
+    },
+    {
+      "word": "caribe",
+      "count": 1
+    },
+    {
+      "word": "atlantico",
+      "count": 1
+    },
+    {
+      "word": "yaque",
+      "count": 1
+    },
+    {
+      "word": "recorre",
+      "count": 1
+    },
+    {
+      "word": "cibao",
+      "count": 1
+    },
+    {
+      "word": "pico",
+      "count": 1
+    },
+    {
+      "word": "noche",
+      "count": 1
+    },
+    {
+      "word": "fundada",
+      "count": 1
+    },
+    {
+      "word": "siglo",
+      "count": 1
+    },
+    {
+      "word": "antiguas",
+      "count": 1
+    },
+    {
+      "word": "turistas",
+      "count": 1
+    },
+    {
+      "word": "proclamo",
+      "count": 1
+    },
+    {
+      "word": "patriotas",
+      "count": 1
+    },
+    {
+      "word": "libre",
+      "count": 1
+    },
+    {
+      "word": "soberana",
+      "count": 1
+    },
+    {
+      "word": "celebran",
+      "count": 1
+    },
+    {
+      "word": "desfiles",
+      "count": 1
+    },
+    {
+      "word": "civicos",
+      "count": 1
+    },
+    {
+      "word": "maduros",
+      "count": 1
+    },
+    {
+      "word": "secan",
+      "count": 1
+    },
+    {
+      "word": "locales",
+      "count": 1
+    },
+    {
+      "word": "mamey",
+      "count": 1
+    },
+    {
+      "word": "comunes",
+      "count": 1
+    }
+  ],
+  "oov_words": [
+    "poder",
+    "hacer",
+    "mantener",
+    "actos",
+    "antillas",
+    "central",
+    "cordillera",
+    "entrenador",
+    "ninos",
+    "nivel",
+    "temperatura",
+    "tropical",
+    "2016",
+    "afectaron",
+    "afecto",
+    "aficionados",
+    "agradece",
+    "aguilas cibaenas",
+    "aislados",
+    "alternas",
+    "antiguas",
+    "atlantico",
+    "ayuntamiento",
+    "bajos",
+    "basura",
+    "brasil",
+    "brutal",
+    "calificaciones",
+    "cargado",
+    "caribe",
+    "causas",
+    "celebran",
+    "celebraron",
+    "cibao",
+    "cientos",
+    "ciudadanos",
+    "civicos",
+    "clima",
+    "combustible",
+    "comerciantes",
+    "compartida",
+    "comunes",
+    "conductores",
+    "contra",
+    "correo",
+    "cortes",
+    "cubos",
+    "dengue",
+    "desechos",
+    "desfiles",
+    "discapacidad",
+    "distribuidora",
+    "documento",
+    "electronico",
+    "eliminar",
+    "empresa",
+    "energia",
+    "enriquillo",
+    "entrenaron",
+    "estadio",
+    "estancada",
+    "exceso",
+    "flamencos",
+    "fotos",
+    "fundada",
+    "gano",
+    "gimnasio",
+    "gradas",
+    "grado",
+    "grados",
+    "graves",
+    "haiti",
+    "heridos",
+    "identificacion",
+    "impuestos",
+    "indicaciones",
+    "inmediato",
+    "instrumentos",
+    "internet",
+    "jarabacoa",
+    "junta central electoral",
+    "lago",
+    "libre",
+    "licey",
+    "locales",
+    "maduros",
+    "mamey",
+    "mantenga",
+    "mantiene",
+    "menos",
+    "merengue",
+    "municipal",
+    "municipio",
+    "nadie",
+    "noche",
+    "nubosidad",
+    "obra",
+    "ocupa",
+    "onda",
+    "pasaportes",
+    "patio",
+    "patrimonio",
+    "patriotas",
+    "permitir",
+    "pescadores",
+    "pico",
+    "plasticos",
+    "plazo",
+    "porque",
+    "preferenciales",
+    "prestar",
+    "prevenir",
+    "principales",
+    "proclamo",
+    "programa",
+    "pronosticos",
+    "protege",
+    "proteger",
+    "proxima",
+    "proximas",
+    "proximo",
+    "puntualidad",
+    "rafagas",
+    "reconocido",
+    "recorre",
+    "reducido",
+    "reducir",
+    "reduzcan",
+    "renovar",
+    "repelente",
+    "restablecera",
+    "ritmo",
+    "rival",
+    "rodeada",
+    "rurales",
+    "sacar",
+    "secan",
+    "seleccion",
+    "semifinal",
+    "siglo",
+    "silencio",
+    "soberana",
+    "solicitantes",
+    "subio",
+    "subsidio",
+    "suelen",
+    "suficiente",
+    "suspender",
+    "tigres",
+    "torneo",
+    "total",
+    "tratamiento",
+    "tribunas",
+    "turistas",
+    "tutores",
+    "unesco",
+    "uniforme",
+    "usuarios",
+    "utiles",
+    "vacuna",
+    "vacunacion",
+    "vaina",
+    "veces",
+    "ventajas",
+    "voluntarios",
+    "yaque"
+  ],
+  "fingerspelled_word_rate": 0.2201,
+  "fingerspelled_letters": 1420,
+  "letters_per_lexical_sign": 2.155,
+  "proper_noun_words": 33,
+  "common_words": 812,
+  "fingerspelled_proper_nouns": 19,
+  "fingerspelled_common_words": 167,
+  "common_fingerspelled_word_rate": 0.2057,
+  "proper_fingerspelled_word_rate": 0.5758,
+  "top_fingerspelled_common": [
+    {
+      "word": "poder",
+      "count": 8
+    },
+    {
+      "word": "mantener",
+      "count": 3
+    },
+    {
+      "word": "hacer",
+      "count": 3
+    },
+    {
+      "word": "tropical",
+      "count": 2
+    },
+    {
+      "word": "cordillera",
+      "count": 2
+    },
+    {
+      "word": "temperatura",
+      "count": 2
+    },
+    {
+      "word": "actos",
+      "count": 2
+    },
+    {
+      "word": "nivel",
+      "count": 2
+    },
+    {
+      "word": "ninos",
+      "count": 2
+    },
+    {
+      "word": "entrenador",
+      "count": 2
+    },
+    {
+      "word": "compartida",
+      "count": 1
+    },
+    {
+      "word": "ocupa",
+      "count": 1
+    },
+    {
+      "word": "clima",
+      "count": 1
+    },
+    {
+      "word": "rodeada",
+      "count": 1
+    },
+    {
+      "word": "recorre",
+      "count": 1
+    },
+    {
+      "word": "pico",
+      "count": 1
+    },
+    {
+      "word": "noche",
+      "count": 1
+    },
+    {
+      "word": "fundada",
+      "count": 1
+    },
+    {
+      "word": "siglo",
+      "count": 1
+    },
+    {
+      "word": "antiguas",
+      "count": 1
+    },
+    {
+      "word": "turistas",
+      "count": 1
+    },
+    {
+      "word": "proclamo",
+      "count": 1
+    },
+    {
+      "word": "patriotas",
+      "count": 1
+    },
+    {
+      "word": "libre",
+      "count": 1
+    },
+    {
+      "word": "soberana",
+      "count": 1
+    },
+    {
+      "word": "celebran",
+      "count": 1
+    },
+    {
+      "word": "desfiles",
+      "count": 1
+    },
+    {
+      "word": "civicos",
+      "count": 1
+    },
+    {
+      "word": "maduros",
+      "count": 1
+    },
+    {
+      "word": "secan",
+      "count": 1
+    },
+    {
+      "word": "locales",
+      "count": 1
+    },
+    {
+      "word": "mamey",
+      "count": 1
+    },
+    {
+      "word": "comunes",
+      "count": 1
+    },
+    {
+      "word": "suelen",
+      "count": 1
+    },
+    {
+      "word": "patio",
+      "count": 1
+    },
+    {
+      "word": "lago",
+      "count": 1
+    },
+    {
+      "word": "flamencos",
+      "count": 1
+    },
+    {
+      "word": "porque",
+      "count": 1
+    },
+    {
+      "word": "merengue",
+      "count": 1
+    },
+    {
+      "word": "ritmo",
+      "count": 1
+    }
+  ],
+  "top_fingerspelled_proper": [
+    {
+      "word": "central",
+      "count": 2
+    },
+    {
+      "word": "antillas",
+      "count": 2
+    },
+    {
+      "word": "haiti",
+      "count": 1
+    },
+    {
+      "word": "caribe",
+      "count": 1
+    },
+    {
+      "word": "atlantico",
+      "count": 1
+    },
+    {
+      "word": "yaque",
+      "count": 1
+    },
+    {
+      "word": "cibao",
+      "count": 1
+    },
+    {
+      "word": "enriquillo",
+      "count": 1
+    },
+    {
+      "word": "unesco",
+      "count": 1
+    },
+    {
+      "word": "jarabacoa",
+      "count": 1
+    },
+    {
+      "word": "junta central electoral",
+      "count": 1
+    },
+    {
+      "word": "pasaportes",
+      "count": 1
+    },
+    {
+      "word": "brasil",
+      "count": 1
+    },
+    {
+      "word": "tigres",
+      "count": 1
+    },
+    {
+      "word": "licey",
+      "count": 1
+    },
+    {
+      "word": "aguilas cibaenas",
+      "count": 1
+    },
+    {
+      "word": "pronosticos",
+      "count": 1
+    }
+  ],
+  "fingerspelling_per_sentence": {
+    "mean_rate": 0.2203,
+    "p95_rate": 0.4112,
+    "max_rate": 0.4737,
+    "sentences_with_fingerspelling": 41,
+    "sentences_fully_lexical": 1,
+    "worst_sentences": [
+      {
+        "id": "r032",
+        "rate": 0.4737
+      },
+      {
+        "id": "r009",
+        "rate": 0.4706
+      },
+      {
+        "id": "r033",
+        "rate": 0.4118
+      },
+      {
+        "id": "r001",
+        "rate": 0.4
+      },
+      {
+        "id": "r005",
+        "rate": 0.3636
+      }
+    ]
+  },
+  "match_method_counts": {
+    "exact": 293,
+    "morphology": 241,
+    "fingerspelling": 186,
+    "curated_synonym": 110,
+    "fuzzy": 6,
+    "synonym": 4,
+    "phrase": 4,
+    "number": 1
+  },
+  "match_method_share": {
+    "exact": 0.3467,
+    "morphology": 0.2852,
+    "fingerspelling": 0.2201,
+    "curated_synonym": 0.1302,
+    "fuzzy": 0.0071,
+    "synonym": 0.0047,
+    "phrase": 0.0047,
+    "number": 0.0012
+  },
+  "avg_confidence_by_method": {
+    "curated_synonym": 0.85,
+    "exact": 1.0,
+    "fingerspelling": 0.5012,
+    "fuzzy": 0.8928,
+    "morphology": 0.9,
+    "number": 1.0,
+    "phrase": 0.95,
+    "synonym": 0.9
+  },
+  "avg_confidence": 0.8407,
+  "gold_entries": 0,
+  "gold_lemmas_expected": 0,
+  "gold_lemma_recall": 0.0,
+  "gold_missed_lemmas": {},
+  "gold_content_signs": 0,
+  "gold_lemma_precision": 0.0,
+  "gold_unexpected_signs": {},
+  "gold_order_entries": 0,
+  "gold_order_accuracy": 0.0,
+  "gold_order_pairwise_accuracy": 0.0,
+  "gold_order_failures": [],
+  "by_tag": {
+    "common_only": {
+      "sentences": 24,
+      "output_tokens": 477,
+      "lexical_coverage": 0.7925,
+      "fingerspelling_rate": 0.2075,
+      "mean_sentence_fingerspelling_rate": 0.2053,
+      "avg_confidence": 0.8482,
+      "fingerspelled_word_rate": 0.2075,
+      "fingerspelled_letters": 752,
+      "letters_per_lexical_sign": 1.989,
+      "proper_noun_words": 0,
+      "fingerspelled_proper_nouns": 0,
+      "fingerspelled_common_words": 99,
+      "common_fingerspelled_word_rate": 0.2075
+    },
+    "encyclopedic": {
+      "sentences": 9,
+      "output_tokens": 188,
+      "lexical_coverage": 0.7181,
+      "fingerspelling_rate": 0.2819,
+      "mean_sentence_fingerspelling_rate": 0.2874,
+      "avg_confidence": 0.8137,
+      "fingerspelled_word_rate": 0.2819,
+      "fingerspelled_letters": 375,
+      "letters_per_lexical_sign": 2.778,
+      "proper_noun_words": 16,
+      "fingerspelled_proper_nouns": 11,
+      "fingerspelled_common_words": 42,
+      "common_fingerspelled_word_rate": 0.2442
+    },
+    "government": {
+      "sentences": 5,
+      "output_tokens": 97,
+      "lexical_coverage": 0.7526,
+      "fingerspelling_rate": 0.2474,
+      "mean_sentence_fingerspelling_rate": 0.2486,
+      "avg_confidence": 0.8186,
+      "fingerspelled_word_rate": 0.2474,
+      "fingerspelled_letters": 212,
+      "letters_per_lexical_sign": 2.904,
+      "proper_noun_words": 3,
+      "fingerspelled_proper_nouns": 2,
+      "fingerspelled_common_words": 22,
+      "common_fingerspelled_word_rate": 0.234
+    },
+    "health": {
+      "sentences": 5,
+      "output_tokens": 111,
+      "lexical_coverage": 0.8018,
+      "fingerspelling_rate": 0.1982,
+      "mean_sentence_fingerspelling_rate": 0.1972,
+      "avg_confidence": 0.8554,
+      "fingerspelled_word_rate": 0.1982,
+      "fingerspelled_letters": 161,
+      "letters_per_lexical_sign": 1.809,
+      "proper_noun_words": 0,
+      "fingerspelled_proper_nouns": 0,
+      "fingerspelled_common_words": 22,
+      "common_fingerspelled_word_rate": 0.1982
+    },
+    "local_news": {
+      "sentences": 7,
+      "output_tokens": 142,
+      "lexical_coverage": 0.7887,
+      "fingerspelling_rate": 0.2113,
+      "mean_sentence_fingerspelling_rate": 0.21,
+      "avg_confidence": 0.8377,
+      "fingerspelled_word_rate": 0.2113,
+      "fingerspelled_letters": 245,
+      "letters_per_lexical_sign": 2.188,
+      "proper_noun_words": 3,
+      "fingerspelled_proper_nouns": 1,
+      "fingerspelled_common_words": 29,
+      "common_fingerspelled_word_rate": 0.2086
+    },
+    "proper_nouns": {
+      "sentences": 18,
+      "output_tokens": 368,
+      "lexical_coverage": 0.7636,
+      "fingerspelling_rate": 0.2364,
+      "mean_sentence_fingerspelling_rate": 0.2403,
+      "avg_confidence": 0.8309,
+      "fingerspelled_word_rate": 0.2364,
+      "fingerspelled_letters": 668,
+      "letters_per_lexical_sign": 2.377,
+      "proper_noun_words": 33,
+      "fingerspelled_proper_nouns": 19,
+      "fingerspelled_common_words": 68,
+      "common_fingerspelled_word_rate": 0.203
+    },
+    "school_notice": {
+      "sentences": 4,
+      "output_tokens": 73,
+      "lexical_coverage": 0.8082,
+      "fingerspelling_rate": 0.1918,
+      "mean_sentence_fingerspelling_rate": 0.195,
+      "avg_confidence": 0.8541,
+      "fingerspelled_word_rate": 0.1918,
+      "fingerspelled_letters": 109,
+      "letters_per_lexical_sign": 1.847,
+      "proper_noun_words": 2,
+      "fingerspelled_proper_nouns": 0,
+      "fingerspelled_common_words": 14,
+      "common_fingerspelled_word_rate": 0.1972
+    },
+    "social": {
+      "sentences": 5,
+      "output_tokens": 93,
+      "lexical_coverage": 0.957,
+      "fingerspelling_rate": 0.043,
+      "mean_sentence_fingerspelling_rate": 0.0429,
+      "avg_confidence": 0.9306,
+      "fingerspelled_word_rate": 0.043,
+      "fingerspelled_letters": 21,
+      "letters_per_lexical_sign": 0.236,
+      "proper_noun_words": 2,
+      "fingerspelled_proper_nouns": 0,
+      "fingerspelled_common_words": 4,
+      "common_fingerspelled_word_rate": 0.044
+    },
+    "sports": {
+      "sentences": 4,
+      "output_tokens": 75,
+      "lexical_coverage": 0.68,
+      "fingerspelling_rate": 0.32,
+      "mean_sentence_fingerspelling_rate": 0.3227,
+      "avg_confidence": 0.794,
+      "fingerspelled_word_rate": 0.32,
+      "fingerspelled_letters": 181,
+      "letters_per_lexical_sign": 3.549,
+      "proper_noun_words": 5,
+      "fingerspelled_proper_nouns": 4,
+      "fingerspelled_common_words": 20,
+      "common_fingerspelled_word_rate": 0.2857
+    },
+    "weather": {
+      "sentences": 3,
+      "output_tokens": 66,
+      "lexical_coverage": 0.7727,
+      "fingerspelling_rate": 0.2273,
+      "mean_sentence_fingerspelling_rate": 0.2269,
+      "avg_confidence": 0.8432,
+      "fingerspelled_word_rate": 0.2273,
+      "fingerspelled_letters": 116,
+      "letters_per_lexical_sign": 2.275,
+      "proper_noun_words": 2,
+      "fingerspelled_proper_nouns": 1,
+      "fingerspelled_common_words": 14,
+      "common_fingerspelled_word_rate": 0.2188
+    }
+  },
+  "latency_ms": {
+    "mean": 7.771,
+    "p50": 7.637,
+    "p95": 12.121,
+    "max": 12.941
+  },
+  "avg_ms_per_sentence": 7.771
+}
