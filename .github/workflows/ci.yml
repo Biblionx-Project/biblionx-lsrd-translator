@@ -45,7 +45,7 @@ jobs:
             --max-fingerspelling-rate 0.10 --min-order-accuracy 1.0 --max-p95-ms 500
 
       # Realistic web paragraphs (no gold lemmas). Measured in 2.3.0:
-      # coverage 0.7799, common-word fingerspelling 0.2057. Proper
+      # coverage 0.7763, common-word fingerspelling 0.2094. Proper
       # nouns are legitimately spelled, so only common words are gated; the
       # limits sit slightly above/below the measured values.
       - name: Quality gate (realistic corpus)

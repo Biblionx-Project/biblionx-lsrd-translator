@@ -21,8 +21,9 @@ Dictionary completion: every entry of the official PDF is in the database with i
 - CI gates tightened to just below the 2.3.0 values (precision gate raised, none loosened), see Metrics.
 
 ### Added
-- 1,297 single-word synonyms in `data/synonyms_extra.json` (now 2,271 entries), all `curated-pending-review`, merged with
-  `tools/merge_synonym_proposals.py` (conflict rules covered by `tests/test_synonym_merge.py`). 106 multi-word proposals
+- 1,247 single-word synonyms in `data/synonyms_extra.json` (now 2,221 entries), all `curated-pending-review`, merged with
+  `tools/merge_synonym_proposals.py` (conflict rules covered by `tests/test_synonym_merge.py`). The final review dropped 50
+  more as homographs or meaning shifts (`REVIEW_REJECTED`: e.g. super, evacuar, índice, pacífico, grano, ingreso). 106 multi-word proposals
   wait in `data/synonyms_phrases_pending.json` until they are added to `sinonimos_mapeo`. The five Spanish review sheets in
   `docs/validation/` were regenerated.
 - Dictionary completeness report and reachability rate per alphabet range in `docs/DICTIONARY_GAPS.md`.
@@ -33,25 +34,25 @@ Same corpora, `python scripts/evaluate.py` (saved v2.2.0 runs: `tests/data/after
 
 | Corpus | Measure | 2.2.0 | 2.3.0 | CI gate (was) |
 |---|---|---|---|---|
-| Gold, 134 sentences | lexical coverage | 0.9146 | 0.9146 | >= 0.90 (0.88) |
-| | fingerspelling rate | 0.0854 | 0.0854 | <= 0.10 (0.12) |
+| Gold, 134 sentences | lexical coverage | 0.9146 | 0.9169 | >= 0.90 (0.88) |
+| | fingerspelling rate | 0.0854 | 0.0831 | <= 0.10 (0.12) |
 | | gold lemma recall | 0.9747 | 0.9747 | >= 0.97 (0.95) |
-| | gold lemma precision | 0.9655 | 0.9565 | >= 0.95 (0.93) |
+| | gold lemma precision | 0.9655 | 0.9569 | >= 0.95 (0.93) |
 | | order accuracy | 1.0 | 1.0 | >= 1.0 |
 | | avg ms per sentence | 1.65 | 1.76 | p95 <= 500 |
-| Realistic, 42 paragraphs | lexical coverage | 0.7562 | 0.7799 | >= 0.77 (0.75) |
-| | common-word fingerspelling | 0.2303 | 0.2057 | <= 0.215 (0.235) |
-| | letters per lexical sign | 2.446 | 2.155 | |
-| | fingerspelled words | 206 | 186 | |
+| Realistic, 42 paragraphs | lexical coverage | 0.7562 | 0.7763 | >= 0.77 (0.75) |
+| | common-word fingerspelling | 0.2303 | 0.2094 | <= 0.215 (0.235) |
+| | letters per lexical sign | 2.446 | 2.194 | |
+| | fingerspelled words | 206 | 189 | |
 
-Gold precision is 0.0090 below the saved 2.2.0 run. The extra content signs are "vivo" (2), "comer", "comimos" and "habichuela"
+Gold precision is 0.0086 below the saved 2.2.0 run. The extra content signs are "vivo" (2), "comer", "comimos" and "habichuela"
 (1 each); recall is unchanged.
 
-### Known issues
-- `tests/test_dictionary_recovery.test_ids_are_contiguous` fails because merging split headwords removed rows; it should
-  allow the gaps listed in `id_map`.
-- `test_names_numbers_enye` ("Puerto Plata") fails because `translator._name_signs` ignores synonyms for multi-word names.
-  Both tests also fail on the commit before this release's metric work.
+### Fixed
+- Multi-word proper nouns now also use `sinonimos_mapeo` (names printed inside a headword), so "Puerto Plata" and
+  "Santiago de los Caballeros" reach their province sign; curated synonyms are still never used for names.
+- `test_ids_are_contiguous` allows exactly the gaps recorded in the `id_map` of `data/dictionary_fixes.json`.
+- Second-sign captions stay as printed: pages 39, 41, 43 and 58 print "SEÑA NÚMERO DOS", the rest "SEÑA NUMERO DOS".
 
 ## [2.2.0] - 2026-10-20
 

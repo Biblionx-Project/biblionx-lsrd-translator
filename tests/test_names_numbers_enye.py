@@ -54,7 +54,12 @@ class NameTests(_Base):
 
     def test_names_in_the_dictionary_keep_their_sign(self):
         self.assertIn("SANTO DOMINGO", self.lexical("Vivo en Santo Domingo"))
-        self.assertIn("PUERTO PLATA", self.lexical("Mi amiga vive en Puerto Plata"))
+        # The province headword is printed with its capital in parentheses (PDF p.434)
+        # and is reached through the printed name kept in sinonimos_mapeo.
+        self.assertIn("PUERTO PLATA (SAN FELIPE DE PUERTO PLATA)",
+                      self.lexical("Mi amiga vive en Puerto Plata"))
+        self.assertIn("SANTIAGO (SANTIAGO DE LOS CABALLEROS)",
+                      self.lexical("Vivo en Santiago de los Caballeros"))
 
     def test_capitalized_common_words_keep_their_signs(self):
         out = self.lexical("El Ministerio de Educación abrió la Biblioteca Nacional")

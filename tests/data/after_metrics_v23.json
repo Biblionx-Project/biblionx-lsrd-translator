@@ -2,11 +2,11 @@
   "metrics_version": 3,
   "sentences": 134,
   "output_tokens": 445,
-  "lexical_tokens": 407,
-  "lexical_coverage": 0.9146,
-  "fingerspelled_tokens": 38,
-  "fingerspelling_rate": 0.0854,
-  "unique_fingerspelled_words": 35,
+  "lexical_tokens": 408,
+  "lexical_coverage": 0.9169,
+  "fingerspelled_tokens": 37,
+  "fingerspelling_rate": 0.0831,
+  "unique_fingerspelled_words": 34,
   "top_fingerspelled": [
     {
       "word": "poder",
@@ -34,10 +34,6 @@
     },
     {
       "word": "proximo",
-      "count": 1
-    },
-    {
-      "word": "puerto plata",
       "count": 1
     },
     {
@@ -177,7 +173,6 @@
     "prestar",
     "probrema",
     "proximo",
-    "puerto plata",
     "receta",
     "sed",
     "senas",
@@ -186,15 +181,15 @@
     "sordos",
     "tampoco"
   ],
-  "fingerspelled_word_rate": 0.0854,
-  "fingerspelled_letters": 232,
-  "letters_per_lexical_sign": 0.57,
+  "fingerspelled_word_rate": 0.0831,
+  "fingerspelled_letters": 221,
+  "letters_per_lexical_sign": 0.542,
   "proper_noun_words": 6,
   "common_words": 439,
-  "fingerspelled_proper_nouns": 4,
+  "fingerspelled_proper_nouns": 3,
   "fingerspelled_common_words": 34,
   "common_fingerspelled_word_rate": 0.0774,
-  "proper_fingerspelled_word_rate": 0.6667,
+  "proper_fingerspelled_word_rate": 0.5,
   "top_fingerspelled_common": [
     {
       "word": "poder",
@@ -327,10 +322,6 @@
       "count": 1
     },
     {
-      "word": "puerto plata",
-      "count": 1
-    },
-    {
       "word": "carlos",
       "count": 1
     },
@@ -340,8 +331,8 @@
     }
   ],
   "fingerspelling_per_sentence": {
-    "mean_rate": 0.0851,
-    "p95_rate": 0.3917,
+    "mean_rate": 0.0832,
+    "p95_rate": 0.3333,
     "max_rate": 1.0,
     "sentences_with_fingerspelling": 33,
     "sentences_fully_lexical": 101,
@@ -349,10 +340,6 @@
       {
         "id": "s123",
         "rate": 1.0
-      },
-      {
-        "id": "s041",
-        "rate": 0.5
       },
       {
         "id": "s063",
@@ -365,20 +352,24 @@
       {
         "id": "s105",
         "rate": 0.5
+      },
+      {
+        "id": "s124",
+        "rate": 0.5
       }
     ]
   },
   "match_method_counts": {
-    "exact": 245,
+    "exact": 246,
     "morphology": 125,
-    "fingerspelling": 38,
+    "fingerspelling": 37,
     "curated_synonym": 29,
     "phrase": 8
   },
   "match_method_share": {
-    "exact": 0.5506,
+    "exact": 0.5528,
     "morphology": 0.2809,
-    "fingerspelling": 0.0854,
+    "fingerspelling": 0.0831,
     "curated_synonym": 0.0652,
     "phrase": 0.018
   },
@@ -389,7 +380,7 @@
     "morphology": 0.9,
     "phrase": 0.95
   },
-  "avg_confidence": 0.9185,
+  "avg_confidence": 0.9197,
   "gold_entries": 42,
   "gold_lemmas_expected": 79,
   "gold_lemma_recall": 0.9747,
@@ -397,8 +388,8 @@
     "dia": 1,
     "saber": 1
   },
-  "gold_content_signs": 115,
-  "gold_lemma_precision": 0.9565,
+  "gold_content_signs": 116,
+  "gold_lemma_precision": 0.9569,
   "gold_unexpected_signs": {
     "vivo": 2,
     "comer": 1,
@@ -563,15 +554,15 @@
     "future": {
       "sentences": 17,
       "output_tokens": 58,
-      "lexical_coverage": 0.9655,
-      "fingerspelling_rate": 0.0345,
-      "mean_sentence_fingerspelling_rate": 0.0294,
-      "avg_confidence": 0.9466,
-      "fingerspelled_word_rate": 0.0345,
-      "fingerspelled_letters": 18,
-      "letters_per_lexical_sign": 0.321,
+      "lexical_coverage": 0.9828,
+      "fingerspelling_rate": 0.0172,
+      "mean_sentence_fingerspelling_rate": 0.0147,
+      "avg_confidence": 0.9552,
+      "fingerspelled_word_rate": 0.0172,
+      "fingerspelled_letters": 7,
+      "letters_per_lexical_sign": 0.123,
       "proper_noun_words": 1,
-      "fingerspelled_proper_nouns": 1,
+      "fingerspelled_proper_nouns": 0,
       "fingerspelled_common_words": 1,
       "common_fingerspelled_word_rate": 0.0175,
       "gold_entries": 7,
@@ -583,20 +574,20 @@
     "gold": {
       "sentences": 42,
       "output_tokens": 153,
-      "lexical_coverage": 0.9346,
-      "fingerspelling_rate": 0.0654,
-      "mean_sentence_fingerspelling_rate": 0.0643,
-      "avg_confidence": 0.9291,
-      "fingerspelled_word_rate": 0.0654,
-      "fingerspelled_letters": 60,
-      "letters_per_lexical_sign": 0.42,
+      "lexical_coverage": 0.9412,
+      "fingerspelling_rate": 0.0588,
+      "mean_sentence_fingerspelling_rate": 0.0583,
+      "avg_confidence": 0.9324,
+      "fingerspelled_word_rate": 0.0588,
+      "fingerspelled_letters": 49,
+      "letters_per_lexical_sign": 0.34,
       "proper_noun_words": 3,
-      "fingerspelled_proper_nouns": 2,
+      "fingerspelled_proper_nouns": 1,
       "fingerspelled_common_words": 8,
       "common_fingerspelled_word_rate": 0.0533,
       "gold_entries": 42,
       "gold_lemma_recall": 0.9747,
-      "gold_lemma_precision": 0.9565,
+      "gold_lemma_precision": 0.9569,
       "gold_order_entries": 10,
       "gold_order_accuracy": 1.0
     },
@@ -793,20 +784,20 @@
     "time": {
       "sentences": 29,
       "output_tokens": 98,
-      "lexical_coverage": 0.9694,
-      "fingerspelling_rate": 0.0306,
-      "mean_sentence_fingerspelling_rate": 0.0259,
-      "avg_confidence": 0.9536,
-      "fingerspelled_word_rate": 0.0306,
-      "fingerspelled_letters": 23,
-      "letters_per_lexical_sign": 0.242,
+      "lexical_coverage": 0.9796,
+      "fingerspelling_rate": 0.0204,
+      "mean_sentence_fingerspelling_rate": 0.0172,
+      "avg_confidence": 0.9587,
+      "fingerspelled_word_rate": 0.0204,
+      "fingerspelled_letters": 12,
+      "letters_per_lexical_sign": 0.125,
       "proper_noun_words": 1,
-      "fingerspelled_proper_nouns": 1,
+      "fingerspelled_proper_nouns": 0,
       "fingerspelled_common_words": 2,
       "common_fingerspelled_word_rate": 0.0206,
       "gold_entries": 10,
       "gold_lemma_recall": 1.0,
-      "gold_lemma_precision": 0.9333,
+      "gold_lemma_precision": 0.9355,
       "gold_order_entries": 14,
       "gold_order_accuracy": 1.0
     },
@@ -847,10 +838,10 @@
     }
   },
   "latency_ms": {
-    "mean": 1.764,
-    "p50": 1.207,
-    "p95": 2.821,
-    "max": 70.991
+    "mean": 1.762,
+    "p50": 1.251,
+    "p95": 3.007,
+    "max": 69.861
   },
-  "avg_ms_per_sentence": 1.764
+  "avg_ms_per_sentence": 1.762
 }

@@ -13,6 +13,7 @@ Safety rules, applied in this order (each rejection has a reason code):
   unknown_target       target id is not in palabras
   protected_target     fingerspelling letter, or a sexual-term sign
   never_mapped         word is on the meaning-shift / proper-noun deny list
+  review_rejected      word was rejected in the v2.3 final review (homograph or meaning shift)
   stopword             the word is dropped before lookup (stop word, auxiliary)
   db_headword          the word is already a headword or a sinonimos_mapeo entry
   already_present      the word is already in synonyms_extra.json (never overridden)
@@ -63,6 +64,19 @@ SEXUAL_TARGETS = {"lsrd_2321", "lsrd_2323"}
 NEVER_MAPPED = {"poder", "publico", "publica", "ocupar", "ocupa", "excepto", "america",
                 "caribe", "antillas", "atlantico", "haiti", "puerto", "femenino", "masculino",
                 "permitir", "generar", "fundar", "asociar", "vision"}
+
+# Proposals rejected in the v2.3 final review: homographs or meaning shifts that would
+# show the wrong sign in common text (e.g. 'super' as SUPERMERCADO, 'evacuar' as DEFECAR,
+# 'indice' as the finger, 'pacifico' as TRANQUILO). Removed from synonyms_extra.json too.
+REVIEW_REJECTED = {
+    "agencia", "apto", "apuntar", "ascender", "asfixiar", "basurero", "cesto", "complejo",
+    "concreto", "congestion", "corredor", "creador", "cura", "dependiente", "descompuesto",
+    "dicha", "diferir", "efectivo", "evacuar", "firme", "freidora", "grano", "indice",
+    "ingreso", "instruccion", "interrogar", "junta", "letrado", "mini", "modelar",
+    "monumento", "pacifico", "particular", "penal", "pitillo", "planilla", "precisa",
+    "preciso", "regimen", "rehabilitacion", "revolver", "salon", "sanitario", "simulacion",
+    "singular", "sobretodo", "socio", "super", "tendencia", "titulo",
+}
 
 # A medium-confidence note that mentions one of these describes a relation that
 # is not plain equivalence: size/degree modifiers, hypernyms, homographs,
@@ -165,6 +179,9 @@ def evaluate(proposals, ctx):
             continue
         if word in NEVER_MAPPED:
             rejected.append(("never_mapped", prop))
+            continue
+        if word in REVIEW_REJECTED:
+            rejected.append(("review_rejected", prop))
             continue
         if word in ctx.stop:
             rejected.append(("stopword", prop))

@@ -161,8 +161,8 @@ up to 436, the last page with entries.
   and no review flag.
 - The 48 flagged rows are fields the PDF never prints, mostly the 34 province entries (43 rows have
   no definition and 5 more are flagged for another reason). They stay flagged instead of receiving
-  invented text. Second signs of a headword keep "SEÑA NUMERO DOS" as their definition because
-  that is what is printed; 20 definitions copied from a neighbour were dropped, and APLAUDIR is
+  invented text. Second signs of a headword keep the printed caption ("SEÑA NUMERO DOS", or
+  "SEÑA NÚMERO DOS" on pp. 39, 41, 43 and 58) as their definition because that is what is printed; 20 definitions copied from a neighbour were dropped, and APLAUDIR is
   flagged instead of borrowing the definition of APLAUSO.
 - 37 rows stay in `Sin Categoría` because the PDF prints no category for them.
 
@@ -187,21 +187,22 @@ were checked for regressions with a before/after diff of the lemmatizer, not re-
 
 The 287 forms still unreachable are mostly verb and noun pairs that need sentence context (ABORTAR
 and ABORTO, CUENTA), words with a tilde on the n, stopwords the engine drops, and headwords with a
-qualifier in parentheses. Words that have no entry in the PDF were handled separately: 1,297
-single-word synonyms were added to `data/synonyms_extra.json` (now 2,271 entries, all
+qualifier in parentheses. Words that have no entry in the PDF were handled separately: 1,247
+single-word synonyms were added to `data/synonyms_extra.json` (now 2,221 entries, all
 `curated-pending-review`) and 106 multi-word proposals wait in `data/synonyms_phrases_pending.json`
 until a database owner adds them to `sinonimos_mapeo`. 177 proposals were rejected for conflicts,
-a tilde mismatch, meaning shifts or inflections of another headword.
+a tilde mismatch, meaning shifts or inflections of another headword, and the final review
+dropped 50 more homographs (for example super, evacuar, índice, grano, ingreso).
 
 ### Effect on the evaluation
 
 | Corpus | Measure | 2.2.0 | 2.3.0 |
 |---|---|---|---|
-| Gold (134 sentences) | lexical coverage | 0.9146 | 0.9146 |
+| Gold (134 sentences) | lexical coverage | 0.9146 | 0.9169 |
 | Gold | lemma recall | 0.9747 | 0.9747 |
-| Gold | lemma precision | 0.9655 | 0.9565 |
-| Realistic (42 paragraphs) | lexical coverage | 0.7562 | 0.7799 |
-| Realistic | common-word fingerspelling | 0.2303 | 0.2057 |
+| Gold | lemma precision | 0.9655 | 0.9569 |
+| Realistic (42 paragraphs) | lexical coverage | 0.7562 | 0.7763 |
+| Realistic | common-word fingerspelling | 0.2303 | 0.2094 |
 
 ## Known data issues left
 

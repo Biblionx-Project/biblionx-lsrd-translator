@@ -8,7 +8,7 @@
   "delete_divider: a row made from a letter-divider page; references move to the letter's own sign, then the row is deleted.",
   "add_synonym: a name printed inside a merged headword becomes a sinonimos_mapeo entry.",
   "flag: the PDF itself lacks the field; the row keeps requiere_revision=1.",
-  "Second-sign rows keep the printed caption 'SEÑA NUMERO DOS' as definition; their category is inherited from the first sign (note on each op)."
+  "Second-sign rows keep the printed caption ('SEÑA NUMERO DOS', or 'SEÑA NÚMERO DOS' on pp.39, 41, 43, 58) as definition; their category is inherited from the first sign (note on each op)."
  ],
  "ops": [
   {
@@ -242,9 +242,9 @@
    "id": "lsrd_0075",
    "field": "definicion_es",
    "old": "",
-   "new": "SEÑA NUMERO DOS",
+   "new": "SEÑA NÚMERO DOS",
    "evidence": "PDF p.39: \"SEÑA NÚMERO DOS\" printed under AGENDA/AGENDAR (same caption convention as lsrd_0076, 0084, 0098)",
-   "note": "caption printed in the definition slot of a second sign (PDF prints 'SEÑA NUMERO DOS')",
+   "note": "caption printed in the definition slot of a second sign, kept as printed (pp.39, 41, 43 and 58 accent NÚMERO; the other pages print 'SEÑA NUMERO DOS')",
    "source": "audit_part_01"
   },
   {
@@ -4725,42 +4725,6 @@
    "id": "lsrd_2364",
    "source": "apply_review",
    "reason": "PDF p.422 (NOMBRES HISTÓRICOS E INSTITUCIONES) prints MATÍAS RAMÓN MELLA with the category 'Nombre' and the movement description only: no definition."
-  },
-  {
-   "op": "update",
-   "id": "lsrd_0076",
-   "field": "definicion_es",
-   "old": "SEÑA NÚMERO DOS",
-   "new": "SEÑA NUMERO DOS",
-   "source": "apply_review",
-   "evidence": "the PDF prints the second-sign caption as 'SEÑA NUMERO DOS' (46 occurrences in the text layer, none accented)"
-  },
-  {
-   "op": "update",
-   "id": "lsrd_0084",
-   "field": "definicion_es",
-   "old": "SEÑA NÚMERO DOS",
-   "new": "SEÑA NUMERO DOS",
-   "source": "apply_review",
-   "evidence": "the PDF prints the second-sign caption as 'SEÑA NUMERO DOS' (46 occurrences in the text layer, none accented)"
-  },
-  {
-   "op": "update",
-   "id": "lsrd_0098",
-   "field": "definicion_es",
-   "old": "SEÑA NÚMERO DOS",
-   "new": "SEÑA NUMERO DOS",
-   "source": "apply_review",
-   "evidence": "the PDF prints the second-sign caption as 'SEÑA NUMERO DOS' (46 occurrences in the text layer, none accented)"
-  },
-  {
-   "op": "update",
-   "id": "lsrd_0202",
-   "field": "definicion_es",
-   "old": "SEÑA NÚMERO DOS",
-   "new": "SEÑA NUMERO DOS",
-   "source": "apply_review",
-   "evidence": "the PDF prints the second-sign caption as 'SEÑA NUMERO DOS' (46 occurrences in the text layer, none accented)"
   },
   {
    "op": "update",

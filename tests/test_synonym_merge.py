@@ -103,6 +103,12 @@ class MergeRuleTests(unittest.TestCase):
         self.assertEqual(sorted(r for r, _w in rej),
                          ["never_mapped", "protected_target", "protected_target", "unknown_target"])
 
+    def test_review_rejected_homographs_are_dropped(self):
+        singles, _p, rej = self.evaluate(prop("super", "lsrd_0101", "bolsa"),
+                                         prop("evacuar", "lsrd_0101", "bolsa"))
+        self.assertEqual(singles, {})
+        self.assertEqual({r for r, _w in rej}, {"review_rejected"})
+
     def test_enye_target_needs_enye_in_the_typed_word(self):
         singles, _p, rej = self.evaluate(
             prop("chico", "lsrd_0103", "nino"),                 # typed without n-tilde: translator rejects
@@ -256,6 +262,7 @@ class MergedDataTests(unittest.TestCase):
                     self.assertNotIn(e["word"], heads)
                     self.assertNotIn(e["word"], stop)
                     self.assertNotIn(e["word"], msp.NEVER_MAPPED)
+                    self.assertNotIn(e["word"], msp.REVIEW_REJECTED)
 
     def test_pending_entries_are_documented(self):
         pending = [e for e in self.entries if e["source"] == msp.SOURCE]

@@ -133,8 +133,14 @@ class DictionaryIntegrityTests(unittest.TestCase):
                                         "(SELECT id FROM palabras)"), [])
 
     def test_ids_are_contiguous(self):
+        # Rows merged or deleted by data/dictionary_fixes.json leave gaps, recorded
+        # in its id_map (old id -> surviving id); no other gap is allowed.
+        with open(os.path.join(_common.ROOT, "data", "dictionary_fixes.json"),
+                  encoding="utf-8") as fh:
+            removed = {int(pid.split("_")[1]) for pid in json.load(fh)["id_map"]}
         nums = sorted(int(pid.split("_")[1]) for (pid,) in self.q("SELECT id FROM palabras"))
-        self.assertEqual(nums, list(range(1, len(nums) + 1)))
+        self.assertEqual(sorted(set(nums) | removed), list(range(1, max(nums) + 1)))
+        self.assertEqual(set(nums) & removed, set())
 
     def test_norm_matches_spelling(self):
         bad = [(es, norm) for es, norm in self.q("SELECT palabra_es, palabra_norm FROM palabras")
