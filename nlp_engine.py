@@ -38,6 +38,8 @@ LSRD_STOP_WORDS = {
     # muy, todo, otro): dropping them would delete real content.
     # Object clitics: LSRD marks the argument with direction/pointing, not a sign.
     'lo', 'le', 'les', 'os',
+    # Preposition with no sign; it used to fuzzy-match NOSOTROS, TRAS.
+    'tras',
     # One-letter function words. The dictionary has them only as letters of the
     # fingerspelling alphabet (A, Y, O, E, U), not as words, so keeping them
     # showed the letter sign for the preposition "a" or the conjunction "y".

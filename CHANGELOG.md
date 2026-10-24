@@ -49,6 +49,8 @@ Gold precision is 0.0086 below the saved 2.2.0 run. The extra content signs are 
 (1 each); recall is unchanged.
 
 ### Fixed
+- Fuzzy matching indexed the gender suffix of headwords ('da', 'ra', 'tras') as words, so the preposition
+  "tras" became NOSOTROS, TRAS. Suffixes now only produce the feminine form ('nosotras'); "tras" is a stopword.
 - Multi-word proper nouns now also use `sinonimos_mapeo` (names printed inside a headword), so "Puerto Plata" and
   "Santiago de los Caballeros" reach their province sign; curated synonyms are still never used for names.
 - `test_ids_are_contiguous` allows exactly the gaps recorded in the `id_map` of `data/dictionary_fixes.json`.
