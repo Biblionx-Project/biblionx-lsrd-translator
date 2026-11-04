@@ -54,11 +54,11 @@
   var reqId = 0;
   function translate() {
     var texto = input.value.trim();
-    if (!texto) { setStatus('Please enter some text to translate.', true); input.focus(); return; }
+    if (!texto) { setStatus('Escribe un texto para traducir.', true); input.focus(); return; }
     var my = ++reqId;
     stop();
     $('submit').disabled = true;
-    setStatus('Translating…');
+    setStatus('Traduciendo…');
     fetch('/api/v1/translate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -66,12 +66,12 @@
     }).then(function (r) {
       if (r.status === 429) {
         var ra = parseInt(r.headers.get('Retry-After'), 10);
-        throw new Error(ra > 0 ? 'Too many requests. Please retry in ' + ra + ' second' + (ra === 1 ? '' : 's') + '.'
-                               : 'Too many requests. Please wait a moment and try again.');
+        throw new Error(ra > 0 ? 'Demasiadas solicitudes. Vuelve a intentarlo en ' + ra + ' segundo' + (ra === 1 ? '' : 's') + '.'
+                               : 'Demasiadas solicitudes. Espera un momento y vuelve a intentarlo.');
       }
       return r.json().catch(function () { return {}; }).then(function (d) {
-        if (r.status >= 500) throw new Error('The server had a problem (HTTP ' + r.status + '). Please try again shortly.');
-        if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+        if (r.status >= 500) throw new Error('El servidor tuvo un problema (HTTP ' + r.status + '). Inténtalo de nuevo en unos minutos.');
+        if (!r.ok) throw new Error('la solicitud no es válida (HTTP ' + r.status + ').');
         return d;
       });
     }).then(function (data) {
@@ -80,7 +80,7 @@
     }).catch(function (err) {
       if (my !== reqId) return;
       result.hidden = true;
-      setStatus(err instanceof TypeError ? 'Could not reach the server. Check your connection.' : 'Could not translate: ' + err.message, true);
+      setStatus(err instanceof TypeError ? 'No se pudo conectar con el servidor. Revisa tu conexión.' : 'No se pudo traducir: ' + err.message, true);
     }).then(function () { if (my === reqId) $('submit').disabled = false; });
   }
 
@@ -91,7 +91,8 @@
     if (/fuzzy|approx|levenshtein|similar/.test(m)) return 'fuzzy';
     return 'exact';
   }
-  var BADGE = { spell: 'Fingerspelling', fuzzy: 'Fuzzy', ai: 'AI' };
+  var BADGE = { spell: 'Deletreo', fuzzy: 'Aproximada', ai: 'IA' };
+  var METHOD = { exact: 'Exacta', number: 'Número', phrase: 'Frase', morphology: 'Morfología', synonym: 'Sinónimo', curated_synonym: 'Sinónimo curado', fuzzy: 'Aproximada', ai: 'IA', fingerspelling: 'Deletreo' };
   function label(it) { return it.es_deletreo ? (it.letra || '?') : (it.palabra_es || '?'); }
   function confText(it) {
     return typeof it.confidence === 'number' ? ' (' + Math.round(it.confidence * 100) + '%)' : '';
@@ -136,7 +137,7 @@
     state.items = items; state.idx = 0;
     if (!items.length) {
       state.groups = []; state.gof = [];
-      result.hidden = true; setStatus('No signs found for this text.', true); return;
+      result.hidden = true; setStatus('No se encontraron señas para este texto.', true); return;
     }
     groupItems(items);
     var groups = state.groups;
@@ -155,18 +156,18 @@
         s.className = 'badge ' + k; s.textContent = BADGE[k];
         b.appendChild(s);
       }
-      var aria = 'Sign ' + (gi + 1) + ' of ' + groups.length + ': ' + name;
-      if (g.spelled) aria += ', fingerspelled word, ' + g.letters.length + ' letter' + (g.letters.length === 1 ? '' : 's');
-      else if (k === 'fuzzy') aria += ', approximate match';
-      else if (k === 'ai') aria += ', AI match';
+      var aria = 'Seña ' + (gi + 1) + ' de ' + groups.length + ': ' + name;
+      if (g.spelled) aria += ', palabra deletreada, ' + g.letters.length + ' letra' + (g.letters.length === 1 ? '' : 's');
+      else if (k === 'fuzzy') aria += ', coincidencia aproximada';
+      else if (k === 'ai') aria += ', coincidencia por IA';
       b.setAttribute('aria-label', aria);
       b.addEventListener('click', function () { stop(); show(g.start); });
       li.appendChild(b); tl.appendChild(li);
     });
     result.hidden = false;
     var spelledN = groups.filter(function (g) { return g.spelled; }).length;
-    setStatus(groups.length + ' sign' + (groups.length === 1 ? '' : 's') + ' found' +
-      (spelledN ? ' (' + spelledN + ' fingerspelled word' + (spelledN === 1 ? '' : 's') + ')' : '') + '.');
+    setStatus(groups.length + (groups.length === 1 ? ' seña encontrada' : ' señas encontradas') +
+      (spelledN ? ' (' + spelledN + (spelledN === 1 ? ' palabra deletreada' : ' palabras deletreadas') + ')' : '') + '.');
     show(0);
   }
 
@@ -181,11 +182,11 @@
     function showCard() {
       img.hidden = true; img.removeAttribute('src');
       $('fbWord').textContent = label(it);
-      $('fbDesc').textContent = desc || 'No movement description available.';
+      $('fbDesc').textContent = desc || 'No hay descripción del movimiento disponible.';
       fb.hidden = false;
     }
     if (src) {
-      img.alt = g.spelled ? 'Fingerspelled letter ' + label(it) + ' of ' + g.word : 'Sign for ' + label(it);
+      img.alt = g.spelled ? 'Letra deletreada ' + label(it) + ' de ' + g.word : 'Seña para ' + label(it);
       fb.hidden = true; img.hidden = false;
       img.onerror = showCard;
       img.src = src;
@@ -199,7 +200,7 @@
         sw.appendChild(sp);
       });
       sw.setAttribute('aria-hidden', 'true');
-      note.textContent = g.word + ' — fingerspelled (no sign in the official dictionary)';
+      note.textContent = g.word + ' — palabra deletreada (no hay seña en el diccionario oficial)';
       note.hidden = false;
     } else {
       sw.textContent = label(it);
@@ -207,14 +208,14 @@
       note.textContent = ''; note.hidden = true;
     }
     $('stagePos').textContent = (gi + 1) + ' / ' + state.groups.length +
-      (g.spelled ? ' · letter ' + (pos + 1) + ' of ' + g.letters.length : '');
+      (g.spelled ? ' · letra ' + (pos + 1) + ' de ' + g.letters.length : '');
     var k = kind(it), bd = $('stageBadge');
     bd.hidden = !BADGE[k]; bd.className = 'badge ' + k; bd.textContent = BADGE[k] || '';
-    $('dDesc').textContent = desc || 'No description available.';
-    $('dPage').textContent = it.pagina != null && it.pagina !== '' ? 'Page ' + it.pagina : '-';
+    $('dDesc').textContent = desc || 'No hay descripción disponible.';
+    $('dPage').textContent = it.pagina != null && it.pagina !== '' ? 'Página ' + it.pagina : '-';
     $('dCat').textContent = it.categoria || '-';
-    $('dMatch').textContent = it.es_deletreo ? 'Fingerspelling' :
-      (it.match_method ? it.match_method + confText(it) : 'Exact dictionary match');
+    $('dMatch').textContent = it.es_deletreo ? 'Deletreo' :
+      (it.match_method ? (METHOD[it.match_method] || it.match_method) + confText(it) : 'Coincidencia exacta en el diccionario');
     var cur = $('timeline').querySelectorAll('.tl');
     for (var j = 0; j < cur.length; j++) {
       if (j === gi) cur[j].setAttribute('aria-current', 'true'); else cur[j].removeAttribute('aria-current');
@@ -237,7 +238,7 @@
     state.playing = p;
     var b = $('play');
     b.textContent = p ? '⏸' : '▶';
-    b.setAttribute('aria-label', p ? 'Pause' : 'Play');
+    b.setAttribute('aria-label', p ? 'Pausar' : 'Reproducir');
     b.setAttribute('aria-pressed', String(p));
   }
   function stop() { clearTimeout(state.timer); setPlaying(false); }
