@@ -1,58 +1,56 @@
 <!doctype html>
-<html lang="en" data-theme="auto">
+<html lang="es" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Biblionx LSRD Translator</title>
-<meta name="description" content="Translate Dominican Spanish text into Dominican Sign Language (LSRD).">
+<title>Biblionx Traductor LSRD</title>
+<meta name="description" content="Traductor de texto en español dominicano a la Lengua de Señas Dominicana (LSRD).">
 <meta name="color-scheme" content="light dark">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<a class="skip" href="#input">Skip to translator</a>
+<a class="skip" href="#input">Ir al traductor</a>
 
 <header class="hero">
-  <nav class="topbar" aria-label="Main">
-    <span class="brand"><span class="brand-mark" aria-hidden="true">B</span>Biblionx</span>
-    <button id="themeToggle" class="btn ghost icon" type="button" aria-label="Toggle color theme" aria-pressed="false">
+  <nav class="topbar" aria-label="Principal">
+    <h1 class="brand"><span class="brand-mark" aria-hidden="true">B</span>Biblionx <span class="grad">Traductor LSRD</span></h1>
+    <button id="themeToggle" class="btn ghost icon" type="button" aria-label="Cambiar tema de color" aria-pressed="false">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9c0-.5 0-1-.1-1.4A5.5 5.5 0 0 1 12.4 3.1C12.3 3 12.1 3 12 3z"/></svg>
     </button>
   </nav>
-  <div class="hero-body">
-    <p class="eyebrow">Dominican Sign Language</p>
-    <h1>Biblionx <span class="grad">LSRD Translator</span></h1>
-    <p class="lede">Type a sentence in Dominican Spanish and see it as a sequence of LSRD signs, with movement descriptions and dictionary references.</p>
-  </div>
 </header>
 
 <main>
+  <div class="input-col">
   <section class="card composer" aria-labelledby="inputLabel">
     <form id="form" novalidate>
-      <label id="inputLabel" for="input" class="label">Spanish text</label>
+      <label id="inputLabel" for="input" class="label">Texto en español</label>
       <textarea id="input" rows="3" maxlength="500" placeholder="Escribe una frase en español…" lang="es" spellcheck="true"></textarea>
       <div class="row">
-        <span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to translate <span id="count" aria-hidden="true">0/500</span></span>
+        <span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> para traducir <span id="count" aria-hidden="true">0/500</span></span>
         <span class="actions">
-          <button type="button" id="clear" class="btn ghost">Clear</button>
-          <button type="submit" id="submit" class="btn primary">Translate</button>
+          <button type="button" id="clear" class="btn ghost">Limpiar</button>
+          <button type="submit" id="submit" class="btn primary">Traducir</button>
         </span>
       </div>
     </form>
-    <div class="examples" role="group" aria-label="Example sentences">
-      <span class="label small">Try an example</span>
+    <div class="examples" role="group" aria-label="Frases de ejemplo">
+      <span class="label small">Prueba un ejemplo</span>
       <div id="chips" class="chips"></div>
     </div>
   </section>
 
   <p id="status" class="status" role="status" aria-live="polite"></p>
+  </div>
 
-  <section id="result" class="result" hidden aria-label="Translation result">
+  <div class="output-col">
+  <section id="result" class="result" hidden aria-label="Resultado de la traducción">
     <div class="card stage-card">
       <div class="stage" id="stage">
         <img id="stageImg" alt="" decoding="async">
-        <div id="stageFallback" class="stage-fallback" role="group" aria-label="Text card for this sign" hidden>
+        <div id="stageFallback" class="stage-fallback" role="group" aria-label="Tarjeta de texto para esta seña" hidden>
           <p id="fbWord" class="fb-word"></p>
-          <p class="fb-note">Image not available</p>
+          <p class="fb-note">Imagen no disponible</p>
           <p id="fbDesc" class="fb-desc" lang="es"></p>
         </div>
         <span id="stageBadge" class="badge" hidden></span>
@@ -62,11 +60,11 @@
         <div id="stagePos" class="muted">0 / 0</div>
       </div>
       <p id="stageNote" class="stage-note muted" hidden></p>
-      <div class="controls" role="group" aria-label="Player controls">
-        <button id="prev" class="btn icon" type="button" aria-label="Previous sign">&#9198;</button>
-        <button id="play" class="btn primary icon big" type="button" aria-label="Play" aria-pressed="false">&#9654;</button>
-        <button id="next" class="btn icon" type="button" aria-label="Next sign">&#9197;</button>
-        <label class="speed">Speed
+      <div class="controls" role="group" aria-label="Controles del reproductor">
+        <button id="prev" class="btn icon" type="button" aria-label="Seña anterior">&#9198;</button>
+        <button id="play" class="btn primary icon big" type="button" aria-label="Reproducir" aria-pressed="false">&#9654;</button>
+        <button id="next" class="btn icon" type="button" aria-label="Seña siguiente">&#9197;</button>
+        <label class="speed">Velocidad
           <select id="speed">
             <option value="0.5">0.5x</option>
             <option value="1" selected>1x</option>
@@ -79,34 +77,36 @@
 
     <div class="side">
       <div class="card">
-        <h2>Gloss timeline</h2>
-        <ol id="timeline" class="timeline" aria-label="LSRD sign sequence"></ol>
+        <h2>Secuencia de glosas</h2>
+        <ol id="timeline" class="timeline" aria-label="Secuencia LSRD"></ol>
         <p class="legend muted">
-          <span class="badge spell">Fingerspelling</span>
-          <span class="badge fuzzy">Fuzzy</span>
-          <span class="badge ai">AI</span>
+          <span class="badge spell">Deletreo</span>
+          <span class="badge fuzzy">Aproximada</span>
+          <span class="badge ai">IA</span>
         </p>
         <details id="nlpBox" class="nlp">
-          <summary>NLP analysis</summary>
-          <p class="label small">LSRD sequence</p>
+          <summary>Análisis PLN</summary>
+          <p class="label small">Secuencia LSRD</p>
           <p id="nlpSeq" class="mono"></p>
         </details>
       </div>
       <div class="card">
-        <h2>Sign details</h2>
+        <h2>Detalles de la seña</h2>
         <dl class="details">
-          <dt>Movement description</dt><dd id="dDesc" lang="es">-</dd>
-          <dt>Dictionary page</dt><dd id="dPage">-</dd>
-          <dt>Category</dt><dd id="dCat" lang="es">-</dd>
-          <dt>Match</dt><dd id="dMatch">-</dd>
+          <dt>Descripción del movimiento</dt><dd id="dDesc" lang="es">-</dd>
+          <dt>Página del diccionario</dt><dd id="dPage">-</dd>
+          <dt>Categoría</dt><dd id="dCat" lang="es">-</dd>
+          <dt>Coincidencia</dt><dd id="dMatch">-</dd>
         </dl>
       </div>
     </div>
   </section>
+  <p class="placeholder muted">La traducción en señas aparecerá aquí.</p>
+  </div>
 </main>
 
 <footer class="footer">
-  <p>Biblionx Project</p>
+  <p>Proyecto Biblionx</p>
 </footer>
 <script src="app.js"></script>
 </body>
